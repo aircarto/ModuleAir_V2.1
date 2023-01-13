@@ -1,4 +1,6 @@
-# ModuleAir V2
+# ModuleAir V2.1
+
+![image](https://aircarto.fr/images/ModuleAir_InstaWhite.jpg)
 
 More information on Aircarto.fr
 
