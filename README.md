@@ -7,7 +7,7 @@ More information on Aircarto.fr
 ## Supported sensors
 * Nova PM SDS011
 * Groupe Tera NextPM
-* SGP40
+* CCS811
 * MH-Z16
 * MH-Z19
 * BME280
