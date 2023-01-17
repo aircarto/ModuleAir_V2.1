@@ -100,8 +100,11 @@ Copy the content of the glcdfont_mod.c file in the Fonts folder and paste it in 
 
 ## Pin mapping
 
+![pin_Mapping](https://moduleair.fr/img/ConnectionsModuleAirV2.jpg)
+
 You can find the main pin mapping for each board in the ext_def.h file.
 THe pin mapping for the LoRaWAN module is in the file moduleair.cpp under the Helium/TTN LoRaWAN comment.
+
 
 ## Configuration
 
