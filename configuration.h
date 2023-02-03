@@ -4,12 +4,12 @@ bool online_acces = false;
 
 // Fill with values from 1 to 6 and 0 if no display
 
-const int cfg_logo_moduleair = 3;
+const int cfg_logo_moduleair = 1;
 const int cfg_logo_aircarto = 2;
-const int cfg_logo_atmo = 1;
+const int cfg_logo_atmo = 0;
 const int cfg_logo_region = 0;
-const int cfg_logo_custom1 = 0; //logo Air et Moi
-const int cfg_logo_custom2 = 0; //logo 50 ans AtmoSud
+const int cfg_logo_custom1 = 0; //see logos-custom.h
+const int cfg_logo_custom2 = 0; 
 
 // Select the screens to be displayed
 

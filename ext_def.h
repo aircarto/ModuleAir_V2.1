@@ -2,8 +2,8 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "luftdaten";
-const char WLANPWD[] PROGMEM = "luftd4ten";
+const char WLANSSID[] PROGMEM = "ModuleAir";
+const char WLANPWD[] PROGMEM = "ModuleAir";
 
 
 #define TIME_FOR_WIFI_CONFIG 120000;
@@ -20,9 +20,9 @@ const char WWW_PASSWORD[] PROGMEM = "";
 
 #define HAS_WIFI 1
 #define HAS_LORA 0
-const char APPEUI[] = "000";
-const char DEVEUI [] = "000";
-const char APPKEY[] = "000";
+const char APPEUI[] = "6081F9538B15F28B";
+const char DEVEUI [] = "6081F9FAF602861A";
+const char APPKEY[] = "134DE7004026CFE847A6D97A4516CEC6";
 
 // Where to send the data?
 #define SEND2SENSORCOMMUNITY 0
@@ -288,7 +288,7 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 
 // SGP40, COV Sensor
 
-#define CCS811_READ 1
+#define CCS811_READ 0
 // #define CCS811_API_PIN X
 
 //Location
