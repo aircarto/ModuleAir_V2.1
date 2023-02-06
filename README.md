@@ -36,6 +36,7 @@ Attention: some Matrix Panels are not the same and colors can be mixed up, need 
 * sensirion/Sensirion Core@^0.6.0
 * mcci-catena/MCCI LoRaWAN LMIC library@^4.1.1
 * ThingPulse/ESP8266 and ESP32 OLED driver for SSD1306 displays @ ^4.2.1
+*  maarten-pennings/CCS811 @ ^12.0.0
 
 And the ESP32 platform librairies:
 * Wire
@@ -59,7 +60,7 @@ The .ini file should be able to get all the needed boards, platforms and librari
 
 ## Library changes
 
-To force the use of both the SPIs on the ESP32, the SPI library and the PXMatrix librar has to be corrected a bit.
+To force the use of both the SPIs on the ESP32, the SPI library and the PXMatrix library has to be corrected a bit.
 
 **SPI.cpp**
 
@@ -126,7 +127,7 @@ If the checkbox "WiFi transmission" is not checked, the station will stay in AP 
 If the checkbox "WiFi transmission" is checked, the sensor will be always accessible through your router with an IP addess : 192.168.<0 or more>.<100, 101, 102…>. In that case the data streams will use WiFi and not LoRaWAN (even if it is checked).
 
 ## LoRaWAN payload
-The payload consists in a 30 bytes (declared as a 31 according to the LMIC library) array.
+The payload consists in a 37 bytes (declared as a 38 according to the LMIC library) array.
 
 The value are initialised for the first uplink at the end of the void setup() which is send according to the LMIC library examples.
 
@@ -137,9 +138,12 @@ The value are initialised for the first uplink at the end of the void setup() wh
 0xff, 0xff, npm PM10 = -1
 0xff, 0xff, npm PM2.5 = -1
 0xff, 0xff, npm PM1 = -1
+0xff, 0xff, npm_nc PM10 = -1
+0xff, 0xff, npm_nc PM2.5 = -1
+0xff, 0xff, npm_nc PM1 = -1
 0xff, 0xff, mhz16 CO2 = -1
 0xff, 0xff, mhz19 CO2 -1
-0xff, 0xff, sgp40 OVC = -1
+0xff, 0xff, ccs811 OVC = -1
 0x80, bme temp = -128
 0xff, bme rh = -1
 0xff, 0xff, bme press = -1
@@ -150,7 +154,7 @@ The value are initialised for the first uplink at the end of the void setup() wh
 
 Those default values will be replaced during the normal use of the station according to the selected sensors.
 
-The first byte is the configuation summary, representeed as an array of 0/1 for false/true:
+The first byte is the configuation summary, representeed as an array of 0/1 bits for false/true:
 
 ```
 configlorawan[0] = cfg::sds_read;
@@ -158,23 +162,23 @@ configlorawan[1] = cfg::npm_read;
 configlorawan[2] = cfg::bmx280_read;
 configlorawan[3] = cfg::mhz16_read;
 configlorawan[4] = cfg::mhz19_read;
-configlorawan[5] = cfg::sgp40_read;
+configlorawan[5] = cfg::ccs811_read;
 configlorawan[6] = cfg::display_forecast;
 configlorawan[7] = cfg::has_wifi;
 ```
 
-It produce single byte which will have to be decoded on server side.
+It produces a single byte which will have to be decoded on server side.
 
 For example:
 
 10101110 (binary) = 0xAE (hexbyte) =174 (decimal)
-The station as a SDS011, a BME280, a MH-Z19, a SGP40, the forecast are activated, the WiFi is not activated.
+The station as a SDS011, a BME280, a MH-Z19, a CCS811, the forecast are activated, the WiFi is not activated.
 
-The LoRaWAN server has to get the forecast data and transmit by downlink. Because the WiFi is not activated the uplink sensor data has to be sent to the databases.
+The LoRaWAN server has to get the forecast data and transmit by downlink. Because the WiFi is not activated, the uplink sensor data has to be sent to the databases.
 
-If wifi is activated it is useless to decode the uplinks and transmit some downlinks because everything is already done though API calls and POST requests.
+If the WiFi is activated, it is useless to decode the uplinks and transmit some downlinks because everything is already done though API calls and POST requests.
 
-The last byte is a selector which tells the LoRaWAN server which kind of downlink values it should transmit (AQ index, NO2, O3, PM10, PM2.5 from the AtmoSud API). 5 downlinks will be sent each day.
+The last byte is a selector which tells the LoRaWAN server which kind of downlink value it should transmit (AQ index, NO2, O3, PM10, PM2.5 from the AtmoSud API). 5 downlinks will be sent each day.
 
 ## WiFi payload
 
@@ -219,7 +223,7 @@ if (view1.getUint8(0) < 0 || view1.getUint8(0) > 255 || view1.getUint8(0) % 1 !=
       throw new Error(byte+ " does not fit in a byte");
   }
   
-return {"configuration":("000000000" + view1.getUint8(0).toString(2)).substr(-8),"PM1_SDS":view2.getInt16(1).toString(),"PM2_SDS":view2.getInt16(3).toString(),"PM0_NPM":view1.getInt16(5).toString(),"PM1_NPM":view1.getInt16(7).toString(),"PM2_NPM":view1.getInt16(9).toString(),"N1_NPM":view1.getInt16(11).toString(),"N10_NPM":view1.getInt16(13).toString(),"N25_NPM":view1.getInt16(15).toString(),"CO2_MHZ16":view2.getInt16(17).toString(),"CO2_MHZ19":view2.getInt16(19).toString(), "COV_SGP40":view2.getInt16(21).toString(),"T_BME":view2.getInt8(23).toString(),"H_BME":view2.getInt8(24).toString(),"P_BME":view2.getInt16(25).toString(),"latitude":view1.getFloat32(27,true).toFixed(5),"longitude":view1.getFloat32(31,true).toFixed(5),"selector":view2.getInt8(35).toString()};  
+return {"configuration":("000000000" + view1.getUint8(0).toString(2)).substr(-8),"PM1_SDS":view2.getInt16(1).toString(),"PM2_SDS":view2.getInt16(3).toString(),"PM0_NPM":view1.getInt16(5).toString(),"PM1_NPM":view1.getInt16(7).toString(),"PM2_NPM":view1.getInt16(9).toString(),"N1_NPM":view1.getInt16(11).toString(),"N10_NPM":view1.getInt16(13).toString(),"N25_NPM":view1.getInt16(15).toString(),"CO2_MHZ16":view2.getInt16(17).toString(),"CO2_MHZ19":view2.getInt16(19).toString(), "COV_CCS811":view2.getInt16(21).toString(),"T_BME":view2.getInt8(23).toString(),"H_BME":view2.getInt8(24).toString(),"P_BME":view2.getInt16(25).toString(),"latitude":view1.getFloat32(27,true).toFixed(5),"longitude":view1.getFloat32(31,true).toFixed(5),"selector":view2.getInt8(35).toString()};  
 }
 ```
 

@@ -19,10 +19,10 @@ const char WWW_PASSWORD[] PROGMEM = "";
 #define FS_PWD "moduleaircfg"
 
 #define HAS_WIFI 1
-#define HAS_LORA 0
+#define HAS_LORA 1
 const char APPEUI[] = "6081F9538B15F28B";
-const char DEVEUI [] = "6081F9FAF602861A";
-const char APPKEY[] = "134DE7004026CFE847A6D97A4516CEC6";
+const char DEVEUI [] = "6081F955B6E20360";
+const char APPKEY[] = "9A4D0E03F68FE4BEBB78E38B0CBE595A";
 
 // Where to send the data?
 #define SEND2SENSORCOMMUNITY 0
@@ -128,77 +128,6 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #define I2C_PIN_SCL D22
 #define I2C_PIN_SDA D21
 
-// #define GPS_SERIAL_RX D12
-// #define GPS_SERIAL_TX D13
-
-// #define P_LAT D15
-// #define P_A D16
-// #define P_B D17
-// #define P_C D25
-// #define P_D D27
-// #define P_E D32
-// #define P_OE D33
-
-
-//RECUP LE SCK DU VSPI SUR PXMATRIX + MOSI +MISO MOSI EST REATTRIBUABLE
-
-// SPIClass SPI1(HSPI);
-
-// SPI1.begin();
-
-// The SPI object is assigned to the VSPI bus by default:
-
-// SPIClass SPI(VSPI);
-
-// void PxMATRIX::spi_init(){
-
-//   #ifdef ESP32
-//     SPI.begin(_SPI_CLK, _SPI_MISO, _SPI_MOSI, _SPI_SS);
-//   #else
-//     SPI.begin();
-//   #endif
-
-// NSS 5 pas obligé
-
-    //// LMIC init
-    //SPI.setMOSI(PC3);       
-    //SPI.setMISO(PC2);
-    //SPI.setSCLK(PB10);
-
-   // os_init();
-    
-   //LMIC_reset();
-
-//INITIATLISER LE SPI.BEGIN par defaut au debut du setup(), enlever de PXmatrix
-
-//when using Begin/EndTransactions, don't set CS manually but use "setCS(pin)".
-
-//setCS(5) => lora
-//setCS(4) => matrix
-
-
-//Ou bien
-
-////Attach/Detach SS pin to SPI_CSx signal
-//void spiAttachSS(spi_t * spi, uint8_t cs_num, int8_t ss);
-//void spiDetachSS(spi_t * spi, int8_t ss);
-
-//esp32-hal-spi.h
-
-//cf ici https://stackoverflow.com/questions/57454066/how-to-use-2-spi-devices-lora-and-sd-card-on-esp32 RESITANCE A AJOUTER????
-
-//https://learn.sparkfun.com/tutorials/serial-peripheral-interface-spi/all
-
-//SPI.pins(6, 7, 8, 0) before the call to SPI.begin().
-
-// #define P_LAT D25
-// #define P_A D17
-// #define P_B D33
-// #define P_C D13 
-// #define P_D D12
-// #define P_E D15
-// #define P_OE D16
-
 #define P_LAT D25
 #define P_A D17
 #define P_B D33
@@ -207,63 +136,6 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #define P_E D15
 #define P_OE D16
 
-
-// const lmic_pinmap lmic_pins = {
-// 	.nss = D5,
-// 	.rxtx = LMIC_UNUSED_PIN,
-// 	.rst = D2,
-// 	.dio = {D26, D35, D34},
-// };
-
-#endif
-
-
-#if defined (ARDUINO_TTGO_LoRa32_v21new)
-//#define ONEWIRE_PIN D25
-#define PM_SERIAL_RX D19
-#define PM_SERIAL_TX D23
-#define I2C_PIN_SCL D22
-#define I2C_PIN_SDA D21
-// #define GPS_SERIAL_RX D12
-// #define GPS_SERIAL_TX D13
-
-// const lmic_pinmap lmic_pins = {
-// 	.nss = D18,
-// 	.rxtx = LMIC_UNUSED_PIN,
-// 	.rst = D23,
-// 	.dio = {/*dio0*/ D26, /*dio1*/ D33, /*dio2*/ D32},
-// 	.rxtx_rx_active = 0,
-// 	.rssi_cal = 10,
-// 	.spi_freq = 8000000 /* 8 MHz */
-// };
-#endif
-
-#if defined(ARDUINO_HELTEC_WIFI_LORA_32_V2)
-
-#define I2C_SCREEN_SCL D15
-#define I2C_SCREEN_SDA D4
-#define OLED_RESET D16
-#define PM_SERIAL_RX D23
-#define PM_SERIAL_TX D17
-
-// #define ONEWIRE_PIN D32
-// #define PM_SERIAL_RX D27
-// #define PM_SERIAL_TX D33
-
-#define I2C_PIN_SCL D22
-#define I2C_PIN_SDA D21
-// #define GPS_SERIAL_RX D12
-// #define GPS_SERIAL_TX D13
-
-// const lmic_pinmap lmic_pins = {
-// 	.nss = D18,
-// 	.rxtx = LMIC_UNUSED_PIN,
-// 	.rst = D14,
-// 	.dio = {/*dio0*/ D26, /*dio1*/ D35, /*dio2*/ D34},
-// 	.rxtx_rx_active = 0,
-// 	.rssi_cal = 10,
-// 	.spi_freq = 8000000 /* 8 MHz */
-// };
 #endif
 
 // SDS011, the more expensive version of the particle sensor
@@ -288,7 +160,7 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 
 // SGP40, COV Sensor
 
-#define CCS811_READ 0
+#define CCS811_READ 1
 // #define CCS811_API_PIN X
 
 //Location

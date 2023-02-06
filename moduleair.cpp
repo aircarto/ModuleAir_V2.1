@@ -5321,7 +5321,7 @@ static void init_matrix()
 {
 	display.begin(16);
 	display.setDriverChip(SHIFT); // SHIFT ou FM6124 ou FM6126A
-	display.setColorOrder(RRGGBB); // ATTENTION à changer en fonction de l'écran !!!! Small Matrix (160x80mm) is RRBBGG and Big Matrix (192x96mm) is RRGGBB
+	display.setColorOrder(RRBBGG); // ATTENTION à changer en fonction de l'écran !!!! Small Matrix (160x80mm) is RRBBGG and Big Matrix (192x96mm) is RRGGBB
 	display_update_enable(true);
 	display.setFont(NULL); //Default font
 
