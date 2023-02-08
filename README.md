@@ -15,9 +15,10 @@ The Module Air is an open source air quality sensor invented by [Atmosud](https:
 ## Displays
 * 64x32 RGB Matrix P3 192x96mm 
 * 64x32 RGB Matrix P2.5 160x80mm 
-* OLED SSD1306 (Not tested)
+* OLED SSD1306 (not tested)
 
 Attention: some Matrix Panels are not the same and colors can be mixed up, need to change the function `	display.setColorOrder(RRBBGG);`
+Small OLED screen can be connected via I2C pins (SDA and SCL).
 
 ## Features
 * Gets measurements from a full range of sensors
@@ -103,10 +104,11 @@ Copy the content of the glcdfont_mod.c file in the Fonts folder and paste it in 
 ![pin_Mapping](https://moduleair.fr/img/ConnectionsModuleAirV2.jpg)
 
 You can find the main pin mapping for each board in the ext_def.h file.
+A list of pin mapping is (here)(pinMap.md).
 The pin mapping for the LoRaWAN module is in the file moduleair.cpp under the Helium/TTN LoRaWAN comment.
 
 ## PCB
-![pcb_image](http://moduleair.fr/img/etape16_sds011.jpeg)
+![pcb_image](https://moduleair.fr/img/etape16_sds011.jpeg)
 You can find the PCB layout [here](https://oshwlab.com/pvuarambon/moduleair_esp32).
 
 ## Configuration
