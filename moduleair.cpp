@@ -3096,134 +3096,6 @@ static int selectChannelForAp()
  *****************************************************************/
 
 
-
-// static void wifiConfig()
-// {
-
-// 	if (cfg::has_matrix)
-// 		{
-// 		display_update_enable(true); //reactivate matrix during the X min config time
-// 		}
-
-// 	debug_outln_info(F("Starting WiFiManager"));
-// 	debug_outln_info(F("AP ID: "), String(cfg::fs_ssid));
-// 	debug_outln_info(F("Password: "), String(cfg::fs_pwd));
-
-// 	wificonfig_loop = true;
-
-// 	WiFi.disconnect(true);
-// 	debug_outln_info(F("scan for wifi networks..."));
-// 	int8_t scanReturnCode = WiFi.scanNetworks(false /* scan async */, true /* show hidden networks */);
-// 	if (scanReturnCode < 0)
-// 	{
-// 		debug_outln_error(F("WiFi scan failed. Treating as empty. "));
-// 		count_wifiInfo = 0;
-// 	}
-// 	else
-// 	{
-// 		count_wifiInfo = (uint8_t)scanReturnCode;
-// 	}
-
-// 	delete[] wifiInfo;
-// 	wifiInfo = new struct_wifiInfo[std::max(count_wifiInfo, (uint8_t)1)];
-
-// 	for (unsigned i = 0; i < count_wifiInfo; i++)
-// 	{
-// 		String SSID;
-// 		uint8_t *BSSID;
-
-// 		memset(&wifiInfo[i], 0, sizeof(struct_wifiInfo));
-// 		WiFi.getNetworkInfo(i, SSID, wifiInfo[i].encryptionType, wifiInfo[i].RSSI, BSSID, wifiInfo[i].channel);
-// 		SSID.toCharArray(wifiInfo[i].ssid, sizeof(wifiInfo[0].ssid));
-// 	}
-
-// 	// Use 13 channels if locale is not "EN"
-// 	wifi_country_t wifi;
-// 	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
-// 	strcpy(wifi.cc, INTL_LANG);
-// 	wifi.nchan = (INTL_LANG[0] == 'E' && INTL_LANG[1] == 'N') ? 11 : 13;
-// 	wifi.schan = 1;
-
-// 	WiFi.mode(WIFI_AP);
-// 	const IPAddress apIP(192, 168, 4, 1);
-// 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-// 	WiFi.softAP(cfg::fs_ssid, cfg::fs_pwd, selectChannelForAp());
-// 	// In case we create a unique password at first start
-// 	debug_outln_info(F("AP Password is: "), cfg::fs_pwd);
-
-// 	DNSServer dnsServer;
-// 	// Ensure we don't poison the client DNS cache
-// 	dnsServer.setTTL(0);
-// 	dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-// 	dnsServer.start(53, "*", apIP); // 53 is port for DNS server
-
-// 	setup_webserver();
-
-// 	// 10 minutes timeout for wifi config
-// 	last_page_load = millis();
-// 	while ((millis() - last_page_load) < cfg::time_for_wifi_config + 500)
-// 	{
-// 		dnsServer.processNextRequest();
-// 		server.handleClient();
-// 		yield();
-// 	}
-
-// 	if (cfg::has_matrix)
-// 	{
-// 	display_update_enable(false); //deactivate after X minutes
-// 	}
-
-// 	WiFi.softAPdisconnect(true);
-
-// 	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
-// 	strcpy(wifi.cc, INTL_LANG);
-// 	wifi.nchan = 13;
-// 	wifi.schan = 1;
-
-// 	// The station mode starts only if WiFi communication is enabled.
-
-// 	if (cfg::has_wifi)
-// 	{
-
-// 		WiFi.mode(WIFI_STA);
-
-// 		dnsServer.stop();
-// 		delay(100);
-
-// 		debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
-
-// 		WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
-// 	}
-// 	debug_outln_info(F("---- Result Webconfig ----"));
-// 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
-// 	debug_outln_info(F("LoRa: "), cfg::has_lora);
-// 	debug_outln_info(F("APPEUI: "), cfg::appeui);
-// 	debug_outln_info(F("DEVEUI: "), cfg::deveui);
-// 	debug_outln_info(F("APPKEY: "), cfg::appkey);
-// 	debug_outln_info(F("WLANSSID: "), cfg::wlanssid);
-// 	debug_outln_info(FPSTR(DBG_TXT_SEP));
-// 	debug_outln_info_bool(F("SDS: "), cfg::sds_read);
-// 	debug_outln_info_bool(F("NPM: "), cfg::npm_read);
-// 	debug_outln_info_bool(F("BMX: "), cfg::bmx280_read);
-// 	debug_outln_info_bool(F("MHZ16: "), cfg::mhz16_read);
-// 	debug_outln_info_bool(F("MHZ19: "), cfg::mhz19_read);
-// 	debug_outln_info_bool(F("CCS811: "), cfg::ccs811_read);
-// 	debug_outln_info(FPSTR(DBG_TXT_SEP));
-// 	debug_outln_info_bool(F("SensorCommunity: "), cfg::send2dusti);
-// 	debug_outln_info_bool(F("Madavi: "), cfg::send2madavi);
-// 	debug_outln_info_bool(F("CSV: "), cfg::send2csv);
-// 	debug_outln_info_bool(F("AirCarto: "), cfg::send2custom);
-// 	debug_outln_info_bool(F("AtmoSud: "), cfg::send2custom2);
-// 	debug_outln_info(FPSTR(DBG_TXT_SEP));
-// 	debug_outln_info_bool(F("Display: "), cfg::has_ssd1306);
-// 	debug_outln_info_bool(F("Matrix: "), cfg::has_matrix);
-// 	debug_outln_info_bool(F("Display Measures: "), cfg::display_measure);
-// 	debug_outln_info_bool(F("Display forecast: "), cfg::display_forecast);
-// 	debug_outln_info(F("Debug: "), String(cfg::debug));
-// 	wificonfig_loop = false; // VOIR ICI
-// }
-
-
 static void wifiConfig()
 {
 
@@ -3237,8 +3109,8 @@ static void wifiConfig()
 	debug_outln_info(F("Password: "), String(cfg::fs_pwd));
 
 	wificonfig_loop = true;
+	WiFi.disconnect(true,true);
 
-	WiFi.disconnect(true);
 	debug_outln_info(F("scan for wifi networks..."));
 	int8_t scanReturnCode = WiFi.scanNetworks(false /* scan async */, true /* show hidden networks */);
 	if (scanReturnCode < 0)
@@ -3301,7 +3173,8 @@ static void wifiConfig()
 	// }
 
 	WiFi.softAPdisconnect(true);
-	WiFi.disconnect(true);
+	
+	//WiFi.disconnect(true,true); //NECESSAIRE ?
 
 	debug_outln_info(F("---- Result Webconfig ----"));
 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
@@ -3405,87 +3278,7 @@ gps getGPS(String id)
  * WiFi auto connecting script                                   *
  *****************************************************************/
 
-//static WiFiEventHandler disconnectEventHandler; 
-
-// static void connectWifi()
-// {
-// 	if (cfg::has_matrix)
-// 		{
-// 		display_update_enable(false); //deactivate matrix during wifi connection because of interrupts
-// 		}
-
-// 	display_debug(F("Connecting to"), String(cfg::wlanssid));
-
-// 	if (WiFi.getAutoConnect())
-// 	{
-// 		WiFi.setAutoConnect(false);
-// 	}
-// 	if (!WiFi.getAutoReconnect())
-// 	{
-// 		WiFi.setAutoReconnect(true);
-// 	}
-
-// 	// Use 13 channels for connect to known AP
-// 	wifi_country_t wifi;
-// 	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
-// 	strcpy(wifi.cc, INTL_LANG);
-// 	wifi.nchan = 13;
-// 	wifi.schan = 1;
-
-// 	WiFi.mode(WIFI_STA);
-
-// 	WiFi.setHostname(cfg::fs_ssid);
-
-// 	WiFi.begin(cfg::wlanssid, cfg::wlanpwd); // Start WiFI
-
-// 	debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
-
-// 	waitForWifiToConnect(40);
-// 	debug_outln_info(emptyString);
-
-
-// 	if (WiFi.status() != WL_CONNECTED)
-// 	{
-// 		String fss(cfg::fs_ssid);
-// 		display_debug(fss.substring(0, 16), fss.substring(16));
-
-// 		wifi.policy = WIFI_COUNTRY_POLICY_AUTO;
-
-// 		wifiConfig();
-// 		if (WiFi.status() != WL_CONNECTED)
-// 		{
-// 			waitForWifiToConnect(20);
-// 			debug_outln_info(emptyString);
-// 		}
-// 	}else{
-// 		Debug.println("Get coordinates..."); //only once!
-// 		gps coordinates = getGPS(esp_chipid);
-// 		latitude_aircarto = coordinates.latitude;
-// 		longitude_aircarto = coordinates.longitude;
-
-// 		Debug.println(coordinates.latitude);
-// 		Debug.println(coordinates.longitude);
-// 		if (coordinates.latitude != "0.00000" && coordinates.latitude != "0.00000"){
-// 		strcpy_P(cfg::latitude, latitude_aircarto.c_str()); //replace the values in the firmware but not in the SPIFFS
-// 		strcpy_P(cfg::longitude, longitude_aircarto.c_str());
-// 		}
-// 	}
-	
-// 	debug_outln_info(F("WiFi connected, IP is: "), WiFi.localIP().toString());
-// 	last_signal_strength = WiFi.RSSI();
-
-// 	if (MDNS.begin(cfg::fs_ssid))
-// 	{
-// 		MDNS.addService("http", "tcp", 80);
-// 		MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
-// 	}
-
-// if (cfg::has_matrix)
-// 		{
-// 		display_update_enable(true); //reactivate matrix
-// 		}
-// }
-
+// static WiFiEventHandler disconnectEventHandler; //AVOIR POUR IMPLEMENTER CF SC ESP32
 
 static void connectWifi()
 {
@@ -3528,6 +3321,11 @@ static void connectWifi()
 	{
 		wifi_connection_lost = true;
 		cfg::has_wifi = false;
+		// cfg::wlanssid = "TYPE SSID";
+		// cfg::wlanpwd = "TYPE PWD";
+
+		strcpy_P(cfg::wlanssid, "TYPE SSID");
+		strcpy_P(cfg::wlanpwd, "TYPE PWD");
 		wifiConfig();
 		
 	}else{
@@ -6524,7 +6322,7 @@ void loop()
 
 
 
-       if (cfg::has_wifi && WiFi.waitForConnectResult() == WL_CONNECTED ) {
+       if (cfg::has_wifi && WiFi.waitForConnectResult(10000) == WL_CONNECTED ) {
 			if (wifi_connection_lost)
 			{
 				Debug.println("Wifi reconnected");
@@ -6533,10 +6331,10 @@ void loop()
 			server.handleClient();
 			yield();
 
-        }else if(cfg::has_wifi && WiFi.waitForConnectResult() != WL_CONNECTED){
+        }else if(cfg::has_wifi && WiFi.waitForConnectResult(10000) != WL_CONNECTED){
 			if (!wifi_connection_lost){
 				wifi_connection_lost = true;
-				WiFi.disconnect(true);
+				//WiFi.disconnect(false,false);
 				Debug.println("Wifi disconnected");
 			};
 		}
@@ -6676,27 +6474,19 @@ void loop()
 			{
 				debug_outln_info(F("Connection lost, reconnecting "));
 				WiFi_error_count++;
-				// WiFi.disconnect(true);
-				// WiFi.begin(cfg::wlanssid, cfg::wlanpwd); //ATTENTION ICI
-				WiFi.reconnect(); //OU BIEN CA + Wifi.Status au lieu de waitfor ?
+				WiFi.reconnect(); 
 				waitForWifiToConnect(20);
-				if(wifi_connection_lost && WiFi.waitForConnectResult() == WL_CONNECTED )
+				if(wifi_connection_lost && WiFi.waitForConnectResult(10000) == WL_CONNECTED )
 				{
 				Debug.println("Reconnect success");
 				wifi_connection_lost = false;
-				}else{
+				}else if(wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED){
 					Debug.println("Reconnect failed");
-					WiFi.disconnect(true);
+					//WiFi.disconnect(false,false);
 				}
-				// if(cfg::has_matrix && connection_lost && WiFi.status() != WL_CONNECTED )
-				// {
-				// //FORCER LE RESTART ICI POUR PASSER EN SANS WIFI => LE REONNEXION A ECHOUÈ
-				// ESP.restart();
-				// }
 
 				//WiFi.waitForConnectResult()
-
-
+				
 				debug_outln_info(emptyString);
 			}
 
@@ -6761,7 +6551,7 @@ void loop()
 			do_send(&sendjob);
 
 			//os_run_loop_once here ?
-			//boolean in EV_TX_COMPLETE to allaw WiFi after? 
+			//boolean in EV_TX_COMPLETE to allow WiFi after? 
 		}
 
 		starttime = millis(); // store the start time
