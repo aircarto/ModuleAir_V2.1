@@ -1987,7 +1987,7 @@ static void webserver_root()
 		display_update_enable(true);
 	}
 
-	if (WiFi.waitForConnectResult() != WL_CONNECTED)
+	if (WiFi.status() != WL_CONNECTED)
 	{
 		sendHttpRedirect();
 	}
@@ -2489,7 +2489,7 @@ static void webserver_wifi()
 static void webserver_values()
 {
 
-	if (WiFi.waitForConnectResult() != WL_CONNECTED)
+	if (WiFi.status() != WL_CONNECTED)
 	{
 		sendHttpRedirect();
 		return;
@@ -2628,7 +2628,7 @@ static void webserver_values()
  *****************************************************************/
 static void webserver_status()
 {
-	if (WiFi.waitForConnectResult() != WL_CONNECTED)
+	if (WiFi.status() != WL_CONNECTED)
 	{
 		sendHttpRedirect();
 		return;
@@ -3001,7 +3001,7 @@ static void webserver_not_found()
 	last_page_load = millis();
 	debug_outln_info(F("ws: not found ..."));
 
-	if (WiFi.waitForConnectResult() != WL_CONNECTED)
+	if (WiFi.status() != WL_CONNECTED)
 	{
 		if ((server.uri().indexOf(F("success.html")) != -1) || (server.uri().indexOf(F("detect.html")) != -1))
 		{
@@ -3238,7 +3238,7 @@ static void wifiConfig()
 
 	wificonfig_loop = true;
 
-	WiFi.disconnect(true,true);
+	WiFi.disconnect(true);
 	debug_outln_info(F("scan for wifi networks..."));
 	int8_t scanReturnCode = WiFi.scanNetworks(false /* scan async */, true /* show hidden networks */);
 	if (scanReturnCode < 0)
@@ -3301,7 +3301,7 @@ static void wifiConfig()
 	// }
 
 	WiFi.softAPdisconnect(true);
-	WiFi.disconnect(true,true);
+	WiFi.disconnect(true);
 
 	debug_outln_info(F("---- Result Webconfig ----"));
 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
@@ -3335,7 +3335,7 @@ static void wifiConfig()
 static void waitForWifiToConnect(int maxRetries)
 {
 	int retryCount = 0;
-	while ((WiFi.waitForConnectResult() != WL_CONNECTED) && (retryCount < maxRetries))
+	while ((WiFi.status() != WL_CONNECTED) && (retryCount < maxRetries))
 	{
 		delay(500);
 		debug_out(".", DEBUG_MIN_INFO);
@@ -3444,7 +3444,7 @@ gps getGPS(String id)
 // 	debug_outln_info(emptyString);
 
 
-// 	if (WiFi.waitForConnectResult() != WL_CONNECTED)
+// 	if (WiFi.status() != WL_CONNECTED)
 // 	{
 // 		String fss(cfg::fs_ssid);
 // 		display_debug(fss.substring(0, 16), fss.substring(16));
@@ -3452,7 +3452,7 @@ gps getGPS(String id)
 // 		wifi.policy = WIFI_COUNTRY_POLICY_AUTO;
 
 // 		wifiConfig();
-// 		if (WiFi.waitForConnectResult() != WL_CONNECTED)
+// 		if (WiFi.status() != WL_CONNECTED)
 // 		{
 // 			waitForWifiToConnect(20);
 // 			debug_outln_info(emptyString);
@@ -3524,7 +3524,7 @@ static void connectWifi()
 	debug_outln_info(emptyString);
 
 
-	if (WiFi.waitForConnectResult() != WL_CONNECTED) //Waitforwifistatus ?
+	if (WiFi.status() != WL_CONNECTED) //Waitforwifistatus ?
 	{
 		wifi_connection_lost = true;
 		cfg::has_wifi = false;
@@ -6536,7 +6536,7 @@ void loop()
         }else if(cfg::has_wifi && WiFi.waitForConnectResult() != WL_CONNECTED){
 			if (!wifi_connection_lost){
 				wifi_connection_lost = true;
-				WiFi.disconnect(false,false);
+				WiFi.disconnect(true);
 				Debug.println("Wifi disconnected");
 			};
 		}
@@ -6672,7 +6672,7 @@ void loop()
 			}
 
 
-			if ((WiFi.waitForConnectResult() != WL_CONNECTED || sending_time > 10000 || wifi_connection_lost)&& cfg::has_wifi)
+			if ((WiFi.status() != WL_CONNECTED || sending_time > 10000 || wifi_connection_lost)&& cfg::has_wifi)
 			{
 				debug_outln_info(F("Connection lost, reconnecting "));
 				WiFi_error_count++;
@@ -6686,9 +6686,9 @@ void loop()
 				wifi_connection_lost = false;
 				}else{
 					Debug.println("Reconnect failed");
-					WiFi.disconnect(false, false);
+					WiFi.disconnect(true);
 				}
-				// if(cfg::has_matrix && connection_lost && WiFi.waitForConnectResult() != WL_CONNECTED )
+				// if(cfg::has_matrix && connection_lost && WiFi.status() != WL_CONNECTED )
 				// {
 				// //FORCER LE RESTART ICI POUR PASSER EN SANS WIFI => LE REONNEXION A ECHOUÈ
 				// ESP.restart();
