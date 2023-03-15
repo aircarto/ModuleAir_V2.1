@@ -1007,10 +1007,10 @@ unsigned long max_micro = 0;
 
 unsigned long sending_time = 0;
 unsigned long last_update_attempt;
-int last_update_returncode;
+// int last_update_returncode;
 int last_sendData_returncode;
 
-bool wifi_connection_lost; //INITIALISER PLSU TARD
+bool wifi_connection_lost; 
 bool lora_connection_lost;
 
 /*****************************************************************
@@ -1125,7 +1125,7 @@ uint16_t ccs811_val_count = 0;
 
 String last_data_string;
 int last_signal_strength;
-int last_disconnect_reason;
+int last_disconnect_reason; //AJOUTER EVENTHANDLER ESP32!!!
 
 String esp_chipid;
 
@@ -2670,11 +2670,11 @@ static void webserver_status()
 	wifiStatus += String(last_disconnect_reason);
 	add_table_row_from_value(page_content, F("WiFi"), wifiStatus);
 
-	if (last_update_returncode != 0)
-	{
-		add_table_row_from_value(page_content, F("OTA Return"),
-								 last_update_returncode > 0 ? String(last_update_returncode) : HTTPClient::errorToString(last_update_returncode));
-	}
+	// if (last_update_returncode != 0)
+	// {
+	// 	add_table_row_from_value(page_content, F("OTA Return"),
+	// 							 last_update_returncode > 0 ? String(last_update_returncode) : HTTPClient::errorToString(last_update_returncode));
+	// }
 	for (unsigned int i = 0; i < LoggerCount; ++i)
 	{
 		if (loggerConfigs[i].errors)
@@ -3278,7 +3278,9 @@ gps getGPS(String id)
  * WiFi auto connecting script                                   *
  *****************************************************************/
 
-// static WiFiEventHandler disconnectEventHandler; //AVOIR POUR IMPLEMENTER CF SC ESP32
+// static WiFiEventHandler disconnectEventHandler; 
+
+static WiFiEventId_t disconnectEventHandler;
 
 static void connectWifi()
 {
@@ -3288,6 +3290,12 @@ static void connectWifi()
 		}
 
 	display_debug(F("Connecting to"), String(cfg::wlanssid));
+
+
+ disconnectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
+        last_disconnect_reason = info.wifi_sta_disconnected.reason;
+    }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
 
 	if (WiFi.getAutoConnect())
 	{
