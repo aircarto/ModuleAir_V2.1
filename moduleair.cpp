@@ -1551,9 +1551,17 @@ static String NPM_temp_humi()
  *****************************************************************/
 static bool writeConfig()
 {
+	//debug_outln_info(F("BUGMATRIX4"));
 	if (cfg::has_matrix){
+		//debug_outln_info(F("BUGMATRIX5"));
 		display_update_enable(false); //prevent crash
 	}
+
+//Si deja false , refalse fait bug
+
+//display_update_enable(false); //prevent crash
+
+debug_outln_info(F("BUGMATRIX6"));
 
 	DynamicJsonDocument json(JSON_BUFFER_SIZE);
 	debug_outln_info(F("Saving config..."));
@@ -2358,18 +2366,28 @@ static void webserver_config()
 {
 
 	// For any work with SPIFFS or server, the interrupts must be deactivated. The matrix is turned off.
-	//But here it make a bug in the config server
+	//But here it make a bug in the config server 
 
 	if(WiFi.getMode() == WIFI_MODE_STA)
 	{
 		debug_outln_info(F("STA"));
-		if (cfg::has_matrix)
-		{
-		display_update_enable(false);
-		}
+		// if (cfg::has_matrix)
+		// {
+		// display_update_enable(false);  ATTENTION ICI REMTTRE?
+		// }
 	}
 	
-	if(WiFi.getMode() == WIFI_MODE_AP){debug_outln_info(F("AP"));}
+	if(WiFi.getMode() == WIFI_MODE_AP)
+	{
+		debug_outln_info(F("AP"));
+		//debug_outln_info(F("BUGMATRIX1"));
+		// if (cfg::has_matrix)
+		// {
+		// debug_outln_info(F("BUGMATRIX2"));   ATTENTION ICI REMTTRE?
+		// display_update_enable(false);
+		// }
+		
+	}
 
 	if (!webserver_request_auth())
 	{
@@ -2405,6 +2423,9 @@ static void webserver_config()
 	if (server.method() == HTTP_POST)
 	{
 		display_debug(F("Writing config"), emptyString);
+
+		debug_outln_info(F("BUGMATRIX3"));
+
 		if (writeConfig())
 		{
 			display_debug(F("Writing config"), F("and restarting"));
@@ -3101,7 +3122,7 @@ static void wifiConfig()
 
 	if (cfg::has_matrix)
 		{
-		display_update_enable(true); //reactivate matrix during the X min config time
+		display_update_enable(false); //reactivate matrix during the X min config time  ATTENTION ICI true/false?
 		}
 
 	debug_outln_info(F("Starting WiFiManager"));
@@ -3160,17 +3181,18 @@ static void wifiConfig()
 
 	// 10 minutes timeout for wifi config
 	last_page_load = millis();
+
+	if (cfg::has_matrix)
+		{
+		display_update_enable(true); //reactivate matrix during the X min config time  ATTENTION ICI true/false?
+		}
+
 	while ((millis() - last_page_load) < cfg::time_for_wifi_config + 500)
 	{
 		dnsServer.processNextRequest();
 		server.handleClient();
 		yield();
 	}
-
-	// if (cfg::has_matrix)
-	// {
-	// display_update_enable(false); //deactivate after X minutes A VOIR SI NECESSAIRE ?
-	// }
 
 	WiFi.softAPdisconnect(true);
 	
@@ -3293,6 +3315,13 @@ static void connectWifi()
 
 
  disconnectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
+
+		if (cfg::has_matrix && !wifi_connection_lost)   //c'est statique ? ca kill son  propre interrupt !!!!
+		{
+		Debug.println("Event disconnect/Matrix off");
+		display_update_enable(false); //deactivate matrix during wifi connection because of interrupts
+		}
+
         last_disconnect_reason = info.wifi_sta_disconnected.reason;
     }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
@@ -3329,13 +3358,9 @@ static void connectWifi()
 	{
 		wifi_connection_lost = true;
 		cfg::has_wifi = false;
-		// cfg::wlanssid = "TYPE SSID";
-		// cfg::wlanpwd = "TYPE PWD";
-
-		strcpy_P(cfg::wlanssid, "TYPE SSID");
-		strcpy_P(cfg::wlanpwd, "TYPE PWD");
+		// strcpy_P(cfg::wlanssid, "TYPE SSID");
+		// strcpy_P(cfg::wlanpwd, "TYPE PWD");
 		wifiConfig();
-		
 	}else{
 		wifi_connection_lost = false;
 		Debug.println("Get coordinates..."); //only once!
@@ -3386,7 +3411,6 @@ static WiFiClient *getNewLoggerWiFiClient(const LoggerEntry logger)
  *****************************************************************/
 static unsigned long sendData(const LoggerEntry logger, const String &data, const int pin, const char *host, const char *url)
 {
-
 	unsigned long start_send = millis();
 	const __FlashStringHelper *contentType;
 	int result = 0;
@@ -5053,6 +5077,7 @@ static void display_values_matrix()
 			display.print(String(count_sends));
 			break;
 		case 20:
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
@@ -6101,12 +6126,6 @@ void setup()
 
 	debug_outln_info(F("\nChipId: "), esp_chipid);
 
-	// always start the Webserver on void setup to get access to the sensor
-
-
-	//Si pas wifi => seulement X minutes de config avec wificonfi();
-
-	// separer has_wifi et !haswifi dans if
 
 
 	if(cfg::has_wifi)
@@ -6328,12 +6347,18 @@ void loop()
 		last_display_millis_matrix = act_milli;
 	}
 
-
+		//Debug.println("BEFORE WIFI");
 
        if (cfg::has_wifi && WiFi.waitForConnectResult(10000) == WL_CONNECTED ) {
 			if (wifi_connection_lost)
 			{
 				Debug.println("Wifi reconnected");
+
+		if (cfg::has_matrix)
+		{
+		display_update_enable(true); 
+		}
+
 				wifi_connection_lost = false;
 			};
 			server.handleClient();
@@ -6342,6 +6367,13 @@ void loop()
         }else if(cfg::has_wifi && WiFi.waitForConnectResult(10000) != WL_CONNECTED){
 			if (!wifi_connection_lost){
 				wifi_connection_lost = true;
+
+					if (cfg::has_matrix)
+		{
+		display_update_enable(false); 
+		}
+
+
 				//WiFi.disconnect(false,false);
 				Debug.println("Wifi disconnected");
 			};
@@ -6358,9 +6390,7 @@ void loop()
 			last_signal_strength = WiFi.RSSI();
 		}
 			RESERVE_STRING(data, LARGE_STR);
-			//RESERVE_STRING(data_custom, LARGE_STR);
 			data = FPSTR(data_first_part);
-			//data_custom
 			RESERVE_STRING(result, MED_STR);
 
 			//void *SpActual = NULL;
@@ -6487,9 +6517,23 @@ void loop()
 				if(wifi_connection_lost && WiFi.waitForConnectResult(10000) == WL_CONNECTED )
 				{
 				Debug.println("Reconnect success");
+
+					if (cfg::has_matrix)
+		{
+		display_update_enable(true); 
+		}
+
+
 				wifi_connection_lost = false;
 				}else if(wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED){
 					Debug.println("Reconnect failed");
+					wifi_connection_lost = true;
+
+										if (cfg::has_matrix)
+		{
+		display_update_enable(false); 
+		}
+
 					//WiFi.disconnect(false,false);
 				}
 
