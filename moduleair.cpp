@@ -79,6 +79,7 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 
 #include <WebServer.h>
 #include <ESPmDNS.h>
+#include <MD5Builder.h>
 
 // includes external libraries
 
@@ -1128,7 +1129,8 @@ uint16_t ccs811_val_count = 0;
 
 String last_data_string;
 int last_signal_strength;
-int last_disconnect_reason; //AJOUTER EVENTHANDLER ESP32!!!
+int last_disconnect_reason;
+// int last_connect_reason;
 
 String esp_chipid;
 
@@ -3282,28 +3284,43 @@ gps getGPS(String id)
  *****************************************************************/
 
 static WiFiEventId_t disconnectEventHandler;
+//static WiFiEventId_t connectEventHandler;
 
 static void connectWifi()
 {
 	if (cfg::has_matrix)
 	{
-		display_update_enable(false); //deactivate matrix during wifi connection because of interrupts
+		display_update_enable(false);
 	}
 
 	display_debug(F("Connecting to"), String(cfg::wlanssid));
 
 	disconnectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 										  {
-											  if (cfg::has_matrix && !wifi_connection_lost) //c'est statique ? ca kill son  propre interrupt !!!!
+											  if (cfg::has_matrix && !wifi_connection_lost)
 											  {
 												  Debug.println("Event disconnect/Matrix off");
-												  display_update_enable(false); //deactivate matrix during wifi connection because of interrupts
+												  display_update_enable(false);
 												  wifi_connection_lost = true;
 											  }
 
 											  last_disconnect_reason = info.wifi_sta_disconnected.reason;
 										  },
 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
+
+		// connectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+		// 								  {
+		// 									  if (cfg::has_matrix && wifi_connection_lost)
+		// 									  {
+		// 										  Debug.println("Event connect/Matrix on");
+		// 										  display_update_enable(true);
+		// 										  wifi_connection_lost = false;
+		// 									  }
+
+		// 									  last_connect_reason = info.wifi_sta_connected.reason;
+		// 								  },
+		// 								  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
 
 	if (WiFi.getAutoConnect())
 	{
@@ -3335,7 +3352,7 @@ static void connectWifi()
 	//if (WiFi.status() != WL_CONNECTED) //Waitforwifistatus ?
 	if (WiFi.waitForConnectResult(10000) != WL_CONNECTED) //Waitforwifistatus ?
 	{
-		Debug.println("Force change WiFi config");
+		// Debug.println("Force change WiFi config");
 		wifi_connection_lost = true;
 		//cfg::has_wifi = false;
 		// strcpy_P(cfg::wlanssid, "TYPE SSID");
