@@ -3337,7 +3337,7 @@ static void connectWifi()
 	{
 		Debug.println("Force change WiFi config");
 		wifi_connection_lost = true;
-		cfg::has_wifi = false;
+		//cfg::has_wifi = false;
 		// strcpy_P(cfg::wlanssid, "TYPE SSID");
 		// strcpy_P(cfg::wlanpwd, "TYPE PWD");
 		wifiConfig();
@@ -6666,7 +6666,7 @@ void loop()
 			//RECONNECT ETAIT ICI
 		}
 
-		if ((WiFi.status() != WL_CONNECTED || sending_time > 20000 || wifi_connection_lost) && cfg::has_wifi)
+		if ((WiFi.status() != WL_CONNECTED || sending_time > 30000 || wifi_connection_lost) && cfg::has_wifi)
 		{
 			debug_outln_info(F("Connection lost, reconnecting "));
 			WiFi_error_count++;
@@ -6685,13 +6685,15 @@ void loop()
 			}
 			else if (wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
 			{
-				Debug.println("Reconnect failed");
+				Debug.println("Reconnect failed after WiFi.reconnect()");
 				wifi_connection_lost = true;
 
 				if (cfg::has_matrix)
 				{
 					display_update_enable(false);
 				}
+
+				sensor_restart();
 
 				//WiFi.disconnect(false,false);
 			}
