@@ -1,4 +1,4 @@
-#define SENSOR_BASENAME "moduleair-"
+#define SENSOR_BASENAME "esp32-"
 
 #define SSID_BASENAME "moduleair-"
 #define HOSTNAME_BASE "moduleair-"
