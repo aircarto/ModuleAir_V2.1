@@ -50,6 +50,8 @@ struct LoggerConfig {
 // IMPORTANT: NO MORE CHANGES TO VARIABLE NAMES NEEDED FOR EXTERNAL APIS
 static const char HOST_MADAVI[] PROGMEM = "api-rrd.madavi.de";
 static const char URL_MADAVI[] PROGMEM = "/data.php";
+
+#define PORT_DUSTI 80
 #define PORT_MADAVI 80
 
 static const char HOST_SENSORCOMMUNITY[] PROGMEM = "api.sensor.community";

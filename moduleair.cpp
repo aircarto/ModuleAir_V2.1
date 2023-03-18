@@ -13,8 +13,6 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <hal/hal.h>
 #include <SPI.h>
 
-//Detection connection internet
-
 /*****************************************************************
  * IMPORTANT                                          *
  *****************************************************************/
@@ -57,6 +55,8 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 
 #include "ccs811.h" // CCS811
 
+#include "ca-root.h"
+
 // includes ESP32 libraries
 #define FORMAT_SPIFFS_IF_FAILED true
 #include <FS.h>
@@ -66,7 +66,17 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 #include <HardwareSerial.h>
-#include <esp32/sha.h> //pour https ? remplacer par #include <esp32/sha.h> ?  #include "sha/sha_parallel_engine.h" ?
+
+#if ESP_IDF_VERSION_MAJOR >= 4
+#if (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(1, 0, 6))
+#include "sha/sha_parallel_engine.h"
+#else
+#include <esp32/sha.h>
+#endif
+#else
+//#include <hwcrypto/sha.h>
+#endif
+
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
@@ -284,15 +294,14 @@ struct RGB displayColor
 
 uint16_t myRED = display.color565(255, 0, 0);
 uint16_t myGREEN = display.color565(0, 255, 0);
-//uint16_t myBLUE = display.color565(0, 0, 255);
-uint16_t myBLUE = display.color565(0, 255, 255);
+uint16_t myBLUE = display.color565(0, 0, 255);
+uint16_t myCYAN = display.color565(0, 255, 255);
 uint16_t myWHITE = display.color565(255, 255, 255);
 uint16_t myYELLOW = display.color565(255, 255, 0);
-uint16_t myCYAN = display.color565(0, 255, 255);
 uint16_t myMAGENTA = display.color565(255, 0, 255);
 uint16_t myBLACK = display.color565(0, 0, 0);
 uint16_t myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-uint16_t myCOLORS[8] = {myRED, myGREEN, myBLUE, myWHITE, myYELLOW, myCYAN, myMAGENTA, myBLACK};
+uint16_t myCOLORS[8] = {myRED, myGREEN, myCYAN, myWHITE, myYELLOW, myCYAN, myMAGENTA, myBLACK};
 
 void IRAM_ATTR display_updater()
 {
@@ -1243,16 +1252,6 @@ static int8_t NPM_get_state()
 		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
 	} while (!serialNPM.available() && millis() - timeout < 3000);
 
-	while (!serialNPM.available())
-	{
-		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	}
-
-	// // if(millis()-timeout>3000)
-	// // 	{
-	// // 		break;
-	// // 	}
-
 	while (serialNPM.available() >= NPM_waiting_for_4)
 	{
 		const uint8_t constexpr header[2] = {0x81, 0x16};
@@ -1740,30 +1739,27 @@ static void createLoggerConfigs()
 	auto new_session = []()
 	{ return nullptr; };
 
-	if (cfg::send2dusti)
+	loggerConfigs[LoggerSensorCommunity].destport = PORT_DUSTI;
+	if (cfg::send2dusti && cfg::ssl_dusti)
 	{
-		loggerConfigs[LoggerSensorCommunity].destport = 80;
-		if (cfg::ssl_dusti)
-		{
-			loggerConfigs[LoggerSensorCommunity].destport = 443;
-			loggerConfigs[LoggerSensorCommunity].session = new_session();
-		}
+		loggerConfigs[LoggerSensorCommunity].destport = 443;
 	}
+
 	loggerConfigs[LoggerMadavi].destport = PORT_MADAVI;
 	if (cfg::send2madavi && cfg::ssl_madavi)
 	{
 		loggerConfigs[LoggerMadavi].destport = 443;
-		loggerConfigs[LoggerMadavi].session = new_session();
 	}
+
 	loggerConfigs[LoggerCustom].destport = cfg::port_custom;
-	if (cfg::send2custom && (cfg::ssl_custom || (cfg::port_custom == 443)))
+	if (cfg::send2custom && cfg::ssl_custom)
 	{
-		loggerConfigs[LoggerCustom].session = new_session();
+		loggerConfigs[LoggerCustom].destport = 443;
 	}
 	loggerConfigs[LoggerCustom2].destport = cfg::port_custom2;
-	if (cfg::send2custom2 && (cfg::ssl_custom2 || (cfg::port_custom2 == 443)))
+	if (cfg::send2custom2 && cfg::ssl_custom2)
 	{
-		loggerConfigs[LoggerCustom2].session = new_session();
+		loggerConfigs[LoggerCustom2].destport = 443;
 	}
 }
 
@@ -2203,22 +2199,24 @@ static void webserver_config_send_body_get(String &page_content)
 
 	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(5));
 
-	//page_content += tmpl(FPSTR(INTL_SEND_TO), F("APIs"));
-	page_content += tmpl(FPSTR(INTL_SEND_TO), F(""));
-	page_content += FPSTR(BR_TAG);
-	page_content += form_checkbox(Config_send2dusti, FPSTR(WEB_SENSORCOMMUNITY), false);
+	// //page_content += tmpl(FPSTR(INTL_SEND_TO), F("APIs"));
+	// page_content += tmpl(FPSTR(INTL_SEND_TO), F(""));
 
-	// Remove https because not supported in esp32
-	// page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
-	// page_content += form_checkbox(Config_ssl_dusti, FPSTR(WEB_HTTPS), false);
-	// page_content += FPSTR(WEB_BRACE_BR);
-	page_content += FPSTR("<br>");
+	page_content += FPSTR("<b>");
+	page_content += FPSTR(INTL_SEND_TO);
+	page_content += FPSTR(WEB_B_BR);
+
+	// page_content += FPSTR(BR_TAG);
+	page_content += form_checkbox(Config_send2dusti, FPSTR(WEB_SENSORCOMMUNITY), false);
+	page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
+	page_content += form_checkbox(Config_ssl_dusti, FPSTR(WEB_HTTPS), false);
+	page_content += FPSTR(WEB_BRACE_BR);
+	// page_content += FPSTR("<br>");
 	page_content += form_checkbox(Config_send2madavi, FPSTR(WEB_MADAVI), false);
-	// Remove https because not supported in esp32
-	// page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
-	// page_content += form_checkbox(Config_ssl_madavi, FPSTR(WEB_HTTPS), false);
-	// page_content += FPSTR(WEB_BRACE_BR);
-	page_content += FPSTR("<br>");
+	page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
+	page_content += form_checkbox(Config_ssl_madavi, FPSTR(WEB_HTTPS), false);
+	page_content += FPSTR(WEB_BRACE_BR);
+	// page_content += FPSTR("<br>");
 
 	add_form_checkbox(Config_send2csv, FPSTR(WEB_CSV));
 
@@ -2227,10 +2225,9 @@ static void webserver_config_send_body_get(String &page_content)
 
 	page_content += FPSTR(BR_TAG);
 	page_content += form_checkbox(Config_send2custom, FPSTR(INTL_SEND_TO_OWN_API), false);
-	// Remove https because not supported in esp32
-	// page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
-	// page_content += form_checkbox(Config_ssl_custom, FPSTR(WEB_HTTPS), false);
-	// page_content += FPSTR(WEB_BRACE_BR);
+	page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
+	page_content += form_checkbox(Config_ssl_custom, FPSTR(WEB_HTTPS), false);
+	page_content += FPSTR(WEB_BRACE_BR);
 
 	server.sendContent(page_content);
 	page_content = FPSTR(TABLE_TAG_OPEN);
@@ -2243,10 +2240,9 @@ static void webserver_config_send_body_get(String &page_content)
 
 	page_content += FPSTR(BR_TAG);
 	page_content += form_checkbox(Config_send2custom2, FPSTR(INTL_SEND_TO_OWN_API2), false);
-	// Remove https because not supported in esp32
-	// page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
-	// page_content += form_checkbox(Config_ssl_custom2, FPSTR(WEB_HTTPS), false);
-	// page_content += FPSTR(WEB_BRACE_BR);
+	page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
+	page_content += form_checkbox(Config_ssl_custom2, FPSTR(WEB_HTTPS), false);
+	page_content += FPSTR(WEB_BRACE_BR);
 
 	server.sendContent(page_content);
 	page_content = emptyString;
@@ -3285,8 +3281,6 @@ gps getGPS(String id)
  * WiFi auto connecting script                                   *
  *****************************************************************/
 
-// static WiFiEventHandler disconnectEventHandler;
-
 static WiFiEventId_t disconnectEventHandler;
 
 static void connectWifi()
@@ -3304,7 +3298,7 @@ static void connectWifi()
 											  {
 												  Debug.println("Event disconnect/Matrix off");
 												  display_update_enable(false); //deactivate matrix during wifi connection because of interrupts
-											  	  wifi_connection_lost = true;
+												  wifi_connection_lost = true;
 											  }
 
 											  last_disconnect_reason = info.wifi_sta_disconnected.reason;
@@ -3382,23 +3376,22 @@ static void connectWifi()
 
 static WiFiClient *getNewLoggerWiFiClient(const LoggerEntry logger)
 {
-
 	WiFiClient *_client;
-	if (loggerConfigs[logger].session)
-	{
-		_client = new WiFiClientSecure;
-	}
-	else
-	{
-		_client = new WiFiClient;
-	}
+	_client = new WiFiClient;
+	return _client;
+}
+
+static WiFiClientSecure *getNewLoggerWiFiClientSecure(const LoggerEntry logger)
+{
+	WiFiClientSecure *_client;
+	_client = new WiFiClientSecure;
 	return _client;
 }
 
 /*****************************************************************
  * send data to rest api                                         *
  *****************************************************************/
-static unsigned long sendData(const LoggerEntry logger, const String &data, const int pin, const char *host, const char *url)
+static unsigned long sendData(const LoggerEntry logger, const String &data, const int pin, const char *host, const char *url, bool ssl)
 {
 	unsigned long start_send = millis();
 	const __FlashStringHelper *contentType;
@@ -3409,58 +3402,157 @@ static unsigned long sendData(const LoggerEntry logger, const String &data, cons
 
 	switch (logger)
 	{
+	case LoggerSensorCommunity:
+		Debug.print("LoggerSensorCommunity https: ");
+		Debug.println(ssl);
+		contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
+		break;
+	case LoggerMadavi:
+		Debug.print("LoggerMadavi https: ");
+		Debug.println(ssl);
+		contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
+		break;
+	case LoggerCustom:
+		Debug.print("LoggerAirCarto https: ");
+		Debug.println(ssl);
+		contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
+		break;
+	case LoggerCustom2:
+		Debug.print("LoggerAtmoSud https: ");
+		Debug.println(ssl);
+		contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
+		break;
 	default:
 		contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
 		break;
 	}
 
-	std::unique_ptr<WiFiClient> client(getNewLoggerWiFiClient(logger));
-
-	HTTPClient http;
-	http.setTimeout(20 * 1000);
-	http.setUserAgent(SOFTWARE_VERSION + '/' + esp_chipid);
-	http.setReuse(false);
-	bool send_success = false;
-	if (logger == LoggerCustom && (*cfg::user_custom || *cfg::pwd_custom))
+	if (!ssl)
 	{
-		http.setAuthorization(cfg::user_custom, cfg::pwd_custom);
-	}
-	if (http.begin(*client, s_Host, loggerConfigs[logger].destport, s_url, !!loggerConfigs[logger].session))
-	{
-		http.addHeader(F("Content-Type"), contentType);
-		http.addHeader(F("X-Sensor"), String(F(SENSOR_BASENAME)) + esp_chipid);
-		// http.addHeader(F("X-MAC-ID"), String(F(SENSOR_BASENAME)) + esp_mac_id);
-		if (pin)
+		std::unique_ptr<WiFiClient> client(getNewLoggerWiFiClient(logger));
+
+		HTTPClient http;
+		http.setTimeout(20 * 1000);
+		http.setUserAgent(SOFTWARE_VERSION + '/' + esp_chipid);
+		http.setReuse(false);
+		bool send_success = false;
+
+		if (logger == LoggerCustom && (*cfg::user_custom || *cfg::pwd_custom))
 		{
-			http.addHeader(F("X-PIN"), String(pin));
+			http.setAuthorization(cfg::user_custom, cfg::pwd_custom);
 		}
 
-		result = http.POST(data);
+		if (logger == LoggerCustom2 && (*cfg::user_custom2 || *cfg::pwd_custom2))
+		{
+			http.setAuthorization(cfg::user_custom2, cfg::pwd_custom2);
+		}
 
-		if (result >= HTTP_CODE_OK && result <= HTTP_CODE_ALREADY_REPORTED)
+		if (http.begin(*client, s_Host, loggerConfigs[logger].destport, s_url, !!loggerConfigs[logger].session))
 		{
-			debug_outln_info(F("Succeeded - "), s_Host);
-			send_success = true;
+			http.addHeader(F("Content-Type"), contentType);
+			http.addHeader(F("X-Sensor"), String(F(SENSOR_BASENAME)) + esp_chipid);
+			// http.addHeader(F("X-MAC-ID"), String(F(SENSOR_BASENAME)) + esp_mac_id);
+			if (pin)
+			{
+				http.addHeader(F("X-PIN"), String(pin));
+			}
+
+			result = http.POST(data);
+
+			if (result >= HTTP_CODE_OK && result <= HTTP_CODE_ALREADY_REPORTED)
+			{
+				debug_outln_info(F("Succeeded http - "), s_Host);
+				send_success = true;
+			}
+			else if (result >= HTTP_CODE_BAD_REQUEST)
+			{
+				debug_outln_info(F("Request http failed with error: "), String(result));
+				debug_outln_info(F("Details:"), http.getString());
+			}
+			http.end();
 		}
-		else if (result >= HTTP_CODE_BAD_REQUEST)
+		else
 		{
-			debug_outln_info(F("Request failed with error: "), String(result));
-			debug_outln_info(F("Details:"), http.getString());
+			debug_outln_info(F("Failed connecting to "), s_Host);
 		}
-		http.end();
+		if (!send_success && result != 0)
+		{
+			loggerConfigs[logger].errors++;
+			last_sendData_returncode = result;
+		}
+
+		return millis() - start_send;
 	}
 	else
 	{
-		debug_outln_info(F("Failed connecting to "), s_Host);
-	}
+		std::unique_ptr<WiFiClientSecure> clientSecure(getNewLoggerWiFiClientSecure(logger));
 
-	if (!send_success && result != 0)
-	{
-		loggerConfigs[logger].errors++;
-		last_sendData_returncode = result;
-	}
+		switch (logger)
+		{
+		case LoggerSensorCommunity:
+			clientSecure->setCACert(dst_root_ca_x3);
+			break;
+		case LoggerMadavi:
+			clientSecure->setCACert(dst_root_ca_x3);
+			break;
+		case LoggerCustom:
+			clientSecure->setCACert(ca_aircarto);
+			break;
+		case LoggerCustom2:
+			clientSecure->setCACert(ca_atmo);
+			break;
+		}
 
-	return millis() - start_send;
+		HTTPClient https;
+		https.setTimeout(20 * 1000);
+		https.setUserAgent(SOFTWARE_VERSION + '/' + esp_chipid);
+		https.setReuse(false);
+		bool send_success = false;
+		if (logger == LoggerCustom && (*cfg::user_custom || *cfg::pwd_custom))
+		{
+			https.setAuthorization(cfg::user_custom, cfg::pwd_custom);
+		}
+		if (logger == LoggerCustom2 && (*cfg::user_custom2 || *cfg::pwd_custom2))
+		{
+			https.setAuthorization(cfg::user_custom2, cfg::pwd_custom2);
+		}
+
+		if (https.begin(*clientSecure, s_Host, loggerConfigs[logger].destport, s_url, !!loggerConfigs[logger].session))
+		{
+			https.addHeader(F("Content-Type"), contentType);
+			https.addHeader(F("X-Sensor"), String(F(SENSOR_BASENAME)) + esp_chipid);
+			// https.addHeader(F("X-MAC-ID"), String(F(SENSOR_BASENAME)) + esp_mac_id);
+			if (pin)
+			{
+				https.addHeader(F("X-PIN"), String(pin));
+			}
+
+			result = https.POST(data);
+
+			if (result >= HTTP_CODE_OK && result <= HTTP_CODE_ALREADY_REPORTED)
+			{
+				debug_outln_info(F("Succeeded https - "), s_Host);
+				send_success = true;
+			}
+			else if (result >= HTTP_CODE_BAD_REQUEST)
+			{
+				debug_outln_info(F("Request https failed with error: "), String(result));
+				debug_outln_info(F("Details:"), https.getString());
+			}
+			https.end();
+		}
+		else
+		{
+			debug_outln_info(F("Failed connecting to "), s_Host);
+		}
+		if (!send_success && result != 0)
+		{
+			loggerConfigs[logger].errors++;
+			last_sendData_returncode = result;
+		}
+
+		return millis() - start_send;
+	}
 }
 
 /*****************************************************************
@@ -3481,7 +3573,7 @@ static unsigned long sendSensorCommunity(const String &data, const int pin, cons
 		data_sensorcommunity.replace(replace_str, emptyString);
 		data_sensorcommunity += "]}";
 		Debug.println(data_sensorcommunity);
-		sum_send_time = sendData(LoggerSensorCommunity, data_sensorcommunity, pin, HOST_SENSORCOMMUNITY, URL_SENSORCOMMUNITY);
+		sum_send_time = sendData(LoggerSensorCommunity, data_sensorcommunity, pin, HOST_SENSORCOMMUNITY, URL_SENSORCOMMUNITY, cfg::ssl_dusti);
 	}
 
 	return sum_send_time;
@@ -4592,7 +4684,7 @@ static void display_values_matrix()
 		if (pm10_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4622,7 +4714,7 @@ static void display_values_matrix()
 		if (pm25_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4652,7 +4744,7 @@ static void display_values_matrix()
 		if (pm10_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4682,7 +4774,7 @@ static void display_values_matrix()
 		if (pm25_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4712,7 +4804,7 @@ static void display_values_matrix()
 		if (pm01_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4742,7 +4834,7 @@ static void display_values_matrix()
 		if (co2_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4771,7 +4863,7 @@ static void display_values_matrix()
 		if (co2_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4800,7 +4892,7 @@ static void display_values_matrix()
 		if (cov_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4823,7 +4915,7 @@ static void display_values_matrix()
 		if (t_value != -128.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4852,7 +4944,7 @@ static void display_values_matrix()
 		if (h_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -4881,7 +4973,7 @@ static void display_values_matrix()
 		if (p_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
@@ -5578,7 +5670,7 @@ static unsigned long sendDataToOptionalApis(const String &data)
 	if (cfg::send2madavi)
 	{
 		debug_outln_info(FPSTR(DBG_TXT_SENDING_TO), F("madavi.de: "));
-		sum_send_time += sendData(LoggerMadavi, data, 0, HOST_MADAVI, URL_MADAVI);
+		sum_send_time += sendData(LoggerMadavi, data, 0, HOST_MADAVI, URL_MADAVI, cfg::ssl_madavi);
 	}
 
 	if (cfg::send2custom)
@@ -5590,7 +5682,7 @@ static unsigned long sendDataToOptionalApis(const String &data)
 		data_4_custom += "\", ";
 		data_4_custom += data_to_send;
 		debug_outln_info(FPSTR(DBG_TXT_SENDING_TO), F("aircarto api: "));
-		sum_send_time += sendData(LoggerCustom, data_4_custom, 0, cfg::host_custom, cfg::url_custom);
+		sum_send_time += sendData(LoggerCustom, data_4_custom, 0, cfg::host_custom, cfg::url_custom, cfg::ssl_custom);
 	}
 
 	if (cfg::send2custom2)
@@ -5602,7 +5694,7 @@ static unsigned long sendDataToOptionalApis(const String &data)
 		data_4_custom += "\", ";
 		data_4_custom += data_to_send;
 		debug_outln_info(FPSTR(DBG_TXT_SENDING_TO), F("atmosud api: "));
-		sum_send_time += sendData(LoggerCustom2, data_4_custom, 0, cfg::host_custom2, cfg::url_custom2);
+		sum_send_time += sendData(LoggerCustom2, data_4_custom, 0, cfg::host_custom2, cfg::url_custom2, cfg::ssl_custom2);
 	}
 
 	if (cfg::send2csv)
@@ -6416,8 +6508,6 @@ void loop()
 
 	//AJOUTER BMX SAUF SI ON GARDE LE MODELE SC
 
-
-
 	//Debug.println("BEFORE WIFI");
 
 	if (cfg::has_wifi && WiFi.waitForConnectResult(10000) == WL_CONNECTED)
@@ -6451,7 +6541,6 @@ void loop()
 			Debug.println("Wifi disconnected");
 		};
 	}
-
 
 	if (send_now && cfg::sending_intervall_ms >= 120000)
 	{
@@ -6706,8 +6795,7 @@ void loop()
 		//place in the send now ? Let here to let Lora lib control itself
 	}
 
-
-//Matrix a the end of LoOP
+	//Matrix a the end of LoOP
 
 	if ((msSince(last_display_millis_oled) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_ssd1306))
 	{
@@ -6720,7 +6808,6 @@ void loop()
 		display_values_matrix();
 		last_display_millis_matrix = act_milli;
 	}
-
 }
 
 const uint8_t PROGMEM gamma8[] = {
