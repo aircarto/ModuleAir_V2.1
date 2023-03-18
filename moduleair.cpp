@@ -6666,7 +6666,7 @@ void loop()
 			//RECONNECT ETAIT ICI
 		}
 
-		if ((WiFi.status() != WL_CONNECTED || sending_time > 10000 || wifi_connection_lost) && cfg::has_wifi)
+		if ((WiFi.status() != WL_CONNECTED || sending_time > 20000 || wifi_connection_lost) && cfg::has_wifi)
 		{
 			debug_outln_info(F("Connection lost, reconnecting "));
 			WiFi_error_count++;
