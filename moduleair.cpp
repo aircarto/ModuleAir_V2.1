@@ -6671,10 +6671,6 @@ void loop()
 		if ((WiFi.status() != WL_CONNECTED || sending_time > 30000 || wifi_connection_lost) && cfg::has_wifi)
 		{
 			debug_outln_info(F("Connection lost, reconnecting "));
-
-			// if(cfg::has_matrix){
-			// display_update_enable(false);  IL FAUT PEUT ETRE GARDER CA
-			// }
 			WiFi_error_count++;
 			WiFi.reconnect();
 			waitForWifiToConnect(20);
