@@ -1357,7 +1357,6 @@ static bool NPM_start_stop()
 
 static String NPM_version_date()
 {
-	// debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(DBG_TXT_NPM_VERSION_DATE));
 	delay(250);
 	NPM_waiting_for_6 = NPM_REPLY_HEADER_6;
 	debug_outln_info(F("Version NPM..."));
@@ -1541,16 +1540,10 @@ static String NPM_temp_humi()
  *****************************************************************/
 static bool writeConfig()
 {
-	//debug_outln_info(F("BUGMATRIX4"));
 	if (cfg::has_matrix)
 	{
-		//debug_outln_info(F("BUGMATRIX5"));
 		display_update_enable(false); //prevent crash
 	}
-
-	//Si deja false , refalse fait bug
-
-	//display_update_enable(false); //prevent crash
 
 	debug_outln_info(F("BUGMATRIX6"));
 
@@ -1737,10 +1730,6 @@ static void init_config()
  *****************************************************************/
 static void createLoggerConfigs()
 {
-
-	// auto new_session = []()
-	// { return nullptr; };
-
 	loggerConfigs[LoggerSensorCommunity].destport = PORT_DUSTI;
 	if (cfg::send2dusti && cfg::ssl_dusti)
 	{
@@ -2352,28 +2341,14 @@ static void sensor_restart()
 
 static void webserver_config()
 {
-
-	// For any work with SPIFFS or server, the interrupts must be deactivated. The matrix is turned off.
-	//But here it make a bug in the config server
-
 	if (WiFi.getMode() == WIFI_MODE_STA)
 	{
 		debug_outln_info(F("STA"));
-		// if (cfg::has_matrix)
-		// {
-		// display_update_enable(false);  ATTENTION ICI REMTTRE?
-		// }
 	}
 
 	if (WiFi.getMode() == WIFI_MODE_AP)
 	{
 		debug_outln_info(F("AP"));
-		//debug_outln_info(F("BUGMATRIX1"));
-		// if (cfg::has_matrix)
-		// {
-		// debug_outln_info(F("BUGMATRIX2"));   ATTENTION ICI REMTTRE?
-		// display_update_enable(false);
-		// }
 	}
 
 	if (!webserver_request_auth())
@@ -3299,43 +3274,20 @@ static void connectWifi()
 
 	disconnectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 										  {
-											//   if (cfg::has_matrix)
-											//   {
-												  
-											// 	  display_update_enable(false);
-												  
-											//   }
-											  
 											  if (!wifi_connection_lost){
 												Debug.println("Event disconnect");
 											  wifi_connection_lost = true;
 											  }
-
-
-
-											  //last_disconnect_reason = info.wifi_sta_disconnected.reason;
 										  },
 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
 
 	connectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 										  {
-											//   if (cfg::has_matrix)
-											//   {
-												  
-											// 	  display_update_enable(true);
-												  
-											//   }
-
-											
 											if (wifi_connection_lost){
 												Debug.println("Event connect");
 											 wifi_connection_lost = false;
 											}
-
-												//cas undefined!!!????
-
-											  //last_connect_reason = info.wifi_sta_connected.reason;
 										  },
 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
 
@@ -3358,13 +3310,8 @@ static void connectWifi()
 	{
 		WiFi.setAutoConnect(false);
 	}
-	// if (!WiFi.getAutoReconnect())
-	// {
-	// 	WiFi.setAutoReconnect(true);
-	// }
 
-		WiFi.setAutoReconnect(false);
-
+	WiFi.setAutoReconnect(false);
 
 	// Use 13 channels for connect to known AP
 	wifi_country_t wifi;
@@ -3374,9 +3321,7 @@ static void connectWifi()
 	wifi.schan = 1;
 
 	WiFi.mode(WIFI_STA);
-
 	WiFi.setHostname(cfg::fs_ssid);
-
 	WiFi.begin(cfg::wlanssid, cfg::wlanpwd); // Start WiFI
 
 	debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
@@ -3425,6 +3370,98 @@ static void connectWifi()
 		display_update_enable(true); //reactivate matrix
 	}
 }
+
+// static void reConnectWifi()
+// {
+// 	if (cfg::has_matrix)
+// 	{
+// 		display_update_enable(false);
+// 	}
+
+// 	display_debug(F("Connecting to"), String(cfg::wlanssid));
+
+// 	disconnectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+// 										  {
+// 											  if (!wifi_connection_lost){
+// 												Debug.println("Event disconnect");
+// 											  wifi_connection_lost = true;
+// 											  }
+// 										  },
+// 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
+
+// 	connectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+// 										  {
+// 											if (wifi_connection_lost){
+// 												Debug.println("Event connect");
+// 											 wifi_connection_lost = false;
+// 											}
+// 										  },
+// 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+
+	
+// 	STAstartEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+// 										  {
+// 											Debug.println("STA start");
+// 										  },
+// 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_START);
+
+	
+// 	STAstopEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+// 										  {
+// 											Debug.println("STA stop");
+// 										  },
+// 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_STOP);
+
+	
+// 	if (WiFi.getAutoConnect())
+// 	{
+// 		WiFi.setAutoConnect(false);
+// 	}
+	
+// 	WiFi.setAutoReconnect(false);
+
+// 	// Use 13 channels for connect to known AP
+// 	wifi_country_t wifi;
+// 	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
+// 	strcpy(wifi.cc, INTL_LANG);
+// 	wifi.nchan = 13;
+// 	wifi.schan = 1;
+
+// 	WiFi.mode(WIFI_STA);
+// 	WiFi.setHostname(cfg::fs_ssid);
+// 	WiFi.begin(cfg::wlanssid, cfg::wlanpwd); // Start WiFI
+
+// 	debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
+
+// 	waitForWifiToConnect(40);
+// 	debug_outln_info(emptyString);
+
+// 	if (WiFi.waitForConnectResult(10000) != WL_CONNECTED) 
+// 	{
+// 		Debug.println("Can't restart!");
+// 		// sensor_restart();
+// 		wifi_connection_lost = true;
+// 	}
+// 	else
+// 	{
+// 		wifi_connection_lost = false;
+// 	}
+	
+// 	debug_outln_info(F("WiFi connected, IP is: "), WiFi.localIP().toString());
+// 	last_signal_strength = WiFi.RSSI();
+
+// 	if (MDNS.begin(cfg::fs_ssid))
+// 	{
+// 		MDNS.addService("http", "tcp", 80);
+// 		MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+// 	}
+
+// 	if (cfg::has_matrix)
+// 	{
+// 		display_update_enable(true); //reactivate matrix
+// 	}
+// }
 
 static WiFiClient *getNewLoggerWiFiClient(const LoggerEntry logger)
 {
@@ -5442,14 +5479,6 @@ static void init_display()
 
 	{
 
-#if defined(ARDUINO_TTGO_LoRa32_v21new)
-		oled_ssd1306 = new SSD1306Wire(0x3c, I2C_PIN_SDA, I2C_PIN_SCL);
-#endif
-
-#if defined(ARDUINO_HELTEC_WIFI_LORA_32_V2)
-		oled_ssd1306 = new SSD1306Wire(0x3c, I2C_SCREEN_SDA, I2C_SCREEN_SCL);
-#endif
-
 #if defined(ARDUINO_ESP32_DEV) and defined(KIT_V1)
 		oled_ssd1306 = new SSD1306Wire(0x3c, I2C_PIN_SDA, I2C_PIN_SCL);
 #endif
@@ -5632,16 +5661,6 @@ static void powerOnTestSensors()
 			delay(3000);
 			NPM_temp_humi();
 			delay(2000);
-
-			// if (!cfg::npm_fulltime)
-			// {
-			// 	is_NPM_running = NPM_start_stop();
-			// 	delay(2000); //prevent any buffer overload on ESP82666
-			// }
-			// else
-			// {
-			// 	is_NPM_running = true;
-			// }
 		}
 	}
 
@@ -5823,30 +5842,6 @@ const lmic_pinmap lmic_pins = {
 	//.rst = D14,
 	.rst = D2, //ou bien D0,D1 ?
 	.dio = {D26, D35, D34}};
-#endif
-
-#if defined(ARDUINO_HELTEC_WIFI_LORA_32_V2)
-const lmic_pinmap lmic_pins = {
-	.nss = D18,
-	.rxtx = LMIC_UNUSED_PIN,
-	.rst = D14,
-	.dio = {/*dio0*/ D26, /*dio1*/ D35, /*dio2*/ D34},
-	.rxtx_rx_active = 0,
-	.rssi_cal = 10,
-	.spi_freq = 8000000 /* 8 MHz */
-};
-#endif
-
-#if defined(ARDUINO_TTGO_LoRa32_v21new)
-const lmic_pinmap lmic_pins = {
-	.nss = 18,
-	.rxtx = LMIC_UNUSED_PIN,
-	.rst = 23,
-	.dio = {/*dio0*/ 26, /*dio1*/ 33, /*dio2*/ 32},
-	.rxtx_rx_active = 0,
-	.rssi_cal = 10,
-	.spi_freq = 8000000 /* 8 MHz */
-};
 #endif
 
 void ToByteArray()
@@ -6281,7 +6276,7 @@ void setup()
 
 	Debug.printf("\r\n\r\nAddress of Stackpointer near start is:  %p \r\n", (void *)StackPtrAtStart);
 	Debug.printf("End of Stack is near: %p \r\n", (void *)StackPtrEnd);
-	Debug.printf("Free Stack at setup is:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
+	Debug.printf("Free Stack at start of setup() is:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
 
 	esp_chipid = String((uint16_t)(ESP.getEfuseMac() >> 32), HEX); // for esp32
 	esp_chipid += String((uint32_t)ESP.getEfuseMac(), HEX);
@@ -6298,27 +6293,10 @@ void setup()
 		init_matrix();
 	}
 
-#if defined(ESP32) and not defined(ARDUINO_HELTEC_WIFI_LORA_32_V2) and not defined(ARDUINO_TTGO_LoRa32_v21new)
 	Wire.begin(I2C_PIN_SDA, I2C_PIN_SCL);
 	lorachip = loratest(D26); // test if the LoRa module is connected when LoRaWAN option checked, otherwise freeze...
 	Debug.print("Lora chip connected:");
 	Debug.println(lorachip);
-#endif
-
-#if defined(ARDUINO_TTGO_LoRa32_v21new)
-	Wire.begin(I2C_PIN_SDA, I2C_PIN_SCL);
-	lorachip = true;
-#endif
-
-#if defined(ARDUINO_HELTEC_WIFI_LORA_32_V2)
-	pinMode(OLED_RESET, OUTPUT);
-	digitalWrite(OLED_RESET, LOW); // set GPIO16 low to reset OLED
-	delay(50);
-	digitalWrite(OLED_RESET, HIGH); // while OLED is running, must set GPIO16 in high、
-	Wire.begin(I2C_SCREEN_SDA, I2C_SCREEN_SCL);
-	Wire1.begin(I2C_PIN_SDA, I2C_PIN_SCL);
-	lorachip = true;
-#endif
 
 	if (cfg::npm_read)
 	{
@@ -6455,8 +6433,6 @@ void setup()
 		do_send(&sendjob); // values are -1, -128 etc. they can be easily filtered
 	}
 
-	//AJOUTER lora_connection_lost ??
-
 	if (cfg::display_forecast)
 	{
 		forecast_selector = 0; //initialisation after first LoRaWAN payload
@@ -6480,7 +6456,9 @@ void setup()
 	datalora[0] = booltobyte(configlorawan);
 
 	Debug.printf("End of void setup()\n");
-	//ajouter test stack cf. code
+	void *SpActual = NULL;
+	Debug.printf("Free Stack at end od setup() is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
+
 }
 
 void loop()
@@ -6559,48 +6537,6 @@ void loop()
 		}
 	}
 
-	//AJOUTER BMX SAUF SI ON GARDE LE MODELE SC
-
-	//Debug.println("BEFORE WIFI");
-
-//ON FAIT SEULEMENT AVEC LES EVENTS DANS LA LOOP
-
-	// if (cfg::has_wifi && WiFi.waitForConnectResult(10000) == WL_CONNECTED)
-	// {
-	// 	if (wifi_connection_lost)
-	// 	{
-	// 		Debug.println("Wifi reconnected");
-
-	// 		if (cfg::has_matrix)
-	// 		{
-	// 			display_update_enable(true);
-	// 		}
-
-	// 		wifi_connection_lost = false;
-	// 	};
-	// 	server.handleClient();
-	// 	yield();
-	// }
-	// else if (cfg::has_wifi && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
-	// {
-	// 	if (!wifi_connection_lost)
-	// 	{
-	// 		wifi_connection_lost = true;
-
-	// 		if (cfg::has_matrix)
-	// 		{
-	// 			display_update_enable(false);
-	// 		}
-
-	// 		//WiFi.disconnect(false,false);
-	// 		Debug.println("Wifi disconnected");
-	// 	};
-	// }
-
-
-
-	//Matrix a the beginning of LoOP
-
 	if ((msSince(last_display_millis_oled) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_ssd1306))
 	{
 		display_values_oled();
@@ -6628,8 +6564,8 @@ void loop()
 		data = FPSTR(data_first_part);
 		RESERVE_STRING(result, MED_STR);
 
-		//void *SpActual = NULL;
-		//Debug.printf("Free Stack at sendSensorCommunity is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
+		void *SpActual = NULL;
+		Debug.printf("Free Stack at sendSensorCommunity is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
 
 		if (cfg::sds_read)
 		{
@@ -6749,36 +6685,30 @@ void loop()
 			WiFi.reconnect();
 			waitForWifiToConnect(20);
 
+			if(wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
+			{
+				Debug.println("Reconnect failed after WiFi.reconnect()");
+
+				WiFi.disconnect(true,true);
+				// wifi_country_t wifi;
+				// wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
+				// strcpy(wifi.cc, INTL_LANG);
+				// wifi.nchan = 13;
+				// wifi.schan = 1;
+				WiFi.mode(WIFI_STA);
+				WiFi.setHostname(cfg::fs_ssid);
+				WiFi.begin(cfg::wlanssid, cfg::wlanpwd); // Start WiFI again
+
+				// if (MDNS.begin(cfg::fs_ssid))
+				// {
+				// 	MDNS.addService("http", "tcp", 80);
+				// 	MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+				// }
 
 
-			// if (wifi_connection_lost && WiFi.waitForConnectResult(10000) == WL_CONNECTED)
-			// {
-			// 	Debug.println("Reconnect success");
+			//reConnectWifi();
 
-			// 	if (cfg::has_matrix)
-			// 	{
-			// 		display_update_enable(true);
-			// 	}
-
-			// 	wifi_connection_lost = false;
-			// }
-			// else if (wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
-			// {
-			// 	Debug.println("Reconnect failed after WiFi.reconnect()");
-			// 	//wifi_connection_lost = true;
-
-			// 	// if (cfg::has_matrix)
-			// 	// {
-			// 	// 	display_update_enable(false);
-			// 	// }
-
-			// 	//sensor_restart();
-
-			// 	//WiFi.disconnect(false,false);
-			// }
-
-			//WiFi.waitForConnectResult()
-
+			}
 			debug_outln_info(emptyString);
 		}
 
