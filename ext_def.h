@@ -20,9 +20,9 @@ const char WWW_PASSWORD[] PROGMEM = "";
 
 #define HAS_WIFI 1
 #define HAS_LORA 1
-const char APPEUI[] = "6081F9538B15F28B";
-const char DEVEUI [] = "6081F955B6E20360";
-const char APPKEY[] = "9A4D0E03F68FE4BEBB78E38B0CBE595A";
+const char APPEUI[] = "0000";
+const char DEVEUI [] = "0000";
+const char APPKEY[] = "0000";
 
 // Where to send the data?
 #define SEND2SENSORCOMMUNITY 0

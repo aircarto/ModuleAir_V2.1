@@ -1738,8 +1738,8 @@ static void init_config()
 static void createLoggerConfigs()
 {
 
-	auto new_session = []()
-	{ return nullptr; };
+	// auto new_session = []()
+	// { return nullptr; };
 
 	loggerConfigs[LoggerSensorCommunity].destport = PORT_DUSTI;
 	if (cfg::send2dusti && cfg::ssl_dusti)
@@ -6710,7 +6710,7 @@ void loop()
 					display_update_enable(false);
 				}
 
-				sensor_restart();
+				//sensor_restart();
 
 				//WiFi.disconnect(false,false);
 			}
