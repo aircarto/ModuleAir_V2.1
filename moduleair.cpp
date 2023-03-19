@@ -6456,9 +6456,6 @@ void setup()
 	datalora[0] = booltobyte(configlorawan);
 
 	Debug.printf("End of void setup()\n");
-	void *SpActual = NULL;
-	Debug.printf("Free Stack at end od setup() is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
-
 }
 
 void loop()
@@ -6563,9 +6560,6 @@ void loop()
 		RESERVE_STRING(data, LARGE_STR);
 		data = FPSTR(data_first_part);
 		RESERVE_STRING(result, MED_STR);
-
-		void *SpActual = NULL;
-		Debug.printf("Free Stack at sendSensorCommunity is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
 
 		if (cfg::sds_read)
 		{
@@ -6689,7 +6683,7 @@ void loop()
 			{
 				Debug.println("Reconnect failed after WiFi.reconnect()");
 
-				WiFi.disconnect(true,true);
+				WiFi.disconnect(true, true);
 				// wifi_country_t wifi;
 				// wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
 				// strcpy(wifi.cc, INTL_LANG);
