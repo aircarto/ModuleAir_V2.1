@@ -3284,7 +3284,9 @@ gps getGPS(String id)
  *****************************************************************/
 
 static WiFiEventId_t disconnectEventHandler;
-//static WiFiEventId_t connectEventHandler;
+static WiFiEventId_t connectEventHandler;
+static WiFiEventId_t STAstartEventHandler;
+static WiFiEventId_t STAstopEventHandler;
 
 static void connectWifi()
 {
@@ -3297,39 +3299,72 @@ static void connectWifi()
 
 	disconnectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 										  {
-											  if (cfg::has_matrix && !wifi_connection_lost)
-											  {
-												  Debug.println("Event disconnect/Matrix off");
-												  display_update_enable(false);
-												  wifi_connection_lost = true;
+											//   if (cfg::has_matrix)
+											//   {
+												  
+											// 	  display_update_enable(false);
+												  
+											//   }
+											  
+											  if (!wifi_connection_lost){
+												Debug.println("Event disconnect");
+											  wifi_connection_lost = true;
 											  }
 
-											  last_disconnect_reason = info.wifi_sta_disconnected.reason;
+
+
+											  //last_disconnect_reason = info.wifi_sta_disconnected.reason;
 										  },
 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
 
-		// connectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-		// 								  {
-		// 									  if (cfg::has_matrix && wifi_connection_lost)
-		// 									  {
-		// 										  Debug.println("Event connect/Matrix on");
-		// 										  display_update_enable(true);
-		// 										  wifi_connection_lost = false;
-		// 									  }
+	connectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+										  {
+											//   if (cfg::has_matrix)
+											//   {
+												  
+											// 	  display_update_enable(true);
+												  
+											//   }
 
-		// 									  last_connect_reason = info.wifi_sta_connected.reason;
-		// 								  },
-		// 								  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+											
+											if (wifi_connection_lost){
+												Debug.println("Event connect");
+											 wifi_connection_lost = false;
+											}
 
+												//cas undefined!!!????
+
+											  //last_connect_reason = info.wifi_sta_connected.reason;
+										  },
+										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+
+	
+	STAstartEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+										  {
+											Debug.println("STA start");
+										  },
+										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_START);
+
+	
+	STAstopEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+										  {
+											Debug.println("STA stop");
+										  },
+										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_STOP);
+
+	
 	if (WiFi.getAutoConnect())
 	{
 		WiFi.setAutoConnect(false);
 	}
-	if (!WiFi.getAutoReconnect())
-	{
-		WiFi.setAutoReconnect(true);
-	}
+	// if (!WiFi.getAutoReconnect())
+	// {
+	// 	WiFi.setAutoReconnect(true);
+	// }
+
+		WiFi.setAutoReconnect(false);
+
 
 	// Use 13 channels for connect to known AP
 	wifi_country_t wifi;
@@ -3352,7 +3387,7 @@ static void connectWifi()
 	//if (WiFi.status() != WL_CONNECTED) //Waitforwifistatus ?
 	if (WiFi.waitForConnectResult(10000) != WL_CONNECTED) //Waitforwifistatus ?
 	{
-		// Debug.println("Force change WiFi config");
+		Debug.println("Force change WiFi config");
 		wifi_connection_lost = true;
 		//cfg::has_wifi = false;
 		// strcpy_P(cfg::wlanssid, "TYPE SSID");
@@ -6471,6 +6506,7 @@ void loop()
 	}
 
 	sample_count++;
+
 	if (last_micro != 0)
 	{
 		unsigned long diff_micro = act_micro - last_micro;
@@ -6527,37 +6563,56 @@ void loop()
 
 	//Debug.println("BEFORE WIFI");
 
-	if (cfg::has_wifi && WiFi.waitForConnectResult(10000) == WL_CONNECTED)
+//ON FAIT SEULEMENT AVEC LES EVENTS DANS LA LOOP
+
+	// if (cfg::has_wifi && WiFi.waitForConnectResult(10000) == WL_CONNECTED)
+	// {
+	// 	if (wifi_connection_lost)
+	// 	{
+	// 		Debug.println("Wifi reconnected");
+
+	// 		if (cfg::has_matrix)
+	// 		{
+	// 			display_update_enable(true);
+	// 		}
+
+	// 		wifi_connection_lost = false;
+	// 	};
+	// 	server.handleClient();
+	// 	yield();
+	// }
+	// else if (cfg::has_wifi && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
+	// {
+	// 	if (!wifi_connection_lost)
+	// 	{
+	// 		wifi_connection_lost = true;
+
+	// 		if (cfg::has_matrix)
+	// 		{
+	// 			display_update_enable(false);
+	// 		}
+
+	// 		//WiFi.disconnect(false,false);
+	// 		Debug.println("Wifi disconnected");
+	// 	};
+	// }
+
+
+
+	//Matrix a the beginning of LoOP
+
+	if ((msSince(last_display_millis_oled) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_ssd1306))
 	{
-		if (wifi_connection_lost)
-		{
-			Debug.println("Wifi reconnected");
-
-			if (cfg::has_matrix)
-			{
-				display_update_enable(true);
-			}
-
-			wifi_connection_lost = false;
-		};
-		server.handleClient();
-		yield();
+		display_values_oled();
+		last_display_millis_oled = act_milli;
 	}
-	else if (cfg::has_wifi && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
+
+	if ((msSince(last_display_millis_matrix) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_matrix))
 	{
-		if (!wifi_connection_lost)
-		{
-			wifi_connection_lost = true;
-
-			if (cfg::has_matrix)
-			{
-				display_update_enable(false);
-			}
-
-			//WiFi.disconnect(false,false);
-			Debug.println("Wifi disconnected");
-		};
+		display_values_matrix();
+		last_display_millis_matrix = act_milli;
 	}
+
 
 	if (send_now && cfg::sending_intervall_ms >= 120000)
 	{
@@ -6686,34 +6741,41 @@ void loop()
 		if ((WiFi.status() != WL_CONNECTED || sending_time > 30000 || wifi_connection_lost) && cfg::has_wifi)
 		{
 			debug_outln_info(F("Connection lost, reconnecting "));
+
+			// if(cfg::has_matrix){
+			// display_update_enable(false);  IL FAUT PEUT ETRE GARDER CA
+			// }
 			WiFi_error_count++;
 			WiFi.reconnect();
 			waitForWifiToConnect(20);
-			if (wifi_connection_lost && WiFi.waitForConnectResult(10000) == WL_CONNECTED)
-			{
-				Debug.println("Reconnect success");
 
-				if (cfg::has_matrix)
-				{
-					display_update_enable(true);
-				}
 
-				wifi_connection_lost = false;
-			}
-			else if (wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
-			{
-				Debug.println("Reconnect failed after WiFi.reconnect()");
-				wifi_connection_lost = true;
 
-				if (cfg::has_matrix)
-				{
-					display_update_enable(false);
-				}
+			// if (wifi_connection_lost && WiFi.waitForConnectResult(10000) == WL_CONNECTED)
+			// {
+			// 	Debug.println("Reconnect success");
 
-				//sensor_restart();
+			// 	if (cfg::has_matrix)
+			// 	{
+			// 		display_update_enable(true);
+			// 	}
 
-				//WiFi.disconnect(false,false);
-			}
+			// 	wifi_connection_lost = false;
+			// }
+			// else if (wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
+			// {
+			// 	Debug.println("Reconnect failed after WiFi.reconnect()");
+			// 	//wifi_connection_lost = true;
+
+			// 	// if (cfg::has_matrix)
+			// 	// {
+			// 	// 	display_update_enable(false);
+			// 	// }
+
+			// 	//sensor_restart();
+
+			// 	//WiFi.disconnect(false,false);
+			// }
 
 			//WiFi.waitForConnectResult()
 
@@ -6812,20 +6874,6 @@ void loop()
 	{
 		os_runloop_once();
 		//place in the send now ? Let here to let Lora lib control itself
-	}
-
-	//Matrix a the end of LoOP
-
-	if ((msSince(last_display_millis_oled) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_ssd1306))
-	{
-		display_values_oled();
-		last_display_millis_oled = act_milli;
-	}
-
-	if ((msSince(last_display_millis_matrix) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_matrix))
-	{
-		display_values_matrix();
-		last_display_millis_matrix = act_milli;
 	}
 }
 
