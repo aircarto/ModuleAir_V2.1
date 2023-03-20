@@ -3326,7 +3326,7 @@ static void connectWifi()
 	{
 		Debug.println("Force change WiFi config");
 		wifi_connection_lost = true;
-		//cfg::has_wifi = false;
+		cfg::has_wifi = false;
 		// strcpy_P(cfg::wlanssid, "TYPE SSID");
 		// strcpy_P(cfg::wlanpwd, "TYPE PWD");
 		wifiConfig();
