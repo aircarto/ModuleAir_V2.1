@@ -215,6 +215,9 @@ namespace cfg
 	}
 }
 
+
+bool spiffs_matrix;
+
 //configuration summary for LoRaWAN
 
 bool configlorawan[8] = {false, false, false, false, false, false, false, false};
@@ -1540,12 +1543,32 @@ static String NPM_temp_humi()
  *****************************************************************/
 static bool writeConfig()
 {
-	if (cfg::has_matrix)
+
+	Debug.println(cfg::has_matrix);
+
+	//COMPARER SPIFFS ORIGIN ET NEW
+
+	if (!cfg::has_matrix && spiffs_matrix)
 	{
-		display_update_enable(false); //prevent crash
+		display_update_enable(false);
 	}
 
-	debug_outln_info(F("BUGMATRIX6"));
+	if (cfg::has_matrix && !spiffs_matrix)
+	{
+		//rien
+	}
+
+
+	if (!cfg::has_matrix && !spiffs_matrix)
+	{
+		//rien
+
+	}
+
+		if (cfg::has_matrix && spiffs_matrix)
+	{
+		display_update_enable(false);
+	}
 
 	DynamicJsonDocument json(JSON_BUFFER_SIZE);
 	debug_outln_info(F("Saving config..."));
@@ -3155,8 +3178,10 @@ static void wifiConfig()
 	}
 
 	WiFi.softAPdisconnect(true);
-
-	//WiFi.disconnect(true,true); //NECESSAIRE ?
+	dnsServer.stop();  // A VOIR
+	delay(100);
+	// WiFi.disconnect(true, true);
+	WiFi.mode(WIFI_OFF);  //A tenter
 
 	debug_outln_info(F("---- Result Webconfig ----"));
 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
@@ -6278,6 +6303,8 @@ void setup()
 
 	init_config();
 
+	spiffs_matrix = cfg::has_matrix; //save the spiffs state on start
+
 	if (cfg::has_matrix)
 	{
 		init_matrix();
@@ -6534,6 +6561,14 @@ void loop()
 	{
 		display_values_matrix();
 		last_display_millis_matrix = act_milli;
+	}
+
+	//if (cfg::has_wifi && WiFi.waitForConnectResult(10000) == WL_CONNECTED)
+	//if (cfg::has_wifi && !wifi_connection_lost)
+	if (cfg::has_wifi && WiFi.status() == WL_CONNECTED)
+	{
+		server.handleClient();
+		yield();
 	}
 
 	if (send_now && cfg::sending_intervall_ms >= 120000)
