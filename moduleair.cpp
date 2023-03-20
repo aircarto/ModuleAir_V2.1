@@ -318,7 +318,7 @@ void display_update_enable(bool is_enable)
 	if (is_enable)
 	{
 		Debug.println("true");
-		timer = timerBegin(0, 80, true);
+		//timer = timerBegin(0, 80, true);
 		timerAttachInterrupt(timer, &display_updater, true);
 		timerAlarmWrite(timer, 4000, true);
 		timerAlarmEnable(timer);
@@ -2386,8 +2386,6 @@ static void webserver_config()
 	{
 		display_debug(F("Writing config"), emptyString);
 
-		debug_outln_info(F("BUGMATRIX3"));
-
 		if (writeConfig())
 		{
 			display_debug(F("Writing config"), F("and restarting"));
@@ -3274,38 +3272,32 @@ static void connectWifi()
 
 	disconnectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 										  {
-											  if (!wifi_connection_lost){
-												Debug.println("Event disconnect");
-											  wifi_connection_lost = true;
+											  if (!wifi_connection_lost)
+											  {
+												  Debug.println("Event disconnect");
+												  wifi_connection_lost = true;
 											  }
 										  },
 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
-
 	connectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-										  {
-											if (wifi_connection_lost){
-												Debug.println("Event connect");
-											 wifi_connection_lost = false;
-											}
-										  },
-										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+									   {
+										   if (wifi_connection_lost)
+										   {
+											   Debug.println("Event connect");
+											   wifi_connection_lost = false;
+										   }
+									   },
+									   WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
 
-	
 	STAstartEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-										  {
-											Debug.println("STA start");
-										  },
-										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_START);
+										{ Debug.println("STA start"); },
+										WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_START);
 
-	
 	STAstopEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-										  {
-											Debug.println("STA stop");
-										  },
-										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_STOP);
+									   { Debug.println("STA stop"); },
+									   WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_STOP);
 
-	
 	if (WiFi.getAutoConnect())
 	{
 		WiFi.setAutoConnect(false);
@@ -3369,6 +3361,7 @@ static void connectWifi()
 	{
 		display_update_enable(true); //reactivate matrix
 	}
+
 }
 
 // static void reConnectWifi()
@@ -3389,7 +3382,6 @@ static void connectWifi()
 // 										  },
 // 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
-
 // 	connectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 // 										  {
 // 											if (wifi_connection_lost){
@@ -3399,26 +3391,23 @@ static void connectWifi()
 // 										  },
 // 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
 
-	
 // 	STAstartEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 // 										  {
 // 											Debug.println("STA start");
 // 										  },
 // 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_START);
 
-	
 // 	STAstopEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 // 										  {
 // 											Debug.println("STA stop");
 // 										  },
 // 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_STOP);
 
-	
 // 	if (WiFi.getAutoConnect())
 // 	{
 // 		WiFi.setAutoConnect(false);
 // 	}
-	
+
 // 	WiFi.setAutoReconnect(false);
 
 // 	// Use 13 channels for connect to known AP
@@ -3437,7 +3426,7 @@ static void connectWifi()
 // 	waitForWifiToConnect(40);
 // 	debug_outln_info(emptyString);
 
-// 	if (WiFi.waitForConnectResult(10000) != WL_CONNECTED) 
+// 	if (WiFi.waitForConnectResult(10000) != WL_CONNECTED)
 // 	{
 // 		Debug.println("Can't restart!");
 // 		// sensor_restart();
@@ -3447,7 +3436,7 @@ static void connectWifi()
 // 	{
 // 		wifi_connection_lost = false;
 // 	}
-	
+
 // 	debug_outln_info(F("WiFi connected, IP is: "), WiFi.localIP().toString());
 // 	last_signal_strength = WiFi.RSSI();
 
@@ -5400,6 +5389,7 @@ static void display_values_matrix()
 
 static void init_matrix()
 {
+	timer = timerBegin(0, 80, true); //init timer once only
 	display.begin(16);
 	display.setDriverChip(SHIFT);  // SHIFT ou FM6124 ou FM6126A
 	display.setColorOrder(RRGGBB); // ATTENTION à changer en fonction de l'écran !!!! Small Matrix (160x80mm) is RRBBGG and Big Matrix (192x96mm) is RRGGBB
@@ -6546,7 +6536,6 @@ void loop()
 		last_display_millis_matrix = act_milli;
 	}
 
-
 	if (send_now && cfg::sending_intervall_ms >= 120000)
 	{
 
@@ -6675,8 +6664,13 @@ void loop()
 			WiFi.reconnect();
 			waitForWifiToConnect(20);
 
-			if(wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
+			if (wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
 			{
+				if (cfg::has_matrix)
+				{
+					display_update_enable(false);
+				}
+
 				Debug.println("Reconnect failed after WiFi.reconnect()");
 
 				WiFi.disconnect(true, true);
@@ -6695,9 +6689,12 @@ void loop()
 				// 	MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
 				// }
 
+				//reConnectWifi();
 
-			//reConnectWifi();
-
+				if (cfg::has_matrix)
+				{
+					display_update_enable(true);
+				}
 			}
 			debug_outln_info(emptyString);
 		}
