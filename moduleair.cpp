@@ -1544,31 +1544,36 @@ static String NPM_temp_humi()
 static bool writeConfig()
 {
 
+	Debug.print("cfg::has_matrix: ");
 	Debug.println(cfg::has_matrix);
+
+	if (cfg::has_matrix && spiffs_matrix){
+		display_update_enable(false); //prevent crash
+	}
 
 	//COMPARER SPIFFS ORIGIN ET NEW
 
-	if (!cfg::has_matrix && spiffs_matrix)
-	{
-		display_update_enable(false);
-	}
+	// if (!cfg::has_matrix && spiffs_matrix)
+	// {
+	// 	display_update_enable(false);
+	// }
 
-	if (cfg::has_matrix && !spiffs_matrix)
-	{
-		//rien
-	}
+	// if (cfg::has_matrix && !spiffs_matrix)
+	// {
+	// 	//rien
+	// }
 
 
-	if (!cfg::has_matrix && !spiffs_matrix)
-	{
-		//rien
+	// if (!cfg::has_matrix && !spiffs_matrix)
+	// {
+	// 	//rien
 
-	}
+	// }
 
-		if (cfg::has_matrix && spiffs_matrix)
-	{
-		display_update_enable(false);
-	}
+	// if (cfg::has_matrix && spiffs_matrix)
+	// {
+	// 	// display_update_enable(false);
+	// }
 
 	DynamicJsonDocument json(JSON_BUFFER_SIZE);
 	debug_outln_info(F("Saving config..."));
@@ -2367,6 +2372,10 @@ static void webserver_config()
 	if (WiFi.getMode() == WIFI_MODE_STA)
 	{
 		debug_outln_info(F("STA"));
+		if (cfg::has_matrix)
+		{
+		display_update_enable(false);
+		}
 	}
 
 	if (WiFi.getMode() == WIFI_MODE_AP)
@@ -6304,6 +6313,9 @@ void setup()
 	init_config();
 
 	spiffs_matrix = cfg::has_matrix; //save the spiffs state on start
+
+	Debug.println("spiffs_matrix: ");
+	Debug.println(spiffs_matrix);
 
 	if (cfg::has_matrix)
 	{
