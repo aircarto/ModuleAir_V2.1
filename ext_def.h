@@ -2,8 +2,8 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "ModuleAir";
-const char WLANPWD[] PROGMEM = "ModuleAir";
+const char WLANSSID[] PROGMEM = "luftdaten";
+const char WLANPWD[] PROGMEM = "luftd4ten";
 
 
 #define TIME_FOR_WIFI_CONFIG 120000;
