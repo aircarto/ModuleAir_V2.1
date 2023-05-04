@@ -3114,7 +3114,17 @@ static void wifiConfig()
 
 	if (cfg::has_matrix)
 	{
-		display_update_enable(false); //reactivate matrix during the X min config time  ATTENTION ICI true/false?
+		drawImage(36, 6, 20, 27, wifiblue);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setTextSize(1);
+		display.setCursor(1, 5);
+		display.print("Configurer");
+		display.setCursor(1, 16);
+		display.print("le WiFi");
+		delay(3000);
+		display.fillScreen(myBLACK);
+		display_update_enable(false);
 	}
 
 	debug_outln_info(F("Starting WiFiManager"));
@@ -3177,6 +3187,16 @@ static void wifiConfig()
 	if (cfg::has_matrix)
 	{
 		display_update_enable(true); //reactivate matrix during the X min config time  ATTENTION ICI true/false?
+		drawImage(36, 6, 20, 27, wifiblue);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setTextSize(1);
+		display.setCursor(1, 5);
+		display.print("Configurer");
+		display.setCursor(1, 16);
+		display.print("le WiFi");
+		delay(3000);
+		display.fillScreen(myBLACK);
 	}
 
 	while ((millis() - last_page_load) < cfg::time_for_wifi_config + 500)
@@ -3184,6 +3204,21 @@ static void wifiConfig()
 		dnsServer.processNextRequest();
 		server.handleClient();
 		yield();
+	}
+
+	if (cfg::has_matrix)
+	{
+		display_update_enable(true); //reactivate matrix during the X min config time  ATTENTION ICI true/false?
+		drawImage(36, 6, 20, 27, wifiblue);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL); //&Font4x5Fixed
+		display.setTextSize(1);
+		display.setCursor(1, 5);
+		display.print("Pas de");
+		display.setCursor(1, 16);
+		display.print("WiFi");
+		delay(3000);
+		display.fillScreen(myBLACK);
 	}
 
 	WiFi.softAPdisconnect(true);
@@ -3299,6 +3334,16 @@ static void connectWifi()
 {
 	if (cfg::has_matrix)
 	{
+		drawImage(36, 6, 20, 27, wifiblue);
+		display.setTextColor(myWHITE);
+		display.setFont(&Font4x5Fixed);
+		display.setTextSize(1);
+		display.setCursor(1, 5);
+		display.print("Essai");
+		display.setCursor(1, 16);
+		display.print("connexion");
+		delay(3000);
+		display.fillScreen(myBLACK);
 		display_update_enable(false);
 	}
 
@@ -3352,7 +3397,7 @@ static void connectWifi()
 
 	debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
 
-	waitForWifiToConnect(40);
+	waitForWifiToConnect(40);  //diminur ici ???
 	debug_outln_info(emptyString);
 
 	//if (WiFi.status() != WL_CONNECTED) //Waitforwifistatus ?
@@ -3363,6 +3408,21 @@ static void connectWifi()
 		cfg::has_wifi = false;
 		// strcpy_P(cfg::wlanssid, "TYPE SSID");
 		// strcpy_P(cfg::wlanpwd, "TYPE PWD");
+
+	if (cfg::has_matrix)
+	{
+		display_update_enable(true);
+		drawImage(36, 6, 20, 27, wifiblue);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setTextSize(1);
+		display.setCursor(1, 5);
+		display.print("Wifi");
+		display.setCursor(1, 16);
+		display.print("perdu");
+		delay(3000);
+		display.fillScreen(myBLACK);
+	}
 		wifiConfig();
 	}
 	else
@@ -3383,7 +3443,7 @@ static void connectWifi()
 	}
 
 	debug_outln_info(F("WiFi connected, IP is: "), WiFi.localIP().toString());
-	last_signal_strength = WiFi.RSSI();
+	last_signal_strength = WiFi.RSSI();  //RSSI ICI!!!!
 
 	if (MDNS.begin(cfg::fs_ssid))
 	{
@@ -3394,8 +3454,50 @@ static void connectWifi()
 	if (cfg::has_matrix)
 	{
 		display_update_enable(true); //reactivate matrix
-	}
 
+if (calcWiFiSignalQuality(last_signal_strength) == 0){
+		drawImage(36, 6, 20, 27, wifiblue);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setTextSize(1);
+		display.setCursor(1, 5);
+		display.print("Wifi");
+		display.setCursor(1, 16);
+		display.print("perdu");
+		delay(3000);
+		display.fillScreen(myBLACK);
+}else{
+		if (calcWiFiSignalQuality(last_signal_strength) > 0 && calcWiFiSignalQuality(last_signal_strength) < 25)
+		{
+		drawImage(36, 6, 20, 27, wifired);
+		}
+
+		if (calcWiFiSignalQuality(last_signal_strength) >= 25 && calcWiFiSignalQuality(last_signal_strength) < 50)
+		{
+		drawImage(36, 6, 20, 27, wifiorange);
+		}
+
+		if (calcWiFiSignalQuality(last_signal_strength) >= 50 && calcWiFiSignalQuality(last_signal_strength) < 75)
+		{
+		drawImage(36, 6, 20, 27, wifiyellow);
+		}
+
+		if (calcWiFiSignalQuality(last_signal_strength) >= 75 && calcWiFiSignalQuality(last_signal_strength) <= 100)
+		{
+		drawImage(36, 6, 20, 27, wifigreen);
+		}
+
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setTextSize(1);
+		display.setCursor(1, 5);
+		display.print("Wifi");
+		display.setCursor(1, 16);
+		display.print("OK");
+		delay(3000);
+		display.fillScreen(myBLACK);
+	}
+}
 }
 
 // static void reConnectWifi()
@@ -4786,11 +4888,22 @@ static void display_values_matrix()
 			{
 				drawImage(0, 0, 32, 64, interieur_lora);
 			} //wifi prioritaire
+		}else{
+		display.fillScreen(myBLACK);
+		display.setTextColor(myWHITE);
+		display.setFont(&Font4x5Fixed);
+		display.setTextSize(1);
+		display.setCursor(1, 5);
+		display.print("Attendre");
+		display.setCursor(1, 16);
+		display.print("première");
+		display.setCursor(1, 25);
+		display.print("mesure");
 		}
-		else
-		{
-			act_milli += 5000;
-		}
+		// else
+		// {
+		// 	act_milli += 5000;
+		// }
 		break;
 	case 3: //SDS
 		if (pm10_value != -1.0)
@@ -5591,6 +5704,19 @@ static bool initCCS811()
 static void powerOnTestSensors()
 {
 
+	if (cfg::has_matrix)
+	{
+		display.fillScreen(myBLACK);
+		drawImage(31, 1, 30, 30, engrenage);
+		display.setTextColor(myWHITE);
+		display.setFont(&Font4x5Fixed);
+		display.setTextSize(1);
+		display.setCursor(1, 5);
+		display.print("Test des");
+		display.setCursor(1, 16);
+		display.print("capteurs");
+	}
+
 	if (cfg::sds_read)
 	{
 		debug_outln_info(F("Read SDS...: "), SDS_version_date());
@@ -6368,15 +6494,35 @@ void setup()
 
 	debug_outln_info(F("\nChipId: "), esp_chipid);
 
+		//Clignoter bleu Wifi
+
+
+	if (cfg::has_matrix && cfg::has_wifi)
+	{
+		display.fillScreen(myBLACK);
+		for (int i = 0; i < 5; i++) {
+		drawImage(36, 6, 20, 27, wifiblue);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setCursor(1, 5);
+		display.setTextSize(1);
+		display.print("Wifi");
+		delay(500);
+		display.fillScreen(myBLACK);
+		delay(500);
+		}
+	}
+
+
 	if (cfg::has_wifi)
 	{
 		setupNetworkTime();
-		connectWifi();
+		connectWifi(); 
 		setup_webserver();
 	}
 	else
 	{
-		wifiConfig();
+		wifiConfig();  
 	}
 
 	createLoggerConfigs();
