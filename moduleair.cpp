@@ -2960,6 +2960,7 @@ static void webserver_metrics_endpoint()
 	RESERVE_STRING(page_content, XLARGE_STR);
 	page_content = F("software_version{version=\"" SOFTWARE_VERSION_STR "\",$i} 1\nuptime_ms{$i} $u\nsending_intervall_ms{$i} $s\nnumber_of_measurements{$i} $c\n");
 	String id(F("node=\"" SENSOR_BASENAME));
+	//String id(F("node=\"" HOSTNAME_BASE));
 	id += esp_chipid;
 	id += '\"';
 	page_content.replace("$i", id);
@@ -3195,8 +3196,8 @@ static void wifiConfig()
 		display.print("Configurer");
 		display.setCursor(1, 16);
 		display.print("le WiFi");
-		delay(3000);
-		display.fillScreen(myBLACK);
+		//delay(3000);
+		//display.fillScreen(myBLACK);
 	}
 
 	while ((millis() - last_page_load) < cfg::time_for_wifi_config + 500)
@@ -3397,7 +3398,7 @@ static void connectWifi()
 
 	debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
 
-	waitForWifiToConnect(40);  //diminur ici ???
+	waitForWifiToConnect(20);  //diminur ici ???  //40
 	debug_outln_info(emptyString);
 
 	//if (WiFi.status() != WL_CONNECTED) //Waitforwifistatus ?
