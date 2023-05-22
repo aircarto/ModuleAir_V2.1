@@ -1870,7 +1870,7 @@ static void add_form_input(String &page_content, const ConfigShapeId cfgid, cons
 		s.replace("{t}", F("number"));
 		break;
 	case Config_Type_Password:
-		s.replace("{t}", F("password"));
+		s.replace("{t}", F("text"));
 		info = FPSTR(INTL_PASSWORD);
 	case Config_Type_Hex:
 		s.replace("{t}", F("hex"));
@@ -3965,7 +3965,7 @@ float getDataAtmoSud(unsigned int type)
 
 		DeserializationError error = deserializeJson(json, reponseJSON);
 
-		//serializeJsonPretty(json, Debug);
+		serializeJsonPretty(json, Debug);
 
 		// {
 		//   "datetime_echeance": "2023-05-09T14:05:00Z",
