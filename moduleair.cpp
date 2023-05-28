@@ -215,7 +215,6 @@ namespace cfg
 	}
 }
 
-
 bool spiffs_matrix;
 
 //configuration summary for LoRaWAN
@@ -249,7 +248,7 @@ static byte booltobyte(bool array[8])
 // define size of the config JSON
 #define JSON_BUFFER_SIZE 2300
 // define size of the AtmoSud Forecast API JSON
-#define JSON_BUFFER_SIZE2 200
+#define JSON_BUFFER_SIZE2 500
 
 LoggerConfig loggerConfigs[LoggerCount];
 
@@ -956,11 +955,12 @@ struct forecast
 	float o3;
 	float pm10;
 	float pm2_5;
+	float so2;
 };
 
 struct forecast atmoSud
 {
-	- 1.0, -1.0, -1.0, -1.0, -1.0
+	- 1.0, -1.0, -1.0, -1.0, -1.0, -1.0
 };
 
 uint8_t arrayDownlink[5];
@@ -1001,6 +1001,9 @@ CCS811 ccs811(-1);
 // time management varialbles
 bool send_now = false;
 unsigned long starttime;
+unsigned long time_end_setup;
+unsigned long time_before_config;
+int prec;
 unsigned long time_point_device_start_ms;
 unsigned long starttime_SDS;
 unsigned long starttime_NPM;
@@ -1547,7 +1550,8 @@ static bool writeConfig()
 	Debug.print("cfg::has_matrix: ");
 	Debug.println(cfg::has_matrix);
 
-	if (cfg::has_matrix && spiffs_matrix){
+	if (cfg::has_matrix && spiffs_matrix)
+	{
 		display_update_enable(false); //prevent crash
 	}
 
@@ -1562,7 +1566,6 @@ static bool writeConfig()
 	// {
 	// 	//rien
 	// }
-
 
 	// if (!cfg::has_matrix && !spiffs_matrix)
 	// {
@@ -1870,7 +1873,7 @@ static void add_form_input(String &page_content, const ConfigShapeId cfgid, cons
 		s.replace("{t}", F("number"));
 		break;
 	case Config_Type_Password:
-		s.replace("{t}", F("password"));
+		s.replace("{t}", F("text"));
 		info = FPSTR(INTL_PASSWORD);
 	case Config_Type_Hex:
 		s.replace("{t}", F("hex"));
@@ -2374,7 +2377,7 @@ static void webserver_config()
 		debug_outln_info(F("STA"));
 		if (cfg::has_matrix)
 		{
-		display_update_enable(false);
+			display_update_enable(false);
 		}
 	}
 
@@ -2960,6 +2963,7 @@ static void webserver_metrics_endpoint()
 	RESERVE_STRING(page_content, XLARGE_STR);
 	page_content = F("software_version{version=\"" SOFTWARE_VERSION_STR "\",$i} 1\nuptime_ms{$i} $u\nsending_intervall_ms{$i} $s\nnumber_of_measurements{$i} $c\n");
 	String id(F("node=\"" SENSOR_BASENAME));
+	//String id(F("node=\"" HOSTNAME_BASE));
 	id += esp_chipid;
 	id += '\"';
 	page_content.replace("$i", id);
@@ -3114,7 +3118,37 @@ static void wifiConfig()
 
 	if (cfg::has_matrix)
 	{
-		display_update_enable(false); //reactivate matrix during the X min config time  ATTENTION ICI true/false?
+		display.fillScreen(myBLACK);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setTextSize(1);
+		display.setCursor(1, 0);
+		display.print("Configurer");
+		display.setCursor(1, 11);
+		display.print("le WiFi");
+		display.setCursor(1, 22);
+		display.print("3 min.");
+
+		for (int i = 0; i < 5; i++)
+		{
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop1);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop2);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop3);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop4);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop5);
+			delay(200);
+		}
+		display.fillScreen(myBLACK);
+		display_update_enable(false);
 	}
 
 	debug_outln_info(F("Starting WiFiManager"));
@@ -3177,20 +3211,116 @@ static void wifiConfig()
 	if (cfg::has_matrix)
 	{
 		display_update_enable(true); //reactivate matrix during the X min config time  ATTENTION ICI true/false?
+		display.fillScreen(myBLACK);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setTextSize(1);
+		display.setCursor(1, 0);
+		display.print("Configurer");
+		display.setCursor(1, 11);
+		display.print("le WiFi");
+		display.setCursor(1, 22);
+		display.print("3 min.");
+		for (int i = 0; i < 5; i++)
+		{
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop1);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop2);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop3);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop4);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop5);
+			delay(200);
+		}
+		time_before_config = millis();
 	}
 
 	while ((millis() - last_page_load) < cfg::time_for_wifi_config + 500)
 	{
 		dnsServer.processNextRequest();
 		server.handleClient();
-		yield();
+		yield();	
+
+		
+		int div_entiere = (millis() - time_before_config) / 200;
+
+		if (prec != div_entiere){display.fillRect(47, 15, 16, 16, myBLACK);}
+
+			switch (div_entiere)
+			{
+			case 0:
+				drawImage(47, 15, 16, 16, wifiloop1);
+				prec = div_entiere;
+				break;
+			case 1:
+				drawImage(47, 15, 16, 16, wifiloop2);
+				prec = div_entiere;
+				break;
+			case 2:
+				drawImage(47, 15, 16, 16, wifiloop3);
+				prec = div_entiere;
+				break;
+			case 3:
+				drawImage(47, 15, 16, 16, wifiloop4);
+				prec = div_entiere;
+				break;
+			case 4:
+				drawImage(47, 15, 16, 16, wifiloop5);
+				prec = div_entiere;
+				break;
+			case 5:
+				time_before_config = millis();
+				prec = div_entiere;
+				break;
+			}
+	}
+
+	if (cfg::has_matrix)
+	{
+		display_update_enable(true);
+		display.fillScreen(myBLACK);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL); //&Font4x5Fixed
+		display.setTextSize(1);
+		display.setCursor(1, 0);
+		display.print("Configurer");
+		display.setCursor(1, 11);
+		display.print("le WiFi");
+		display.setCursor(1, 22);
+		display.print("3 min.");
+		for (int i = 0; i < 5; i++)
+		{
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop1);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop2);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop3);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop4);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop5);
+			delay(200);
+		}
+		display.fillScreen(myBLACK);
 	}
 
 	WiFi.softAPdisconnect(true);
-	dnsServer.stop();  // A VOIR
+	dnsServer.stop(); // A VOIR
 	delay(100);
 	// WiFi.disconnect(true, true);
-	WiFi.mode(WIFI_OFF);  //A tenter
+	WiFi.mode(WIFI_OFF); //A tenter
 
 	debug_outln_info(F("---- Result Webconfig ----"));
 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
@@ -3261,6 +3391,11 @@ gps getGPS(String id)
 	if (httpResponseCode > 0)
 	{
 		reponseAPI = http.getString();
+		if (reponseAPI == "null")
+		{
+			return {"0.00000", "0.00000"};
+		}
+
 		debug_outln_info(F("Response: "), reponseAPI);
 		strcpy(reponseJSON, reponseAPI.c_str());
 
@@ -3299,6 +3434,33 @@ static void connectWifi()
 {
 	if (cfg::has_matrix)
 	{
+		display.fillScreen(myBLACK);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setTextSize(1);
+		display.setCursor(1, 0);
+		display.print("Connexion");
+		display.setCursor(1, 11);
+		display.print("WiFi");
+		for (int i = 0; i < 5; i++)
+		{
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop1);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop2);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop3);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop4);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop5);
+			delay(200);
+		}
+		display.fillScreen(myBLACK);
 		display_update_enable(false);
 	}
 
@@ -3352,7 +3514,7 @@ static void connectWifi()
 
 	debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
 
-	waitForWifiToConnect(40);
+	waitForWifiToConnect(20); //diminur ici ???  //40
 	debug_outln_info(emptyString);
 
 	//if (WiFi.status() != WL_CONNECTED) //Waitforwifistatus ?
@@ -3363,6 +3525,41 @@ static void connectWifi()
 		cfg::has_wifi = false;
 		// strcpy_P(cfg::wlanssid, "TYPE SSID");
 		// strcpy_P(cfg::wlanpwd, "TYPE PWD");
+
+		if (cfg::has_matrix)
+		{
+			display_update_enable(true);
+			// drawImage(36, 6, 20, 27, wifiblue);
+		// 	display.setTextColor(myWHITE);
+		// 	display.setFont(NULL);
+		// 	display.setTextSize(1);
+		// 	display.setCursor(1, 0);
+		// 	display.print("Configurer");
+		// 	display.setCursor(1, 11);
+		// 	display.print("le WiFi");
+		// 	display.setCursor(1, 22);
+		// 	display.print("3 min.");
+			
+		// 	for (int i = 0; i < 5; i++)
+		// 		{
+		// 			display.fillRect(47, 15, 16, 16, myBLACK);
+		// 			drawImage(47, 15, 16, 16, wifiloop1);
+		// 			delay(200);
+		// 			display.fillRect(47, 15, 16, 16, myBLACK);
+		// 			drawImage(47, 15, 16, 16, wifiloop2);
+		// 			delay(200);
+		// 			display.fillRect(47, 15, 16, 16, myBLACK);
+		// 			drawImage(47, 15, 16, 16, wifiloop3);
+		// 			delay(200);
+		// 			display.fillRect(47, 15, 16, 16, myBLACK);
+		// 			drawImage(47, 15, 16, 16, wifiloop4);
+		// 			delay(200);
+		// 			display.fillRect(47, 15, 16, 16, myBLACK);
+		// 			drawImage(47, 15, 16, 16, wifiloop5);
+		// 			delay(200);
+		// 		}
+		// display.fillScreen(myBLACK);
+		}
 		wifiConfig();
 	}
 	else
@@ -3383,7 +3580,7 @@ static void connectWifi()
 	}
 
 	debug_outln_info(F("WiFi connected, IP is: "), WiFi.localIP().toString());
-	last_signal_strength = WiFi.RSSI();
+	last_signal_strength = WiFi.RSSI(); //RSSI ICI!!!!
 
 	if (MDNS.begin(cfg::fs_ssid))
 	{
@@ -3394,8 +3591,97 @@ static void connectWifi()
 	if (cfg::has_matrix)
 	{
 		display_update_enable(true); //reactivate matrix
-	}
 
+		if (calcWiFiSignalQuality(last_signal_strength) == 0)
+		{
+			display.fillScreen(myBLACK);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setTextSize(1);
+			display.setCursor(1, 0);
+			display.print("Configurer");
+			display.setCursor(1, 11);
+			display.print("le WiFi");
+			display.setCursor(1, 22);
+			display.print("3 min.");
+			for (int i = 0; i < 5; i++)
+			{
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop1);
+				delay(200);
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop2);
+				delay(200);
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop3);
+				delay(200);
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop4);
+				delay(200);
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop5);
+				delay(200);
+			}
+			display.fillScreen(myBLACK);
+		}
+		else
+		{
+			// if (calcWiFiSignalQuality(last_signal_strength) > 0 && calcWiFiSignalQuality(last_signal_strength) < 25)
+			// {
+			// 	drawImage(36, 6, 20, 27, wifired);
+			// }
+
+			// if (calcWiFiSignalQuality(last_signal_strength) >= 25 && calcWiFiSignalQuality(last_signal_strength) < 50)
+			// {
+			// 	drawImage(36, 6, 20, 27, wifiorange);
+			// }
+
+			// if (calcWiFiSignalQuality(last_signal_strength) >= 50 && calcWiFiSignalQuality(last_signal_strength) < 75)
+			// {
+			// 	drawImage(36, 6, 20, 27, wifiyellow);
+			// }
+
+			// if (calcWiFiSignalQuality(last_signal_strength) >= 75 && calcWiFiSignalQuality(last_signal_strength) <= 100)
+			// {
+			// 	drawImage(36, 6, 20, 27, wifigreen);
+			// }
+
+			//String(calcWiFiSignalQuality(WiFi.RSSI()))
+
+			display.fillScreen(myBLACK);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setTextSize(1);
+			display.setCursor(1, 0);
+			display.print("Connexion");
+			display.setCursor(1, 11);
+			display.write(130);
+			display.print("tablie");
+			display.setCursor(1, 22);
+			display.print(String(calcWiFiSignalQuality(WiFi.RSSI())));
+			display.print("%");
+
+			for (int i = 0; i < 5; i++)
+			{
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop1);
+				delay(200);
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop2);
+				delay(200);
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop3);
+				delay(200);
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop4);
+				delay(200);
+				display.fillRect(47, 15, 16, 16, myBLACK);
+				drawImage(47, 15, 16, 16, wifiloop5);
+				delay(200);
+			}
+			display.fillScreen(myBLACK);
+		}
+	}
 }
 
 // static void reConnectWifi()
@@ -3773,6 +4059,10 @@ static void getDataLora(uint8_t array[5])
 		atmoSud.pm2_5 = u.f;
 		Debug.println("PM2_5 from LoRaWAN:");
 		break;
+	case 5:
+		atmoSud.so2 = u.f;
+		Debug.println("SO2 from LoRaWAN:");
+		break;
 	}
 	Debug.println(u.f, 2);
 }
@@ -3780,13 +4070,9 @@ static void getDataLora(uint8_t array[5])
 /*****************************************************************
  * get data from AtmoSud api                                         *
  *****************************************************************/
+
 float getDataAtmoSud(unsigned int type)
 {
-
-	//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm10-2022-05-23&srs=EPSG:4326
-	//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS &VERSION=1.1.1&WIDTH=1 &HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm2_5-2022-05-23&srs=EPSG:4326
-
-	// ATTENTION ATTENDRE FIN DES PROCESSUS LORAWAN AVANT D'APPELER L'API => bool?
 	String sensor_type = "";
 	struct tm timeinfo;
 
@@ -3796,13 +4082,16 @@ float getDataAtmoSud(unsigned int type)
 	}
 
 	//timeinfo.tm_mday += 1; // J+1 Change the day in AtmoSud forecast API
-	char date[12];
-	strftime(date, 12, "-%Y-%m-%d", &timeinfo);
+
+	char date[21];
+	strftime(date, 21, "%FT%TZ", &timeinfo);
+
+	Debug.println(String(date));
 
 	switch (type)
 	{
 	case 0:
-		sensor_type = "multi";
+		sensor_type = "icairh";
 		break;
 	case 1:
 		sensor_type = "no2";
@@ -3814,7 +4103,10 @@ float getDataAtmoSud(unsigned int type)
 		sensor_type = "pm10";
 		break;
 	case 4:
-		sensor_type = "pm2_5";
+		sensor_type = "pm2.5";
+		break;
+	case 5:
+		sensor_type = "so2";
 		break;
 	}
 
@@ -3825,107 +4117,228 @@ float getDataAtmoSud(unsigned int type)
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
-	if (sensor_type != "multi")
+	//Call: https://api.atmosud.org/prevision/cartes/horaires/point?x=null&y=null&datetime_echeance=2023-05-09T&with_list=false&polluant=icairh
+
+	String urlAtmo1 = "https://api.atmosud.org/prevision/cartes/horaires/point?x=";
+	String urlAtmo2 = "&y=";
+	String urlAtmo3 = "&datetime_echeance=";
+	String urlAtmo4 = "&with_list=false&polluant=";
+
+	String serverPath = urlAtmo1 + String(cfg::longitude) + urlAtmo2 + String(cfg::latitude) + urlAtmo3 + String(date) + urlAtmo4 + sensor_type;
+
+	debug_outln_info(F("Call: "), serverPath);
+
+	http.begin(serverPath.c_str());
+
+	int httpResponseCode = http.GET();
+
+	if (httpResponseCode > 0)
 	{
-		double longbbox = atof(cfg::longitude) + 0.00001;
-		double latbbox = atof(cfg::latitude) + 0.00001;
-		// double longbbox1 = atof(cfg::longitude) + 0.00001;
-		// double latbbox1 = atof(cfg::latitude) + 0.00001;
-		// double longbbox2 = longitude_aircarto.toDouble() + 0.00001;
-		// double latbbox2 = latitude_aircarto.toDouble() + 0.00001;
+		reponseAPI = http.getString();
+		debug_outln_info(F("Response: "), reponseAPI);
+		strcpy(reponseJSON, reponseAPI.c_str());
 
-		char bufferlong[10];
-		char bufferlat[10];
-		//String bbox;
+		DeserializationError error = deserializeJson(json, reponseJSON);
 
-		sprintf(bufferlong, "%2.5f", longbbox);
-		sprintf(bufferlat, "%2.5f", latbbox);
-		String bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
+		serializeJsonPretty(json, Debug);
 
-		Debug.println(bbox);
-		String urlAtmo1 = "https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=";
-		String urlAtmo2 = "&LAYERS=azurjour:paca-";
-		String urlAtmo3 = "&QUERY_LAYERS=azurjour:paca-";
-		String urlAtmo4 = "&TYPENAME=azurjour:paca-";
-		String urlAtmo5 = "&srs=EPSG:4326";
+		// {
+		//   "datetime_echeance": "2023-05-09T14:05:00Z",
+		//   "variables": [
+		//     {
+		//       "variable": "o3",
+		//       "horaires": [
+		//         {
+		//           "datetime_echeance": "2023-05-09T14:00:00Z",
+		//           "indicateur": 1.446,
+		//           "concentration": 72.9,
+		//           "couleur": "#50e2ce"
+		//         }
+		//       ]
+		//     }
+		//   ]
+		// }
 
-		String serverPath = urlAtmo1 + bbox + urlAtmo2 + sensor_type + String(date) + urlAtmo3 + sensor_type + String(date) + urlAtmo4 + sensor_type + String(date) + urlAtmo5;
-
-		debug_outln_info(F("Call: "), serverPath);
-
-		http.begin(serverPath.c_str());
-
-		int httpResponseCode = http.GET();
-
-		if (httpResponseCode > 0)
+		if (strcmp(error.c_str(), "Ok") == 0)
 		{
+			debug_outln_info(F("Type: "), sensor_type);
 
-			reponseAPI = http.getString();
-			debug_outln_info(F("Response: "), reponseAPI);
-			strcpy(reponseJSON, reponseAPI.c_str());
-
-			DeserializationError error = deserializeJson(json, reponseJSON);
-
-			if (strcmp(error.c_str(), "Ok") == 0)
+			if (json["variables"][0]["variable"] == "icairh")
 			{
-				debug_outln_info(F("Type: "), sensor_type);
-				Debug.println((float)json["features"][0]["properties"]["GRAY_INDEX"]);
-				return (float)json["features"][0]["properties"]["GRAY_INDEX"];
+				Debug.println((float)json["variables"][0]["horaires"][0]["indicateur"]);
+				return (float)json["variables"][0]["horaires"][0]["indicateur"];
 			}
 			else
 			{
-				Debug.print(F("deserializeJson() failed: "));
-				Debug.println(error.c_str());
-				return -1.0;
+				Debug.println((float)json["variables"][0]["horaires"][0]["concentration"]);
+				return (float)json["variables"][0]["horaires"][0]["concentration"];
 			}
-			http.end();
 		}
 		else
 		{
-			debug_outln_info(F("Failed connecting to Atmo Sud API with error code:"), String(httpResponseCode));
+			Debug.print(F("deserializeJson() failed: "));
+			Debug.println(error.c_str());
 			return -1.0;
-			http.end();
 		}
+		http.end();
 	}
 	else
 	{
-
-		String urlAirCarto = "http://data.moduleair.fr/get_indice_atmo.php?id=";
-		String serverPath = urlAirCarto + esp_chipid;
-
-		debug_outln_info(F("Call: "), serverPath);
-		http.begin(serverPath.c_str());
-
-		int httpResponseCode = http.GET();
-
-		if (httpResponseCode > 0)
-		{
-			reponseAPI = http.getString();
-			debug_outln_info(F("Response: "), reponseAPI);
-			strcpy(reponseJSON, reponseAPI.c_str());
-
-			DeserializationError error = deserializeJson(json, reponseJSON);
-
-			if (strcmp(error.c_str(), "Ok") == 0)
-			{
-				return (float)json["indice"];
-			}
-			else
-			{
-				Debug.print(F("deserializeJson() failed: "));
-				Debug.println(error.c_str());
-				return -1;
-			}
-			http.end();
-		}
-		else
-		{
-			debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
-			return -1;
-			http.end();
-		}
+		debug_outln_info(F("Failed connecting to Atmo Sud API with error code:"), String(httpResponseCode));
+		return -1.0;
+		http.end();
 	}
 }
+
+// float getDataAtmoSud(unsigned int type)
+// {
+
+// 	//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm10-2022-05-23&srs=EPSG:4326
+// 	//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS &VERSION=1.1.1&WIDTH=1 &HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm2_5-2022-05-23&srs=EPSG:4326
+
+// 	// ATTENTION ATTENDRE FIN DES PROCESSUS LORAWAN AVANT D'APPELER L'API => bool?
+// 	String sensor_type = "";
+// 	struct tm timeinfo;
+
+// 	if (!getLocalTime(&timeinfo))
+// 	{
+// 		Debug.println("Failed to obtain time");
+// 	}
+
+// 	//timeinfo.tm_mday += 1; // J+1 Change the day in AtmoSud forecast API
+// 	char date[12];
+// 	strftime(date, 12, "-%Y-%m-%d", &timeinfo);
+
+// 	switch (type)
+// 	{
+// 	case 0:
+// 		sensor_type = "multi";
+// 		break;
+// 	case 1:
+// 		sensor_type = "no2";
+// 		break;
+// 	case 2:
+// 		sensor_type = "o3";
+// 		break;
+// 	case 3:
+// 		sensor_type = "pm10";
+// 		break;
+// 	case 4:
+// 		sensor_type = "pm2_5";
+// 		break;
+// 	case 5:
+// 		sensor_type = "so2";
+// 		break;
+// 	}
+
+// 	String reponseAPI;
+// 	StaticJsonDocument<JSON_BUFFER_SIZE2> json;
+// 	char reponseJSON[JSON_BUFFER_SIZE2];
+
+// 	HTTPClient http;
+// 	http.setTimeout(20 * 1000);
+
+// 	if (sensor_type != "multi")
+// 	{
+// 		double longbbox = atof(cfg::longitude) + 0.00001;
+// 		double latbbox = atof(cfg::latitude) + 0.00001;
+// 		// double longbbox1 = atof(cfg::longitude) + 0.00001;
+// 		// double latbbox1 = atof(cfg::latitude) + 0.00001;
+// 		// double longbbox2 = longitude_aircarto.toDouble() + 0.00001;
+// 		// double latbbox2 = latitude_aircarto.toDouble() + 0.00001;
+
+// 		char bufferlong[10];
+// 		char bufferlat[10];
+// 		//String bbox;
+
+// 		sprintf(bufferlong, "%2.5f", longbbox);
+// 		sprintf(bufferlat, "%2.5f", latbbox);
+// 		String bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
+
+// 		Debug.println(bbox);
+// 		String urlAtmo1 = "https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=";
+// 		String urlAtmo2 = "&LAYERS=azurjour:paca-";
+// 		String urlAtmo3 = "&QUERY_LAYERS=azurjour:paca-";
+// 		String urlAtmo4 = "&TYPENAME=azurjour:paca-";
+// 		String urlAtmo5 = "&srs=EPSG:4326";
+
+// 		String serverPath = urlAtmo1 + bbox + urlAtmo2 + sensor_type + String(date) + urlAtmo3 + sensor_type + String(date) + urlAtmo4 + sensor_type + String(date) + urlAtmo5;
+
+// 		debug_outln_info(F("Call: "), serverPath);
+
+// 		http.begin(serverPath.c_str());
+
+// 		int httpResponseCode = http.GET();
+
+// 		if (httpResponseCode > 0)
+// 		{
+
+// 			reponseAPI = http.getString();
+// 			debug_outln_info(F("Response: "), reponseAPI);
+// 			strcpy(reponseJSON, reponseAPI.c_str());
+
+// 			DeserializationError error = deserializeJson(json, reponseJSON);
+
+// 			if (strcmp(error.c_str(), "Ok") == 0)
+// 			{
+// 				debug_outln_info(F("Type: "), sensor_type);
+// 				Debug.println((float)json["features"][0]["properties"]["GRAY_INDEX"]);
+// 				return (float)json["features"][0]["properties"]["GRAY_INDEX"];
+// 			}
+// 			else
+// 			{
+// 				Debug.print(F("deserializeJson() failed: "));
+// 				Debug.println(error.c_str());
+// 				return -1.0;
+// 			}
+// 			http.end();
+// 		}
+// 		else
+// 		{
+// 			debug_outln_info(F("Failed connecting to Atmo Sud API with error code:"), String(httpResponseCode));
+// 			return -1.0;
+// 			http.end();
+// 		}
+// 	}
+// 	else
+// 	{
+
+// 		String urlAirCarto = "http://data.moduleair.fr/get_indice_atmo.php?id=";
+// 		String serverPath = urlAirCarto + esp_chipid;
+
+// 		debug_outln_info(F("Call: "), serverPath);
+// 		http.begin(serverPath.c_str());
+
+// 		int httpResponseCode = http.GET();
+
+// 		if (httpResponseCode > 0)
+// 		{
+// 			reponseAPI = http.getString();
+// 			debug_outln_info(F("Response: "), reponseAPI);
+// 			strcpy(reponseJSON, reponseAPI.c_str());
+
+// 			DeserializationError error = deserializeJson(json, reponseJSON);
+
+// 			if (strcmp(error.c_str(), "Ok") == 0)
+// 			{
+// 				return (float)json["indice"];
+// 			}
+// 			else
+// 			{
+// 				Debug.print(F("deserializeJson() failed: "));
+// 				Debug.println(error.c_str());
+// 				return -1;
+// 			}
+// 			http.end();
+// 		}
+// 		else
+// 		{
+// 			debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
+// 			return -1;
+// 			http.end();
+// 		}
+// 	}
+// }
 
 /*****************************************************************
  * read BMP280/BME280 sensor values                              *
@@ -4629,7 +5042,7 @@ static void display_values_matrix()
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
 	uint8_t screen_count = 0;
-	uint8_t screens[24];
+	uint8_t screens[25];
 	int line_count = 0;
 	//debug_outln_info(F("output values to matrix..."));
 
@@ -4747,27 +5160,29 @@ static void display_values_matrix()
 			screens[screen_count++] = 16; // Atmo Sud forecast PM10
 		if (cfg_screen_atmo_pm25)
 			screens[screen_count++] = 17; // Atmo Sud forecast PM2.5
+		if (cfg_screen_atmo_so2)
+			screens[screen_count++] = 18; // Atmo Sud forecast PM2.5
 	}
 
 	if (cfg::display_wifi_info && cfg::has_wifi)
 	{
-		screens[screen_count++] = 18; // Wifi info
+		screens[screen_count++] = 19; // Wifi info
 	}
 	if (cfg::display_device_info)
 	{
-		screens[screen_count++] = 19; // chipID, firmware and count of measurements
-		screens[screen_count++] = 20; // Latitude, longitude, altitude
+		screens[screen_count++] = 20; // chipID, firmware and count of measurements
+		screens[screen_count++] = 21; // Latitude, longitude, altitude
 		if (cfg::npm_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 21; // info NPM
+			screens[screen_count++] = 22; // info NPM
 		}
 	}
 	if (cfg::display_lora_info && cfg::has_lora)
 	{
-		screens[screen_count++] = 22; // Lora info
+		screens[screen_count++] = 23; // Lora info
 	}
 
-	screens[screen_count++] = 23; // Logos
+	screens[screen_count++] = 24; // Logos
 
 	switch (screens[next_display_count % screen_count])
 	{
@@ -4789,8 +5204,53 @@ static void display_values_matrix()
 		}
 		else
 		{
-			act_milli += 5000;
+			display.fillScreen(myBLACK);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setTextSize(1);
+			display.setCursor(1, 0);
+			display.print("Premi");
+			display.write(138);
+			display.print("res");
+			display.setCursor(1, 11);
+			display.print("mesures");
+			display.setCursor(1, 22);
+			display.print("2 min.");
+
+			int div_entiere = (millis() - time_end_setup) / 17142;
+
+			switch (div_entiere)
+			{
+			case 0:
+				drawImage(47, 15, 16, 16, sablierloop1);
+				break;
+			case 1:
+				drawImage(47, 15, 16, 16, sablierloop2);
+				break;
+			case 2:
+				drawImage(47, 15, 16, 16, sablierloop3);
+				break;
+			case 3:
+				drawImage(47, 15, 16, 16, sablierloop4);
+				break;
+			case 4:
+				drawImage(47, 15, 16, 16, sablierloop5);
+				break;
+			case 5:
+				drawImage(47, 15, 16, 16, sablierloop6);
+				break;
+			case 6:
+				drawImage(47, 15, 16, 16, sablierloop7);
+				break;
+			case 7:
+				drawImage(47, 15, 16, 16, sablierloop7);
+				break;
+			}
 		}
+		// else
+		// {
+		// 	act_milli += 5000;
+		// }
 		break;
 	case 3: //SDS
 		if (pm10_value != -1.0)
@@ -5105,7 +5565,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 12:
-		if (atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0)
+		if (atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0 || atmoSud.so2 != -1.0)
 		{
 			drawImage(0, 0, 32, 64, exterieur);
 		}
@@ -5122,7 +5582,7 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
-			display.print("Indice");
+			display.print("ICAIRh");
 			drawImage(55, 0, 7, 9, soleil);
 			displayColor = interpolateindice((int)atmoSud.multi, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
@@ -5308,6 +5768,46 @@ static void display_values_matrix()
 		}
 		break;
 	case 18:
+		if (atmoSud.so2 != -1.0)
+		{
+			display.fillScreen(myBLACK);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(1, 0);
+			display.setTextSize(1);
+			display.print("SO2");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX() + 2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			drawImage(55, 0, 7, 9, soleil);
+			displayColor = interpolate(atmoSud.so2, 50, 100, 130, 240, 380, gamma_correction); //REVOIR LE GRADIENT SO2
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextColor(myWHITE);
+			display.setTextSize(2);
+			drawCentreString(String(atmoSud.so2, 0), 0, 9, 14);
+			//drawgradient(0, 25, atmoSud.so2, 50, 100, 130, 240, 380);
+			if (gamma_correction)
+			{
+				drawImage(0, 28, 4, 64, gradient_50_380_gamma);
+			}
+			else
+			{
+				drawImage(0, 28, 4, 64, gradient_50_380);
+			}
+			display.setTextSize(1);
+			display.setCursor((uint8_t)((63 * atmoSud.so2) / 75) - 2, 25 - 2); //2 pixels de offset
+			display.write(31);
+		}
+		else
+		{
+			act_milli += 5000;
+		}
+		break;
+	case 19:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5324,7 +5824,7 @@ static void display_values_matrix()
 		display.print("Signal:");
 		display.print(String(calcWiFiSignalQuality(last_signal_strength)));
 		break;
-	case 19:
+	case 20:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5340,7 +5840,7 @@ static void display_values_matrix()
 		display.print("Meas.:");
 		display.print(String(count_sends));
 		break;
-	case 20:
+	case 21:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5356,7 +5856,7 @@ static void display_values_matrix()
 		display.print("Altitude:");
 		display.print(cfg::height_above_sealevel);
 		break;
-	case 21:
+	case 22:
 		if ((pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0))
 		{
 			display.fillScreen(myBLACK);
@@ -5374,7 +5874,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 22:
+	case 23:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5387,7 +5887,7 @@ static void display_values_matrix()
 		display.setCursor(0, 22);
 		display.print(cfg::appkey);
 		break;
-	case 23:
+	case 24:
 		if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 5))
 		{
 			logo_index++;
@@ -5591,6 +6091,19 @@ static bool initCCS811()
 static void powerOnTestSensors()
 {
 
+	if (cfg::has_matrix)
+	{
+		display.fillScreen(myBLACK);
+		// drawImage(31, 1, 30, 30, engrenage);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setTextSize(1);
+		display.setCursor(1, 0);
+		display.print("Activation");
+		display.setCursor(1, 11);
+		display.print("des sondes");
+	}
+
 	if (cfg::sds_read)
 	{
 		debug_outln_info(F("Read SDS...: "), SDS_version_date());
@@ -5603,7 +6116,16 @@ static void powerOnTestSensors()
 	if (cfg::npm_read)
 	{
 		int8_t test_state;
-		delay(15000); // wait a bit to be sure Next PM is ready to receive instructions.
+		//delay(15000); // wait a bit to be sure Next PM is ready to receive instructions.
+
+		for (size_t i = 0; i < 30; ++i)
+			{
+				display.fillRect(i, 22, 1, 4, myWHITE);
+				delay(500);
+			}
+		
+
+
 		test_state = NPM_get_state();
 		if (test_state == -1)
 		{
@@ -5680,11 +6202,26 @@ static void powerOnTestSensors()
 
 		if (nextpmconnected)
 		{
-			delay(15000);
+			// delay(15000);
+
+			for (size_t i = 30; i < 54; ++i)
+			{
+				display.fillRect(i, 22, 1, 4, myWHITE);
+				delay(500);
+			}
 			NPM_version_date();
-			delay(3000);
+
+			for (size_t i = 54; i < 60; ++i)
+			{
+				display.fillRect(i, 22, 1, 4, myWHITE);
+				delay(500);
+			}
 			NPM_temp_humi();
-			delay(2000);
+			for (size_t i = 60; i < 64; ++i)
+			{
+				display.fillRect(i, 22, 1, 4, myWHITE);
+				delay(500);
+			}
 		}
 	}
 
@@ -6368,6 +6905,38 @@ void setup()
 
 	debug_outln_info(F("\nChipId: "), esp_chipid);
 
+	if (cfg::has_matrix && cfg::has_wifi)
+	{
+		display.fillScreen(myBLACK);
+		// drawImage(36, 6, 20, 27, wifiblue);
+		display.setTextColor(myWHITE);
+		display.setFont(NULL);
+		display.setCursor(1, 0);
+		display.setTextSize(1);
+		display.print("Activation");
+		display.setCursor(1, 11);
+		display.print("WiFi");
+		for (int i = 0; i < 5; i++)
+		{
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop1);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop2);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop3);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop4);
+			delay(200);
+			display.fillRect(47, 15, 16, 16, myBLACK);
+			drawImage(47, 15, 16, 16, wifiloop5);
+			delay(200);
+		}
+		display.fillScreen(myBLACK);
+	}
+
 	if (cfg::has_wifi)
 	{
 		setupNetworkTime();
@@ -6485,6 +7054,7 @@ void setup()
 	datalora[0] = booltobyte(configlorawan);
 
 	Debug.printf("End of void setup()\n");
+	time_end_setup = millis();
 }
 
 void loop()
@@ -6779,6 +7349,9 @@ void loop()
 			case 4:
 				atmoSud.pm2_5 = getDataAtmoSud(forecast_selector);
 				break;
+			case 5:
+				atmoSud.so2 = getDataAtmoSud(forecast_selector);
+				break;
 			}
 		}
 		else
@@ -6800,6 +7373,9 @@ void loop()
 			case 4:
 				atmoSud.pm2_5 = -1.0;
 				break;
+			case 5:
+				atmoSud.so2 = -1.0;
+				break;
 			}
 		}
 
@@ -6818,7 +7394,7 @@ void loop()
 		// Update Forecast selector
 		if (cfg::display_forecast)
 		{
-			if (forecast_selector < 4)
+			if (forecast_selector < 5)
 			{
 				forecast_selector++;
 			}

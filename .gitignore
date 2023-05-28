@@ -7,3 +7,6 @@
 builds/
 .DS_Store
 ext_def.h
+logos-custom.h
+configuration.h
+
