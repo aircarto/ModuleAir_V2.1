@@ -6116,7 +6116,16 @@ static void powerOnTestSensors()
 	if (cfg::npm_read)
 	{
 		int8_t test_state;
-		delay(15000); // wait a bit to be sure Next PM is ready to receive instructions.
+		//delay(15000); // wait a bit to be sure Next PM is ready to receive instructions.
+
+		for (size_t i = 0; i < 30; ++i)
+			{
+				display.fillRect(i, 22, 1, 4, myWHITE);
+				delay(500);
+			}
+		
+
+
 		test_state = NPM_get_state();
 		if (test_state == -1)
 		{
@@ -6193,11 +6202,26 @@ static void powerOnTestSensors()
 
 		if (nextpmconnected)
 		{
-			delay(15000);
+			// delay(15000);
+
+			for (size_t i = 30; i < 54; ++i)
+			{
+				display.fillRect(i, 22, 1, 4, myWHITE);
+				delay(500);
+			}
 			NPM_version_date();
-			delay(3000);
+
+			for (size_t i = 54; i < 60; ++i)
+			{
+				display.fillRect(i, 22, 1, 4, myWHITE);
+				delay(500);
+			}
 			NPM_temp_humi();
-			delay(2000);
+			for (size_t i = 60; i < 64; ++i)
+			{
+				display.fillRect(i, 22, 1, 4, myWHITE);
+				delay(500);
+			}
 		}
 	}
 
