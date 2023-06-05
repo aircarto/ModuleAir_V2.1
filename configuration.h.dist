@@ -27,3 +27,4 @@ bool cfg_screen_atmo_pm25 = true;
 bool cfg_screen_atmo_index = true;
 bool cfg_screen_atmo_o3 = true;
 bool cfg_screen_atmo_no2 = true;
+bool cfg_screen_atmo_so2 = true;
