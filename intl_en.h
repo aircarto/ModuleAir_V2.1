@@ -24,7 +24,7 @@ const char INTL_PRESSURE_AT_SEALEVEL[] PROGMEM = "Pressure at sea level (hPa)";
 const char INTL_NEO6M[] PROGMEM = "GPS (NEO 6M)";
 const char INTL_MHZ16[] PROGMEM = "MH-Z16 sensor";
 const char INTL_MHZ19[] PROGMEM = "MH-Z19 sensor";
-const char INTL_SGP40[] PROGMEM = "SGP40 sensor";
+const char INTL_CCS811[] PROGMEM = "CJMCU-811 sensor";
 const char INTL_BASICAUTH[] PROGMEM = "Authentication";
 #define INTL_REPORT_ISSUE "Report an issue"
 const char INTL_FS_WIFI_DESCRIPTION[] PROGMEM = "WiFi Sensor in configuration mode";
@@ -114,5 +114,44 @@ const char INTL_LORA_EXPLANATION[] = "Copy/Paste values from the Helium Console"
 const char INTL_LORA_ACTIVATION[] = "Activate LoRaWAN commnication";
 const char INTL_WIFI_ACTIVATION[] = "Activate WiFi communication";
 
+const char INTL_GOOD[] = "GOOD";
+const char INTL_MEDIUM[] = "MEDIUM";
+const char INTL_DEGRADED[] = "DEGRADED";
+const char INTL_BAD[] = "BAD";
+const char INTL_VERY_BAD[] = "VERY BAD";
+const char INTL_EXT_BAD[] = "EXTR. BAD";
+
+const char INTL_ERR[] = "ERROR";
+
+const char INTL_WELL[] = "GOOD";
+const char INTL_AERATE_PLS[] = "AIR PLEASE";
+const char INTL_AERATE_FAST[] = "AIR NOW";
+
+const char INTL_DRY[] = "TOO DRY";
+const char INTL_IDEAL[] = "PERFECT";
+const char INTL_WET[] = "TOO WET";
+
+const char INTL_COLD[] = "TOO COLD";
+const char INTL_TOK[] = "COMFORT";
+const char INTL_WARM[] = "TOO WARM";
+
+const char INTL_CONFIGURE[] = "Configure";
+const char INTL_THE_WIFI[] = "WiFi";
+
+const char INTL_CONNECTION[] = "Connection";
+const char INTL_DONE[] = "done";
+
+const char INTL_FIRST[] = "First";
+const char INTL_MEASURES[] = "measures";
+
+const char INTL_COV[] = "VOC";
+const char INTL_TEMP[] = "Temp.";
+const char INTL_HUMI[] = "Humidity";
+const char INTL_PRESS[] = "Press.";
+
+const char INTL_ACTIVATION[] = "Activating";
+const char INTL_PROBES[] = "sensors";
+
 #include "./aircarto-logo-common.h"
 #include "./logos-custom.h"
+

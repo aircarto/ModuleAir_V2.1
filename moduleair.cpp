@@ -767,31 +767,31 @@ void messager1(float valueSensor, int step1, int step2, int step3)
 	{
 		display.setFont(NULL);
 		display.setCursor(23, 25);
-		display.print("BON");
+		display.print(INTL_GOOD);
 	}
 	else if (valueSensor >= step1 && valueSensor < step2)
 	{
 		display.setFont(NULL);
 		display.setCursor(17, 25);
-		display.print("MOYEN");
+		display.print(INTL_MEDIUM);
 	}
 	else if (valueSensor >= step2 && valueSensor < step3)
 	{
 		display.setFont(NULL);
 		display.setCursor(11, 25);
-		display.print("DEGRADE");
+		display.print(INTL_DEGRADED);
 	}
 	else if (valueSensor >= step3)
 	{
 		display.setFont(NULL);
 		display.setCursor(11, 25);
-		display.print("MAUVAIS");
+		display.print(INTL_BAD);
 	}
 	else
 	{
 		display.setFont(NULL);
 		display.setCursor(14, 25);
-		display.print("ERREUR");
+		display.print(INTL_ERR);
 	}
 }
 
@@ -804,23 +804,23 @@ void messager2(float valueSensor, int step1, int step2)
 	if (valueSensor > -1 && valueSensor < step1)
 	{
 		display.setCursor(20, 25);
-		display.print("BIEN"); // inférieur à 800ppm
+		display.print(INTL_WELL); // inférieur à 800ppm
 	}
 	else if (valueSensor >= step1 && valueSensor < step2)
 	{
 		display.setCursor(5, 25);
-		display.print("AERER SVP"); // entre 800 et 1500
+		display.print(INTL_AERATE_PLS); // entre 800 et 1500
 	}
 	else if (valueSensor >= step2)
 	{
 		display.setCursor(2, 25);
-		display.print("AERER VITE");
+		display.print(INTL_AERATE_FAST);
 	}
 	else
 	{
 		display.setCursor(14, 25);
 		display.setTextSize(1);
-		display.print("ERREUR");
+		display.print(INTL_ERR);
 	}
 }
 
@@ -832,24 +832,24 @@ void messager3(float valueSensor, int step1, int step2) // humi
 	if (valueSensor > -1 && valueSensor < step1)
 	{
 		display.setCursor(2, 25);
-		display.print("TROP SEC");
+		display.print(INTL_DRY);
 	}
 	else if (valueSensor >= step1 && valueSensor < step2)
 	{
 
 		display.setCursor(20, 25);
-		display.print("IDEAL");
+		display.print(INTL_IDEAL);
 	}
 	else if (valueSensor >= step2)
 	{
 		display.setCursor(0, 25);
-		display.print("TROP HUMIDE");
+		display.print(INTL_WET);
 	}
 	else
 	{
 		display.setCursor(14, 25);
 		display.setTextSize(1);
-		display.print("ERREUR");
+		display.print(INTL_ERR);
 	}
 }
 
@@ -861,24 +861,24 @@ void messager4(float valueSensor, int step1, int step2) // temp
 	if (valueSensor > -128 && valueSensor < step1)
 	{
 		display.setCursor(2, 25);
-		display.print("TROP FROID");
+		display.print(INTL_COLD);
 	}
 	else if (valueSensor >= step1 && valueSensor < step2)
 	{
 
 		display.setCursor(10, 25);
-		display.print("CONFORT");
+		display.print(INTL_TOK);
 	}
 	else if (valueSensor >= step2)
 	{
 		display.setCursor(2, 25);
-		display.print("TROP CHAUD");
+		display.print(INTL_WARM);
 	}
 	else
 	{
 		display.setCursor(14, 25);
 		display.setTextSize(1);
-		display.print("ERREUR");
+		display.print(INTL_ERR);
 	}
 }
 
@@ -892,37 +892,37 @@ void messager5(int value) // Indice Atmo
 	case 1:
 		display.setFont(NULL);
 		display.setCursor(23, 25);
-		display.print("BON");
+		display.print(INTL_GOOD);
 		break;
 	case 2:
 		display.setFont(NULL);
 		display.setCursor(17, 25);
-		display.print("MOYEN");
+		display.print(INTL_MEDIUM);
 		break;
 	case 3:
 		display.setFont(NULL);
 		display.setCursor(11, 25);
-		display.print("DEGRADE");
+		display.print(INTL_DEGRADED);
 		break;
 	case 4:
 		display.setFont(NULL);
 		display.setCursor(11, 25);
-		display.print("MAUVAIS");
+		display.print(INTL_BAD);
 		break;
 	case 5:
 		display.setFont(&Font4x7Fixed);
 		display.setCursor(0, 31);
-		display.print("TRES MAUVAIS");
+		display.print(INTL_VERY_BAD);
 		break;
 	case 6:
 		display.setFont(&Font4x7Fixed);
 		display.setCursor(0, 31);
-		display.print("EXT. MAUVAIS");
+		display.print(INTL_EXT_BAD);
 		break;
 	default:
 		display.setFont(NULL);
 		display.setCursor(14, 25);
-		display.print("ERREUR");
+		display.print(INTL_ERR);
 	}
 }
 
@@ -2161,9 +2161,9 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content = FPSTR(WEB_BR_LF_B);
 	page_content += F(INTL_FIRMWARE "</b>&nbsp;");
 
-	page_content += FPSTR(TABLE_TAG_OPEN);
-	page_content += form_select_lang();
-	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
+	// page_content += FPSTR(TABLE_TAG_OPEN);
+	// page_content += form_select_lang();
+	// page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 
 	page_content += FPSTR(TABLE_TAG_OPEN);
 	add_form_input(page_content, Config_debug, FPSTR(INTL_DEBUG_LEVEL), 1);
@@ -3123,9 +3123,9 @@ static void wifiConfig()
 		display.setFont(NULL);
 		display.setTextSize(1);
 		display.setCursor(1, 0);
-		display.print("Configurer");
+		display.print(INTL_CONFIGURE);
 		display.setCursor(1, 11);
-		display.print("le WiFi");
+		display.print(INTL_THE_WIFI);
 		display.setCursor(1, 22);
 		display.print("3 min.");
 
@@ -3216,9 +3216,9 @@ static void wifiConfig()
 		display.setFont(NULL);
 		display.setTextSize(1);
 		display.setCursor(1, 0);
-		display.print("Configurer");
+		display.print(INTL_CONFIGURE);
 		display.setCursor(1, 11);
-		display.print("le WiFi");
+		display.print(INTL_THE_WIFI);
 		display.setCursor(1, 22);
 		display.print("3 min.");
 		for (int i = 0; i < 5; i++)
@@ -3290,9 +3290,9 @@ static void wifiConfig()
 		display.setFont(NULL); //&Font4x5Fixed
 		display.setTextSize(1);
 		display.setCursor(1, 0);
-		display.print("Configurer");
+		display.print(INTL_CONFIGURE);
 		display.setCursor(1, 11);
-		display.print("le WiFi");
+		display.print(INTL_THE_WIFI);
 		display.setCursor(1, 22);
 		display.print("3 min.");
 		for (int i = 0; i < 5; i++)
@@ -3439,9 +3439,9 @@ static void connectWifi()
 		display.setFont(NULL);
 		display.setTextSize(1);
 		display.setCursor(1, 0);
-		display.print("Connexion");
+		display.print(INTL_CONNECTION);
 		display.setCursor(1, 11);
-		display.print("WiFi");
+		display.print(INTL_DONE);
 		for (int i = 0; i < 5; i++)
 		{
 			display.fillRect(47, 15, 16, 16, myBLACK);
@@ -3599,9 +3599,9 @@ static void connectWifi()
 			display.setFont(NULL);
 			display.setTextSize(1);
 			display.setCursor(1, 0);
-			display.print("Configurer");
+			display.print(INTL_CONFIGURE);
 			display.setCursor(1, 11);
-			display.print("le WiFi");
+			display.print(INTL_THE_WIFI);
 			display.setCursor(1, 22);
 			display.print("3 min.");
 			for (int i = 0; i < 5; i++)
@@ -3653,10 +3653,15 @@ static void connectWifi()
 			display.setFont(NULL);
 			display.setTextSize(1);
 			display.setCursor(1, 0);
-			display.print("Connexion");
+			display.print(INTL_CONNECTION);
 			display.setCursor(1, 11);
+			#if defined(INTL_EN)
+			display.print(INTL_DONE);
+			#endif
+			#if defined(INTL_FR)
 			display.write(130);
 			display.print("tablie");
+			#endif
 			display.setCursor(1, 22);
 			display.print(String(calcWiFiSignalQuality(WiFi.RSSI())));
 			display.print("%");
@@ -5209,11 +5214,16 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setTextSize(1);
 			display.setCursor(1, 0);
+			#if defined(INTL_EN)
+			display.print(INTL_FIRST);
+			#endif
+			#if defined(INTL_FR)
 			display.print("Premi");
 			display.write(138);
 			display.print("res");
+			#endif
 			display.setCursor(1, 11);
-			display.print("mesures");
+			display.print(INTL_MEASURES);
 			display.setCursor(1, 22);
 			display.print("2 min.");
 
@@ -5468,7 +5478,7 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
-			display.print("COV");
+			display.print(INTL_COV);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX() + 2, 7);
 			display.print("ppb");
@@ -5491,7 +5501,7 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
-			display.print("Temp.");
+			display.print(INTL_TEMP);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX() + 2, 7);
 			display.write(176);
@@ -5520,8 +5530,13 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
+			#if defined(INTL_EN)
+			display.print(INTL_HUMI);
+			#endif
+			#if defined(INTL_FR)
 			display.print("Humidit");
 			display.write(130);
+			#endif
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX() + 2, 7);
 			display.write(37);
@@ -5549,7 +5564,7 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
-			display.print("Press.");
+			display.print(INTL_PRESS);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX() + 2, 7);
 			display.print("hPa");
@@ -6099,9 +6114,9 @@ static void powerOnTestSensors()
 		display.setFont(NULL);
 		display.setTextSize(1);
 		display.setCursor(1, 0);
-		display.print("Activation");
+		display.print(INTL_ACTIVATION);
 		display.setCursor(1, 11);
-		display.print("des sondes");
+		display.print(INTL_PROBES);
 	}
 
 	if (cfg::sds_read)
@@ -6913,7 +6928,7 @@ void setup()
 		display.setFont(NULL);
 		display.setCursor(1, 0);
 		display.setTextSize(1);
-		display.print("Activation");
+		display.print(INTL_ACTIVATION);
 		display.setCursor(1, 11);
 		display.print("WiFi");
 		for (int i = 0; i < 5; i++)
