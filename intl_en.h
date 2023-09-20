@@ -124,7 +124,7 @@ const char INTL_EXT_BAD[] = "EXTR. BAD";
 const char INTL_ERR[] = "ERROR";
 
 const char INTL_WELL[] = "GOOD";
-const char INTL_AERATE_PLS[] = "AIR PLEASE";
+const char INTL_AERATE_PLS[] = "AIR PLS";
 const char INTL_AERATE_FAST[] = "AIR NOW";
 
 const char INTL_DRY[] = "TOO DRY";
@@ -140,9 +140,10 @@ const char INTL_THE_WIFI[] = "WiFi";
 
 const char INTL_CONNECTION[] = "Connection";
 const char INTL_DONE[] = "done";
+const char INTL_TRY[] = "1st try";
 
 const char INTL_FIRST[] = "First";
-const char INTL_MEASURES[] = "measures";
+const char INTL_MEASURES[] = "measure";
 
 const char INTL_COV[] = "VOC";
 const char INTL_TEMP[] = "Temp.";

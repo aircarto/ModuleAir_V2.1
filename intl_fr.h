@@ -119,7 +119,7 @@ const char INTL_MEDIUM[] = "MOYEN";
 const char INTL_DEGRADED[] = "DEGRADE";
 const char INTL_BAD[] = "MAUVAIS";
 const char INTL_VERY_BAD[] = "TRES MAUVAIS";
-const char INTL_EXT_BAD[] = "EXT. MAUVAS";
+const char INTL_EXT_BAD[] = "EXT. MAUVAIS";
 
 const char INTL_ERR[] = "ERREUR";
 
@@ -140,6 +140,7 @@ const char INTL_THE_WIFI[] = "le WiFi";
 
 const char INTL_CONNECTION[] = "Connexion";
 const char INTL_DONE[] = "établie";
+const char INTL_TRY[] = "1er essai";
 
 const char INTL_FIRST[] = "Premières";
 const char INTL_MEASURES[] = "mesures";

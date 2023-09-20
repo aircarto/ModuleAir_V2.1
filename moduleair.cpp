@@ -758,40 +758,39 @@ void drawgradient(int x, int y, float valueSensor, int step1, int step2, int ste
 	}
 }
 
+void drawCentreString(const String &buf, int x, int y, int offset)
+{
+	int16_t x1, y1;
+	uint16_t w, h;
+	display.getTextBounds(buf, x, y, &x1, &y1, &w, &h); //calc width of new string
+	display.setCursor(((64 - offset) - w) / 2, y);		//si 1 seul chiffre => taille de 2 chiffres !!!
+	display.print(buf);
+}
+
 void messager1(float valueSensor, int step1, int step2, int step3)
 {
-
+	display.setFont(NULL);
 	display.setTextSize(1);
 
 	if (valueSensor > -1 && valueSensor < step1)
 	{
-		display.setFont(NULL);
-		display.setCursor(23, 25);
-		display.print(INTL_GOOD);
+		drawCentreString(INTL_GOOD, 0, 25, 0);
 	}
 	else if (valueSensor >= step1 && valueSensor < step2)
 	{
-		display.setFont(NULL);
-		display.setCursor(17, 25);
-		display.print(INTL_MEDIUM);
+		drawCentreString(INTL_MEDIUM, 0, 25, 0);
 	}
 	else if (valueSensor >= step2 && valueSensor < step3)
 	{
-		display.setFont(NULL);
-		display.setCursor(11, 25);
-		display.print(INTL_DEGRADED);
+		drawCentreString(INTL_DEGRADED, 0, 25, 0);
 	}
 	else if (valueSensor >= step3)
 	{
-		display.setFont(NULL);
-		display.setCursor(11, 25);
-		display.print(INTL_BAD);
+		drawCentreString(INTL_BAD, 0, 25, 0);
 	}
 	else
 	{
-		display.setFont(NULL);
-		display.setCursor(14, 25);
-		display.print(INTL_ERR);
+		drawCentreString(INTL_ERR, 0, 25, 0);
 	}
 }
 
@@ -803,24 +802,19 @@ void messager2(float valueSensor, int step1, int step2)
 
 	if (valueSensor > -1 && valueSensor < step1)
 	{
-		display.setCursor(20, 25);
-		display.print(INTL_WELL); // inférieur à 800ppm
+		drawCentreString(INTL_WELL, 0, 25, 0);
 	}
 	else if (valueSensor >= step1 && valueSensor < step2)
 	{
-		display.setCursor(5, 25);
-		display.print(INTL_AERATE_PLS); // entre 800 et 1500
+		drawCentreString(INTL_AERATE_PLS, 0, 25, 0); // entre 800 et 1500
 	}
 	else if (valueSensor >= step2)
 	{
-		display.setCursor(2, 25);
-		display.print(INTL_AERATE_FAST);
+		drawCentreString(INTL_AERATE_PLS, 0, 25, 0);
 	}
 	else
 	{
-		display.setCursor(14, 25);
-		display.setTextSize(1);
-		display.print(INTL_ERR);
+		drawCentreString(INTL_ERR, 0, 25, 0);
 	}
 }
 
@@ -831,25 +825,19 @@ void messager3(float valueSensor, int step1, int step2) // humi
 
 	if (valueSensor > -1 && valueSensor < step1)
 	{
-		display.setCursor(2, 25);
-		display.print(INTL_DRY);
+		drawCentreString(INTL_DRY, 0, 25, 0);
 	}
 	else if (valueSensor >= step1 && valueSensor < step2)
 	{
-
-		display.setCursor(20, 25);
-		display.print(INTL_IDEAL);
+		drawCentreString(INTL_IDEAL, 0, 25, 0);
 	}
 	else if (valueSensor >= step2)
 	{
-		display.setCursor(0, 25);
-		display.print(INTL_WET);
+		drawCentreString(INTL_WET, 0, 25, 0);
 	}
 	else
 	{
-		display.setCursor(14, 25);
-		display.setTextSize(1);
-		display.print(INTL_ERR);
+		drawCentreString(INTL_ERR, 0, 25, 0);
 	}
 }
 
@@ -860,25 +848,20 @@ void messager4(float valueSensor, int step1, int step2) // temp
 
 	if (valueSensor > -128 && valueSensor < step1)
 	{
-		display.setCursor(2, 25);
+		drawCentreString(INTL_COLD, 0, 25, 0);
 		display.print(INTL_COLD);
 	}
 	else if (valueSensor >= step1 && valueSensor < step2)
 	{
-
-		display.setCursor(10, 25);
-		display.print(INTL_TOK);
+		drawCentreString(INTL_TOK, 0, 25, 0);
 	}
 	else if (valueSensor >= step2)
 	{
-		display.setCursor(2, 25);
-		display.print(INTL_WARM);
+		drawCentreString(INTL_WARM, 0, 25, 0);
 	}
 	else
 	{
-		display.setCursor(14, 25);
-		display.setTextSize(1);
-		display.print(INTL_ERR);
+		drawCentreString(INTL_ERR, 0, 25, 0);
 	}
 }
 
@@ -890,49 +873,40 @@ void messager5(int value) // Indice Atmo
 	switch (value)
 	{
 	case 1:
-		display.setFont(NULL);
-		display.setCursor(23, 25);
-		display.print(INTL_GOOD);
+		drawCentreString(INTL_GOOD, 0, 25, 0);
 		break;
 	case 2:
-		display.setFont(NULL);
-		display.setCursor(17, 25);
-		display.print(INTL_MEDIUM);
+		drawCentreString(INTL_MEDIUM, 0, 25, 0);
 		break;
 	case 3:
-		display.setFont(NULL);
-		display.setCursor(11, 25);
-		display.print(INTL_DEGRADED);
+		drawCentreString(INTL_DEGRADED, 0, 25, 0);
 		break;
 	case 4:
-		display.setFont(NULL);
-		display.setCursor(11, 25);
-		display.print(INTL_BAD);
+		drawCentreString(INTL_BAD, 0, 25, 0);
 		break;
 	case 5:
-		display.setFont(&Font4x7Fixed);
-		display.setCursor(0, 31);
-		display.print(INTL_VERY_BAD);
+			#if defined(INTL_EN)
+			drawCentreString(INTL_VERY_BAD, 0, 25, 0);
+			#endif
+			#if defined(INTL_FR)
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(0, 31);
+			display.print(INTL_VERY_BAD);
+			#endif
 		break;
 	case 6:
-		display.setFont(&Font4x7Fixed);
-		display.setCursor(0, 31);
-		display.print(INTL_EXT_BAD);
+			#if defined(INTL_EN)
+			drawCentreString(INTL_EXT_BAD, 0, 25, 0);
+			#endif
+			#if defined(INTL_FR)
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(0, 31);
+			display.print(INTL_EXT_BAD);
+			#endif
 		break;
 	default:
-		display.setFont(NULL);
-		display.setCursor(14, 25);
-		display.print(INTL_ERR);
+		drawCentreString(INTL_ERR, 0, 25, 0);
 	}
-}
-
-void drawCentreString(const String &buf, int x, int y, int offset)
-{
-	int16_t x1, y1;
-	uint16_t w, h;
-	display.getTextBounds(buf, x, y, &x1, &y1, &w, &h); //calc width of new string
-	display.setCursor(((64 - offset) - w) / 2, y);		//si 1 seul chiffre => taille de 2 chiffres !!!
-	display.print(buf);
 }
 
 /*****************************************************************
@@ -3441,7 +3415,7 @@ static void connectWifi()
 		display.setCursor(1, 0);
 		display.print(INTL_CONNECTION);
 		display.setCursor(1, 11);
-		display.print(INTL_DONE);
+		display.print(INTL_TRY);
 		for (int i = 0; i < 5; i++)
 		{
 			display.fillRect(47, 15, 16, 16, myBLACK);
