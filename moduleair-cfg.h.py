@@ -2,10 +2,6 @@
 
 configshape_in = """
 Bool        has_wifi
-Bool        has_lora
-Hex		    appeui
-Hex 		deveui
-Hex 		appkey
 String		current_lang
 String      wlanssid
 Password    wlanpwd
@@ -33,7 +29,6 @@ Bool		has_matrix
 Bool		display_measure
 Bool		display_forecast
 Bool		display_wifi_info
-Bool		display_lora_info
 Bool		display_device_info
 UInt		debug
 Time		sending_intervall_ms

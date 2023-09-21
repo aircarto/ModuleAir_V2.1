@@ -8,10 +8,6 @@
 #define LEN_CFG_STRING2 65
 #define LEN_CFG_PASSWORD2 65
 
-#define LEN_APPEUI 17
-#define LEN_DEVEUI 17
-#define LEN_APPKEY 33
-
 #define LEN_WLANSSID 35				// credentials for wifi connection
 
 #define LEN_WWW_USERNAME 65			// credentials for basic auth of server internal website

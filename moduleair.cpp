@@ -132,10 +132,6 @@ namespace cfg
 	// main config
 
 	bool has_wifi = HAS_WIFI;
-	bool has_lora = HAS_LORA;
-	char appeui[LEN_APPEUI];
-	char deveui[LEN_DEVEUI];
-	char appkey[LEN_APPKEY];
 
 	// (in)active sensors
 	bool sds_read = SDS_READ;
@@ -166,7 +162,6 @@ namespace cfg
 	bool display_measure = DISPLAY_MEASURE;
 	bool display_forecast = DISPLAY_FORECAST;
 	bool display_wifi_info = DISPLAY_WIFI_INFO;
-	bool display_lora_info = DISPLAY_LORA_INFO;
 	bool display_device_info = DISPLAY_DEVICE_INFO;
 
 	// API settings
@@ -193,9 +188,6 @@ namespace cfg
 	void initNonTrivials(const char *id)
 	{
 		strcpy(cfg::current_lang, CURRENT_LANG);
-		strcpy_P(appeui, APPEUI);
-		strcpy_P(deveui, DEVEUI);
-		strcpy_P(appkey, APPKEY);
 		strcpy_P(www_username, WWW_USERNAME);
 		strcpy_P(www_password, WWW_PASSWORD);
 		strcpy_P(wlanssid, WLANSSID);
@@ -216,19 +208,6 @@ namespace cfg
 }
 
 bool spiffs_matrix;
-
-//configuration summary for LoRaWAN
-
-bool configlorawan[8] = {false, false, false, false, false, false, false, false};
-
-// configlorawan[0] = cfg::sds_read;
-// configlorawan[1] = cfg::npm_read ;
-// configlorawan[2] = cfg::bmx280_read;
-// configlorawan[3] = cfg::mhz16_read;
-// configlorawan[4] = cfg::mhz19_read;
-// configlorawan[5] = cfg::ccs811_read;
-// configlorawan[6] = cfg::display_forecast;
-// configlorawan[7] = cfg::has_wifi;
 
 static byte booltobyte(bool array[8])
 {
@@ -885,24 +864,24 @@ void messager5(int value) // Indice Atmo
 		drawCentreString(INTL_BAD, 0, 25, 0);
 		break;
 	case 5:
-			#if defined(INTL_EN)
-			drawCentreString(INTL_VERY_BAD, 0, 25, 0);
-			#endif
-			#if defined(INTL_FR)
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(0, 31);
-			display.print(INTL_VERY_BAD);
-			#endif
+#if defined(INTL_EN)
+		drawCentreString(INTL_VERY_BAD, 0, 25, 0);
+#endif
+#if defined(INTL_FR)
+		display.setFont(&Font4x7Fixed);
+		display.setCursor(0, 31);
+		display.print(INTL_VERY_BAD);
+#endif
 		break;
 	case 6:
-			#if defined(INTL_EN)
-			drawCentreString(INTL_EXT_BAD, 0, 25, 0);
-			#endif
-			#if defined(INTL_FR)
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(0, 31);
-			display.print(INTL_EXT_BAD);
-			#endif
+#if defined(INTL_EN)
+		drawCentreString(INTL_EXT_BAD, 0, 25, 0);
+#endif
+#if defined(INTL_FR)
+		display.setFont(&Font4x7Fixed);
+		display.setCursor(0, 31);
+		display.print(INTL_EXT_BAD);
+#endif
 		break;
 	default:
 		drawCentreString(INTL_ERR, 0, 25, 0);
@@ -924,18 +903,25 @@ struct gps
  *****************************************************************/
 struct forecast
 {
-	float multi;
-	float no2;
-	float o3;
-	float pm10;
-	float pm2_5;
-	float so2;
+	uint16_t multi[2048];
+	uint16_t no2[2048];
+	uint16_t o3[2048];
+	uint16_t pm10[2048];
+	uint16_t pm2_5[2048];
+	uint16_t so2[2048];
 };
 
 struct forecast atmoSud
 {
-	- 1.0, -1.0, -1.0, -1.0, -1.0, -1.0
+	{},
+	{},
+	{},
+	{},
+	{},
+	{},
 };
+
+uint16_t emptyarray[2048] = {};
 
 uint8_t arrayDownlink[5];
 uint8_t forecast_selector;
@@ -997,7 +983,6 @@ unsigned long last_update_attempt;
 int last_sendData_returncode;
 
 bool wifi_connection_lost;
-bool lora_connection_lost;
 
 /*****************************************************************
  * SDS variables and enums                                      *
@@ -2025,21 +2010,16 @@ static void webserver_config_send_body_get(String &page_content)
 					  "<input class='radio' id='r2' name='group' type='radio'>"
 					  "<input class='radio' id='r3' name='group' type='radio'>"
 					  "<input class='radio' id='r4' name='group' type='radio'>"
-					  "<input class='radio' id='r5' name='group' type='radio'>"
-					  //   "<input class='radio' id='r6' name='group' type='radio'>"
 					  "<div class='tabs'>"
 					  "<label class='tab' id='tab1' for='r1'>" INTL_WIFI_SETTINGS "</label>"
 					  "<label class='tab' id='tab2' for='r2'>");
-	page_content += FPSTR(INTL_LORA_SETTINGS);
-	page_content += F("</label>"
-					  "<label class='tab' id='tab3' for='r3'>");
 	page_content += FPSTR(INTL_MORE_SETTINGS);
 	page_content += F("</label>"
-					  "<label class='tab' id='tab4' for='r4'>");
+					  "<label class='tab' id='tab3' for='r3'>");
 	page_content += FPSTR(INTL_SENSORS);
 	page_content += F(
 		"</label>"
-		"<label class='tab' id='tab5' for='r5'>APIs");
+		"<label class='tab' id='tab4' for='r4'>APIs");
 	// page_content += F("</label>"
 	// 				  "<label class='tab' id='tab6' for='r6'>");
 	// page_content += FPSTR(INTL_SCREENS);
@@ -2090,17 +2070,6 @@ static void webserver_config_send_body_get(String &page_content)
 	}
 
 	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(2));
-	page_content += FPSTR(WEB_LF_B);
-	page_content += FPSTR(INTL_LORA_EXPLANATION);
-	page_content += FPSTR(WEB_B_BR_BR);
-	add_form_checkbox(Config_has_lora, FPSTR(INTL_LORA_ACTIVATION));
-	page_content += FPSTR(TABLE_TAG_OPEN);
-	add_form_input(page_content, Config_appeui, FPSTR("APPEUI"), LEN_APPEUI - 1);
-	add_form_input(page_content, Config_deveui, FPSTR("DEVEUI"), LEN_DEVEUI - 1);
-	add_form_input(page_content, Config_appkey, FPSTR("APPKEY"), LEN_APPKEY - 1);
-	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
-	server.sendContent(page_content);
-	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(3));
 
 	page_content += F("<b>" INTL_LOCATION "</b>&nbsp;");
 	page_content += FPSTR(TABLE_TAG_OPEN);
@@ -2122,7 +2091,6 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_checkbox(Config_display_measure, FPSTR(INTL_DISPLAY_MEASURES));
 	add_form_checkbox(Config_display_forecast, FPSTR(INTL_DISPLAY_FORECAST));
 	add_form_checkbox(Config_display_wifi_info, FPSTR(INTL_DISPLAY_WIFI_INFO));
-	add_form_checkbox(Config_display_lora_info, FPSTR(INTL_DISPLAY_LORA_INFO));
 	add_form_checkbox(Config_display_device_info, FPSTR(INTL_DISPLAY_DEVICE_INFO));
 
 	server.sendContent(page_content);
@@ -2149,7 +2117,7 @@ static void webserver_config_send_body_get(String &page_content)
 
 	//ICI
 
-	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(4));
+	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(3));
 
 	page_content += FPSTR("<b>");
 	page_content += FPSTR(INTL_PM_SENSORS);
@@ -2193,7 +2161,7 @@ static void webserver_config_send_body_get(String &page_content)
 	server.sendContent(page_content);
 	//page_content = emptyString;
 
-	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(5));
+	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(4));
 
 	// //page_content += tmpl(FPSTR(INTL_SEND_TO), F("APIs"));
 	// page_content += tmpl(FPSTR(INTL_SEND_TO), F(""));
@@ -3220,40 +3188,42 @@ static void wifiConfig()
 	{
 		dnsServer.processNextRequest();
 		server.handleClient();
-		yield();	
+		yield();
 
-		
 		int div_entiere = (millis() - time_before_config) / 200;
 
-		if (prec != div_entiere){display.fillRect(47, 15, 16, 16, myBLACK);}
+		if (prec != div_entiere)
+		{
+			display.fillRect(47, 15, 16, 16, myBLACK);
+		}
 
-			switch (div_entiere)
-			{
-			case 0:
-				drawImage(47, 15, 16, 16, wifiloop1);
-				prec = div_entiere;
-				break;
-			case 1:
-				drawImage(47, 15, 16, 16, wifiloop2);
-				prec = div_entiere;
-				break;
-			case 2:
-				drawImage(47, 15, 16, 16, wifiloop3);
-				prec = div_entiere;
-				break;
-			case 3:
-				drawImage(47, 15, 16, 16, wifiloop4);
-				prec = div_entiere;
-				break;
-			case 4:
-				drawImage(47, 15, 16, 16, wifiloop5);
-				prec = div_entiere;
-				break;
-			case 5:
-				time_before_config = millis();
-				prec = div_entiere;
-				break;
-			}
+		switch (div_entiere)
+		{
+		case 0:
+			drawImage(47, 15, 16, 16, wifiloop1);
+			prec = div_entiere;
+			break;
+		case 1:
+			drawImage(47, 15, 16, 16, wifiloop2);
+			prec = div_entiere;
+			break;
+		case 2:
+			drawImage(47, 15, 16, 16, wifiloop3);
+			prec = div_entiere;
+			break;
+		case 3:
+			drawImage(47, 15, 16, 16, wifiloop4);
+			prec = div_entiere;
+			break;
+		case 4:
+			drawImage(47, 15, 16, 16, wifiloop5);
+			prec = div_entiere;
+			break;
+		case 5:
+			time_before_config = millis();
+			prec = div_entiere;
+			break;
+		}
 	}
 
 	if (cfg::has_matrix)
@@ -3298,10 +3268,6 @@ static void wifiConfig()
 
 	debug_outln_info(F("---- Result Webconfig ----"));
 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
-	debug_outln_info(F("LoRa: "), cfg::has_lora);
-	debug_outln_info(F("APPEUI: "), cfg::appeui);
-	debug_outln_info(F("DEVEUI: "), cfg::deveui);
-	debug_outln_info(F("APPKEY: "), cfg::appkey);
 	debug_outln_info(F("WLANSSID: "), cfg::wlanssid);
 	debug_outln_info(FPSTR(DBG_TXT_SEP));
 	debug_outln_info_bool(F("SDS: "), cfg::sds_read);
@@ -3504,35 +3470,35 @@ static void connectWifi()
 		{
 			display_update_enable(true);
 			// drawImage(36, 6, 20, 27, wifiblue);
-		// 	display.setTextColor(myWHITE);
-		// 	display.setFont(NULL);
-		// 	display.setTextSize(1);
-		// 	display.setCursor(1, 0);
-		// 	display.print("Configurer");
-		// 	display.setCursor(1, 11);
-		// 	display.print("le WiFi");
-		// 	display.setCursor(1, 22);
-		// 	display.print("3 min.");
-			
-		// 	for (int i = 0; i < 5; i++)
-		// 		{
-		// 			display.fillRect(47, 15, 16, 16, myBLACK);
-		// 			drawImage(47, 15, 16, 16, wifiloop1);
-		// 			delay(200);
-		// 			display.fillRect(47, 15, 16, 16, myBLACK);
-		// 			drawImage(47, 15, 16, 16, wifiloop2);
-		// 			delay(200);
-		// 			display.fillRect(47, 15, 16, 16, myBLACK);
-		// 			drawImage(47, 15, 16, 16, wifiloop3);
-		// 			delay(200);
-		// 			display.fillRect(47, 15, 16, 16, myBLACK);
-		// 			drawImage(47, 15, 16, 16, wifiloop4);
-		// 			delay(200);
-		// 			display.fillRect(47, 15, 16, 16, myBLACK);
-		// 			drawImage(47, 15, 16, 16, wifiloop5);
-		// 			delay(200);
-		// 		}
-		// display.fillScreen(myBLACK);
+			// 	display.setTextColor(myWHITE);
+			// 	display.setFont(NULL);
+			// 	display.setTextSize(1);
+			// 	display.setCursor(1, 0);
+			// 	display.print("Configurer");
+			// 	display.setCursor(1, 11);
+			// 	display.print("le WiFi");
+			// 	display.setCursor(1, 22);
+			// 	display.print("3 min.");
+
+			// 	for (int i = 0; i < 5; i++)
+			// 		{
+			// 			display.fillRect(47, 15, 16, 16, myBLACK);
+			// 			drawImage(47, 15, 16, 16, wifiloop1);
+			// 			delay(200);
+			// 			display.fillRect(47, 15, 16, 16, myBLACK);
+			// 			drawImage(47, 15, 16, 16, wifiloop2);
+			// 			delay(200);
+			// 			display.fillRect(47, 15, 16, 16, myBLACK);
+			// 			drawImage(47, 15, 16, 16, wifiloop3);
+			// 			delay(200);
+			// 			display.fillRect(47, 15, 16, 16, myBLACK);
+			// 			drawImage(47, 15, 16, 16, wifiloop4);
+			// 			delay(200);
+			// 			display.fillRect(47, 15, 16, 16, myBLACK);
+			// 			drawImage(47, 15, 16, 16, wifiloop5);
+			// 			delay(200);
+			// 		}
+			// display.fillScreen(myBLACK);
 		}
 		wifiConfig();
 	}
@@ -3629,13 +3595,13 @@ static void connectWifi()
 			display.setCursor(1, 0);
 			display.print(INTL_CONNECTION);
 			display.setCursor(1, 11);
-			#if defined(INTL_EN)
+#if defined(INTL_EN)
 			display.print(INTL_DONE);
-			#endif
-			#if defined(INTL_FR)
+#endif
+#if defined(INTL_FR)
 			display.write(130);
 			display.print("tablie");
-			#endif
+#endif
 			display.setCursor(1, 22);
 			display.print(String(calcWiFiSignalQuality(WiFi.RSSI())));
 			display.print("%");
@@ -3999,73 +3965,19 @@ static void send_csv(const String &data)
 }
 
 /*****************************************************************
- * get data from LoRaWAN downlink payload                                        *
- *****************************************************************/
-
-static void getDataLora(uint8_t array[5])
-{
-
-	union
-	{
-		float f;
-		byte b[4];
-	} u;
-
-	u.b[0] = array[1];
-	u.b[1] = array[2];
-	u.b[2] = array[3];
-	u.b[3] = array[4];
-
-	switch (array[0])
-	{
-	case 0:
-		atmoSud.multi = u.f;
-		Debug.println("Index from LoRaWAN:");
-		break;
-	case 1:
-		atmoSud.no2 = u.f;
-		Debug.println("NO2 from LoRaWAN:");
-		break;
-	case 2:
-		atmoSud.o3 = u.f;
-		Debug.println("O3 from LoRaWAN:");
-		break;
-	case 3:
-		atmoSud.pm10 = u.f;
-		Debug.println("PM10 from LoRaWAN:");
-		break;
-	case 4:
-		atmoSud.pm2_5 = u.f;
-		Debug.println("PM2_5 from LoRaWAN:");
-		break;
-	case 5:
-		atmoSud.so2 = u.f;
-		Debug.println("SO2 from LoRaWAN:");
-		break;
-	}
-	Debug.println(u.f, 2);
-}
-
-/*****************************************************************
  * get data from AtmoSud api                                         *
  *****************************************************************/
 
-float getDataAtmoSud(unsigned int type)
+void getScreenAircarto(String id, unsigned int type)
 {
-	String sensor_type = "";
-	struct tm timeinfo;
+	DynamicJsonDocument screenarray(2048);
+	HTTPClient http;
+	http.setTimeout(20 * 1000);
+	http.useHTTP10(true);
 
-	if (!getLocalTime(&timeinfo))
-	{
-		Debug.println("Failed to obtain time");
-	}
+	String sensor_type;
 
-	//timeinfo.tm_mday += 1; // J+1 Change the day in AtmoSud forecast API
-
-	char date[21];
-	strftime(date, 21, "%FT%TZ", &timeinfo);
-
-	Debug.println(String(date));
+	String urlAircarto1 = "https://api.atmosud.org/prevision/cartes/horaires/point?x=";
 
 	switch (type)
 	{
@@ -4089,21 +4001,7 @@ float getDataAtmoSud(unsigned int type)
 		break;
 	}
 
-	String reponseAPI;
-	StaticJsonDocument<JSON_BUFFER_SIZE2> json;
-	char reponseJSON[JSON_BUFFER_SIZE2];
-
-	HTTPClient http;
-	http.setTimeout(20 * 1000);
-
-	//Call: https://api.atmosud.org/prevision/cartes/horaires/point?x=null&y=null&datetime_echeance=2023-05-09T&with_list=false&polluant=icairh
-
-	String urlAtmo1 = "https://api.atmosud.org/prevision/cartes/horaires/point?x=";
-	String urlAtmo2 = "&y=";
-	String urlAtmo3 = "&datetime_echeance=";
-	String urlAtmo4 = "&with_list=false&polluant=";
-
-	String serverPath = urlAtmo1 + String(cfg::longitude) + urlAtmo2 + String(cfg::latitude) + urlAtmo3 + String(date) + urlAtmo4 + sensor_type;
+	String serverPath = urlAircarto1 + id;
 
 	debug_outln_info(F("Call: "), serverPath);
 
@@ -4113,211 +4011,42 @@ float getDataAtmoSud(unsigned int type)
 
 	if (httpResponseCode > 0)
 	{
-		reponseAPI = http.getString();
-		debug_outln_info(F("Response: "), reponseAPI);
-		strcpy(reponseJSON, reponseAPI.c_str());
 
-		DeserializationError error = deserializeJson(json, reponseJSON);
+    WiFiClient& stream = http.getStream();
+    while(stream.available()){
+        Debug.print(stream.read());
+		Debug.print(",");
+    }
 
-		serializeJsonPretty(json, Debug);
-
-		// {
-		//   "datetime_echeance": "2023-05-09T14:05:00Z",
-		//   "variables": [
-		//     {
-		//       "variable": "o3",
-		//       "horaires": [
-		//         {
-		//           "datetime_echeance": "2023-05-09T14:00:00Z",
-		//           "indicateur": 1.446,
-		//           "concentration": 72.9,
-		//           "couleur": "#50e2ce"
-		//         }
-		//       ]
-		//     }
-		//   ]
-		// }
-
-		if (strcmp(error.c_str(), "Ok") == 0)
-		{
-			debug_outln_info(F("Type: "), sensor_type);
-
-			if (json["variables"][0]["variable"] == "icairh")
-			{
-				Debug.println((float)json["variables"][0]["horaires"][0]["indicateur"]);
-				return (float)json["variables"][0]["horaires"][0]["indicateur"];
-			}
-			else
-			{
-				Debug.println((float)json["variables"][0]["horaires"][0]["concentration"]);
-				return (float)json["variables"][0]["horaires"][0]["concentration"];
-			}
-		}
-		else
-		{
-			Debug.print(F("deserializeJson() failed: "));
-			Debug.println(error.c_str());
-			return -1.0;
-		}
 		http.end();
 	}
 	else
 	{
-		debug_outln_info(F("Failed connecting to Atmo Sud API with error code:"), String(httpResponseCode));
-		return -1.0;
+		debug_outln_info(F("Failed connecting to Aircarto server with error code:"), String(httpResponseCode));
+			switch (type)
+			{
+			case 0:
+				memcpy(atmoSud.multi,emptyarray,2048);
+				break;
+			case 1:
+				memcpy(atmoSud.no2,emptyarray,2048);
+				break;
+			case 2:
+				memcpy(atmoSud.o3,emptyarray,2048);
+				break;
+			case 3:
+				memcpy(atmoSud.pm10,emptyarray,2048);
+				break;
+			case 4:
+				memcpy(atmoSud.pm2_5,emptyarray,2048);
+				break;
+			case 5:
+				memcpy(atmoSud.so2,emptyarray,2048);
+				break;
+			}
 		http.end();
 	}
 }
-
-// float getDataAtmoSud(unsigned int type)
-// {
-
-// 	//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm10-2022-05-23&srs=EPSG:4326
-// 	//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS &VERSION=1.1.1&WIDTH=1 &HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm2_5-2022-05-23&srs=EPSG:4326
-
-// 	// ATTENTION ATTENDRE FIN DES PROCESSUS LORAWAN AVANT D'APPELER L'API => bool?
-// 	String sensor_type = "";
-// 	struct tm timeinfo;
-
-// 	if (!getLocalTime(&timeinfo))
-// 	{
-// 		Debug.println("Failed to obtain time");
-// 	}
-
-// 	//timeinfo.tm_mday += 1; // J+1 Change the day in AtmoSud forecast API
-// 	char date[12];
-// 	strftime(date, 12, "-%Y-%m-%d", &timeinfo);
-
-// 	switch (type)
-// 	{
-// 	case 0:
-// 		sensor_type = "multi";
-// 		break;
-// 	case 1:
-// 		sensor_type = "no2";
-// 		break;
-// 	case 2:
-// 		sensor_type = "o3";
-// 		break;
-// 	case 3:
-// 		sensor_type = "pm10";
-// 		break;
-// 	case 4:
-// 		sensor_type = "pm2_5";
-// 		break;
-// 	case 5:
-// 		sensor_type = "so2";
-// 		break;
-// 	}
-
-// 	String reponseAPI;
-// 	StaticJsonDocument<JSON_BUFFER_SIZE2> json;
-// 	char reponseJSON[JSON_BUFFER_SIZE2];
-
-// 	HTTPClient http;
-// 	http.setTimeout(20 * 1000);
-
-// 	if (sensor_type != "multi")
-// 	{
-// 		double longbbox = atof(cfg::longitude) + 0.00001;
-// 		double latbbox = atof(cfg::latitude) + 0.00001;
-// 		// double longbbox1 = atof(cfg::longitude) + 0.00001;
-// 		// double latbbox1 = atof(cfg::latitude) + 0.00001;
-// 		// double longbbox2 = longitude_aircarto.toDouble() + 0.00001;
-// 		// double latbbox2 = latitude_aircarto.toDouble() + 0.00001;
-
-// 		char bufferlong[10];
-// 		char bufferlat[10];
-// 		//String bbox;
-
-// 		sprintf(bufferlong, "%2.5f", longbbox);
-// 		sprintf(bufferlat, "%2.5f", latbbox);
-// 		String bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
-
-// 		Debug.println(bbox);
-// 		String urlAtmo1 = "https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=";
-// 		String urlAtmo2 = "&LAYERS=azurjour:paca-";
-// 		String urlAtmo3 = "&QUERY_LAYERS=azurjour:paca-";
-// 		String urlAtmo4 = "&TYPENAME=azurjour:paca-";
-// 		String urlAtmo5 = "&srs=EPSG:4326";
-
-// 		String serverPath = urlAtmo1 + bbox + urlAtmo2 + sensor_type + String(date) + urlAtmo3 + sensor_type + String(date) + urlAtmo4 + sensor_type + String(date) + urlAtmo5;
-
-// 		debug_outln_info(F("Call: "), serverPath);
-
-// 		http.begin(serverPath.c_str());
-
-// 		int httpResponseCode = http.GET();
-
-// 		if (httpResponseCode > 0)
-// 		{
-
-// 			reponseAPI = http.getString();
-// 			debug_outln_info(F("Response: "), reponseAPI);
-// 			strcpy(reponseJSON, reponseAPI.c_str());
-
-// 			DeserializationError error = deserializeJson(json, reponseJSON);
-
-// 			if (strcmp(error.c_str(), "Ok") == 0)
-// 			{
-// 				debug_outln_info(F("Type: "), sensor_type);
-// 				Debug.println((float)json["features"][0]["properties"]["GRAY_INDEX"]);
-// 				return (float)json["features"][0]["properties"]["GRAY_INDEX"];
-// 			}
-// 			else
-// 			{
-// 				Debug.print(F("deserializeJson() failed: "));
-// 				Debug.println(error.c_str());
-// 				return -1.0;
-// 			}
-// 			http.end();
-// 		}
-// 		else
-// 		{
-// 			debug_outln_info(F("Failed connecting to Atmo Sud API with error code:"), String(httpResponseCode));
-// 			return -1.0;
-// 			http.end();
-// 		}
-// 	}
-// 	else
-// 	{
-
-// 		String urlAirCarto = "http://data.moduleair.fr/get_indice_atmo.php?id=";
-// 		String serverPath = urlAirCarto + esp_chipid;
-
-// 		debug_outln_info(F("Call: "), serverPath);
-// 		http.begin(serverPath.c_str());
-
-// 		int httpResponseCode = http.GET();
-
-// 		if (httpResponseCode > 0)
-// 		{
-// 			reponseAPI = http.getString();
-// 			debug_outln_info(F("Response: "), reponseAPI);
-// 			strcpy(reponseJSON, reponseAPI.c_str());
-
-// 			DeserializationError error = deserializeJson(json, reponseJSON);
-
-// 			if (strcmp(error.c_str(), "Ok") == 0)
-// 			{
-// 				return (float)json["indice"];
-// 			}
-// 			else
-// 			{
-// 				Debug.print(F("deserializeJson() failed: "));
-// 				Debug.println(error.c_str());
-// 				return -1;
-// 			}
-// 			http.end();
-// 		}
-// 		else
-// 		{
-// 			debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
-// 			return -1;
-// 			http.end();
-// 		}
-// 	}
-// }
 
 /*****************************************************************
  * read BMP280/BME280 sensor values                              *
@@ -4877,10 +4606,6 @@ static void display_values_oled() //COMPLETER LES ECRANS
 			screens[screen_count++] = 10; // info NPM
 		}
 	}
-	if (cfg::display_lora_info && cfg::has_lora)
-	{
-		screens[screen_count++] = 11; // Lora info
-	}
 
 	switch (screens[next_display_count % screen_count])
 	{
@@ -4968,15 +4693,6 @@ static void display_values_oled() //COMPLETER LES ECRANS
 		display_lines[1] = F("T_NPM / RH_NPM");
 		display_lines[2] = current_th_npm;
 		break;
-	case 11:
-		display_header = F("LoRaWAN Info");
-		display_lines[0] = "APPEUI: ";
-		display_lines[0] += cfg::appeui;
-		display_lines[1] = "DEVEUI: ";
-		display_lines[1] += cfg::deveui;
-		display_lines[2] = "APPKEY: ";
-		display_lines[2] += cfg::appkey;
-		break;
 	}
 
 	oled_ssd1306->clear();
@@ -5021,7 +4737,7 @@ static void display_values_matrix()
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
 	uint8_t screen_count = 0;
-	uint8_t screens[25];
+	uint8_t screens[24];
 	int line_count = 0;
 	//debug_outln_info(F("output values to matrix..."));
 
@@ -5156,19 +4872,15 @@ static void display_values_matrix()
 			screens[screen_count++] = 22; // info NPM
 		}
 	}
-	if (cfg::display_lora_info && cfg::has_lora)
-	{
-		screens[screen_count++] = 23; // Lora info
-	}
 
-	screens[screen_count++] = 24; // Logos
+	screens[screen_count++] = 23; // Logos
 
 	switch (screens[next_display_count % screen_count])
 	{
 	case 0:
 		if (pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0 || t_value != -128.0 || h_value != -1.0 || p_value != -1.0 || co2_value != -1.0 || cov_value != -1.0)
 		{
-			if ((!cfg::has_wifi && !cfg::has_lora) || (cfg::has_wifi && wifi_connection_lost && !cfg::has_lora) || (cfg::has_lora && lora_connection_lost && !cfg::has_wifi))
+			if (!cfg::has_wifi || (cfg::has_wifi && wifi_connection_lost))
 			{
 				drawImage(0, 0, 32, 64, interieur_no_connection);
 			}
@@ -5176,10 +4888,6 @@ static void display_values_matrix()
 			{
 				drawImage(0, 0, 32, 64, interieur_wifi);
 			}
-			if (cfg::has_lora && (!cfg::has_wifi || (cfg::has_wifi && wifi_connection_lost)) && !lora_connection_lost)
-			{
-				drawImage(0, 0, 32, 64, interieur_lora);
-			} //wifi prioritaire
 		}
 		else
 		{
@@ -5188,14 +4896,14 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setTextSize(1);
 			display.setCursor(1, 0);
-			#if defined(INTL_EN)
+#if defined(INTL_EN)
 			display.print(INTL_FIRST);
-			#endif
-			#if defined(INTL_FR)
+#endif
+#if defined(INTL_FR)
 			display.print("Premi");
 			display.write(138);
 			display.print("res");
-			#endif
+#endif
 			display.setCursor(1, 11);
 			display.print(INTL_MEASURES);
 			display.setCursor(1, 22);
@@ -5504,13 +5212,13 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
-			#if defined(INTL_EN)
+#if defined(INTL_EN)
 			display.print(INTL_HUMI);
-			#endif
-			#if defined(INTL_FR)
+#endif
+#if defined(INTL_FR)
 			display.print("Humidit");
 			display.write(130);
-			#endif
+#endif
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX() + 2, 7);
 			display.write(37);
@@ -5554,7 +5262,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 12:
-		if (atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0 || atmoSud.so2 != -1.0)
+		if (sizeof(atmoSud.multi) != 0 || sizeof(atmoSud.no2) != 0 || sizeof(atmoSud.o3) != 0 || sizeof(atmoSud.pm10) != 0 || sizeof(atmoSud.pm2_5) != 0 || sizeof(atmoSud.so2) != 0)
 		{
 			drawImage(0, 0, 32, 64, exterieur);
 		}
@@ -5564,30 +5272,8 @@ static void display_values_matrix()
 		}
 		break;
 	case 13:
-		if (atmoSud.multi != -1.0)
+		if (sizeof(atmoSud.multi) != 0)
 		{
-			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("ICAIRh");
-			drawImage(55, 0, 7, 9, soleil);
-			displayColor = interpolateindice((int)atmoSud.multi, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextColor(myWHITE);
-			display.setTextSize(2);
-			drawCentreString(String(atmoSud.multi, 0), 0, 9, 14);
-			display.setTextColor(myCUSTOM);
-			messager5((int)atmoSud.multi);
-
-			// //drawgradient(0, 25, atmoSud.no2, 20, 40, 50, 100, 150);
-			// if(gamma_correction){drawImage(0, 28, 4, 64, gradient_20_150_gamma);}else{drawImage(0, 28, 4, 64, gradient_20_150);}
-			// display.setTextSize(1);
-			// display.setCursor((uint8_t)((63*atmoSud.multi)/150)-2, 25-2); //2 pixels de offset
-			// display.write(31);
 		}
 		else
 		{
@@ -5595,40 +5281,8 @@ static void display_values_matrix()
 		}
 		break;
 	case 14:
-		if (atmoSud.no2 != -1.0)
+		if (sizeof(atmoSud.no2) != 0)
 		{
-			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("NO");
-			display.write(250);
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX() + 2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, soleil);
-			displayColor = interpolate(atmoSud.no2, 40, 90, 120, 230, 340, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextColor(myWHITE);
-			display.setTextSize(2);
-			drawCentreString(String(atmoSud.no2, 0), 0, 9, 14);
-			//drawgradient(0, 25, atmoSud.no2, 40, 90, 120, 230, 340);
-			if (gamma_correction)
-			{
-				drawImage(0, 28, 4, 64, gradient_40_340_gamma);
-			}
-			else
-			{
-				drawImage(0, 28, 4, 64, gradient_40_340);
-			}
-			display.setTextSize(1);
-			display.setCursor((uint8_t)((63 * atmoSud.no2) / 340) - 2, 25 - 2); //2 pixels de offset
-			display.write(31);
 		}
 		else
 		{
@@ -5636,40 +5290,8 @@ static void display_values_matrix()
 		}
 		break;
 	case 15:
-		if (atmoSud.o3 != -1.0)
+		if (sizeof(atmoSud.o3) != 0)
 		{
-			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("O");
-			display.write(253);
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX() + 2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, soleil);
-			displayColor = interpolate(atmoSud.o3, 50, 100, 130, 240, 380, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextColor(myWHITE);
-			display.setTextSize(2);
-			drawCentreString(String(atmoSud.o3, 0), 0, 9, 14);
-			//drawgradient(0, 25, atmoSud.o3, 50, 100, 130, 240, 380);
-			if (gamma_correction)
-			{
-				drawImage(0, 28, 4, 64, gradient_50_380_gamma);
-			}
-			else
-			{
-				drawImage(0, 28, 4, 64, gradient_50_380);
-			}
-			display.setTextSize(1);
-			display.setCursor((uint8_t)((63 * atmoSud.o3) / 380) - 2, 25 - 2); //2 pixels de offset
-			display.write(31);
 		}
 		else
 		{
@@ -5677,39 +5299,8 @@ static void display_values_matrix()
 		}
 		break;
 	case 16:
-		if (atmoSud.pm10 != -1.0)
+		if (sizeof(atmoSud.pm10) != 0)
 		{
-			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("PM10");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX() + 2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, soleil);
-			displayColor = interpolate(atmoSud.pm10, 20, 40, 50, 100, 150, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextColor(myWHITE);
-			display.setTextSize(2);
-			drawCentreString(String(atmoSud.pm10, 0), 0, 9, 14);
-			//drawgradient(0, 25, atmoSud.pm10, 20, 40, 50, 100, 150);
-			if (gamma_correction)
-			{
-				drawImage(0, 28, 4, 64, gradient_20_150_gamma);
-			}
-			else
-			{
-				drawImage(0, 28, 4, 64, gradient_20_150);
-			}
-			display.setTextSize(1);
-			display.setCursor((uint8_t)((63 * atmoSud.pm10) / 150) - 2, 25 - 2); //2 pixels de offset
-			display.write(31);
 		}
 		else
 		{
@@ -5717,39 +5308,8 @@ static void display_values_matrix()
 		}
 		break;
 	case 17:
-		if (atmoSud.pm2_5 != -1.0)
+		if (sizeof(atmoSud.pm2_5) != 0)
 		{
-			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("PM2.5");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX() + 2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, soleil);
-			displayColor = interpolate(atmoSud.pm2_5, 10, 20, 25, 50, 75, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextColor(myWHITE);
-			display.setTextSize(2);
-			drawCentreString(String(atmoSud.pm2_5, 0), 0, 9, 14);
-			//drawgradient(0, 25, atmoSud.pm2_5, 10, 20, 25, 50, 75);
-			if (gamma_correction)
-			{
-				drawImage(0, 28, 4, 64, gradient_10_75_gamma);
-			}
-			else
-			{
-				drawImage(0, 28, 4, 64, gradient_10_75);
-			}
-			display.setTextSize(1);
-			display.setCursor((uint8_t)((63 * atmoSud.pm2_5) / 75) - 2, 25 - 2); //2 pixels de offset
-			display.write(31);
 		}
 		else
 		{
@@ -5757,40 +5317,8 @@ static void display_values_matrix()
 		}
 		break;
 	case 18:
-		if (atmoSud.so2 != -1.0)
+		if (sizeof(atmoSud.so2) != 0)
 		{
-			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("SO");
-			display.write(250);
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX() + 2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, soleil);
-			displayColor = interpolate(atmoSud.so2, 50, 100, 130, 240, 380, gamma_correction); //REVOIR LE GRADIENT SO2
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextColor(myWHITE);
-			display.setTextSize(2);
-			drawCentreString(String(atmoSud.so2, 0), 0, 9, 14);
-			//drawgradient(0, 25, atmoSud.so2, 50, 100, 130, 240, 380);
-			if (gamma_correction)
-			{
-				drawImage(0, 28, 4, 64, gradient_50_380_gamma);
-			}
-			else
-			{
-				drawImage(0, 28, 4, 64, gradient_50_380);
-			}
-			display.setTextSize(1);
-			display.setCursor((uint8_t)((63 * atmoSud.so2) / 75) - 2, 25 - 2); //2 pixels de offset
-			display.write(31);
 		}
 		else
 		{
@@ -5865,19 +5393,6 @@ static void display_values_matrix()
 		}
 		break;
 	case 23:
-		display.fillScreen(myBLACK);
-		display.setTextColor(myWHITE);
-		display.setFont(&Font4x5Fixed);
-		display.setCursor(0, 4);
-		display.print("LoRaWAN Info");
-		display.setCursor(0, 10);
-		display.print(cfg::appeui);
-		display.setCursor(0, 16);
-		display.print(cfg::deveui);
-		display.setCursor(0, 22);
-		display.print(cfg::appkey);
-		break;
-	case 24:
 		if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 5))
 		{
 			logo_index++;
@@ -6109,12 +5624,10 @@ static void powerOnTestSensors()
 		//delay(15000); // wait a bit to be sure Next PM is ready to receive instructions.
 
 		for (size_t i = 0; i < 30; ++i)
-			{
-				display.fillRect(i, 22, 1, 4, myWHITE);
-				delay(500);
-			}
-		
-
+		{
+			display.fillRect(i, 22, 1, 4, myWHITE);
+			delay(500);
+		}
 
 		test_state = NPM_get_state();
 		if (test_state == -1)
@@ -6329,482 +5842,6 @@ static unsigned long sendDataToOptionalApis(const String &data)
 }
 
 /*****************************************************************
- * Helium/TTN LoRaWAN                  *
- *****************************************************************/
-
-static u1_t PROGMEM appeui_hex[8] = {};
-static u1_t PROGMEM deveui_hex[8] = {};
-static u1_t PROGMEM appkey_hex[16] = {};
-
-void os_getArtEui(u1_t *buf) { memcpy_P(buf, appeui_hex, 8); }
-
-void os_getDevEui(u1_t *buf) { memcpy_P(buf, deveui_hex, 8); }
-
-void os_getDevKey(u1_t *buf) { memcpy_P(buf, appkey_hex, 16); }
-
-//Initialiser avec les valeurs -1.0,-128.0 = valeurs par défaut qui doivent être filtrées
-
-//uint8_t datalora[31] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
-
-// uint8_t datalora[37] = {0x00, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
-// 			//			conf       sds		 sds         npm 		 npm		npm		    npm			npm			npm			co2			co2			 cov     temp  humi	   press
-
-uint8_t datalora[38] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
-//		                conf|   sds	    |	 sds    |    npm   | 	 npm   | 	npm	   |   npm	   |	npm	   |	npm	   |	co2	   |	 co2   |	cov    |    temp  | humi|   press   |       lat             |       lon             | sel
-
-//Peut-être changer l'indianess pour temp = inverser
-
-// 0x00, config
-// 0xff, 0xff, sds -1
-// 0xff, 0xff, sds -1
-// 0xff, 0xff, npm -1
-// 0xff, 0xff, npm -1
-// 0xff, 0xff, npm -1
-// 0xff, 0xff, npm_nc -1
-// 0xff, 0xff, npm_nc -1
-// 0xff, 0xff, npm_nc -1
-// 0xff, 0xff, co2 -1
-// 0xff, 0xff, co2 -1
-// 0xff, 0xff, cov -1
-// 0x80, temp -128
-// 0xff, rh -1
-// 0xff, 0xff, p -1
-// 0x00, 0x00, 0x00, 0x00, lat 0.0 float
-// 0x00, 0x00, 0x00, 0x00, lon 0.0 float
-// 0xff sel -1
-
-const unsigned TX_INTERVAL = (cfg::sending_intervall_ms) / 1000;
-
-static osjob_t sendjob;
-
-#if defined(ARDUINO_ESP32_DEV) and defined(KIT_C)
-const lmic_pinmap lmic_pins = {
-	.nss = D5, //AUTRE  //D5 origine
-	.rxtx = LMIC_UNUSED_PIN,
-	.rst = D0, //14 origine ou d12
-	.dio = {D26, D35, D34},
-};
-#endif
-
-#if defined(ARDUINO_ESP32_DEV) and defined(KIT_V1)
-const lmic_pinmap lmic_pins = {
-	.nss = D5,
-	.rxtx = LMIC_UNUSED_PIN,
-	//.rst = D14,
-	.rst = D2, //ou bien D0,D1 ?
-	.dio = {D26, D35, D34}};
-#endif
-
-void ToByteArray()
-{
-	String appeui_str = cfg::appeui;
-	String deveui_str = cfg::deveui;
-	String appkey_str = cfg::appkey;
-	//  Debug.println(appeui_str);
-	//  Debug.println(deveui_str);
-	//  Debug.println(appkey_str);
-
-	int j = 1;
-	int k = 1;
-	int l = 0;
-
-	for (unsigned int i = 0; i < appeui_str.length(); i += 2)
-	{
-		String byteString = appeui_str.substring(i, i + 2);
-		// Debug.println(byteString);
-		byte byte = (char)strtol(byteString.c_str(), NULL, 16);
-		// Debug.println(byte,HEX);
-		appeui_hex[(appeui_str.length() / 2) - j] = byte; // reverse
-		j += 1;
-	}
-
-	for (unsigned int i = 0; i < deveui_str.length(); i += 2)
-	{
-		String byteString = deveui_str.substring(i, i + 2);
-		//  Debug.println(byteString);
-		byte byte = (char)strtol(byteString.c_str(), NULL, 16);
-		//  Debug.println(byte, HEX);
-		deveui_hex[(deveui_str.length() / 2) - k] = byte; // reverse
-		k += 1;
-	}
-
-	for (unsigned int i = 0; i < appkey_str.length(); i += 2)
-	{
-		String byteString = appkey_str.substring(i, i + 2);
-		//  Debug.println(byteString);
-		byte byte = (char)strtol(byteString.c_str(), NULL, 16);
-		//  Debug.println(byte, HEX);
-		// appkey_hex[(appkey_str.length() / 2) - 1 - l] = byte; // reverse
-		appkey_hex[l] = byte; // not reverse
-		l += 1;
-	}
-}
-
-void printHex2(unsigned v)
-{
-	v &= 0xff;
-	if (v < 16)
-		Debug.print('0');
-	Debug.print(v, HEX);
-}
-
-void do_send(osjob_t *j)
-{
-	// Check if there is not a current TX/RX job running
-	if (LMIC.opmode & OP_TXRXPEND)
-	{
-		Debug.println(F("OP_TXRXPEND, not sending"));
-		//Should appear sometimes because reloop while sending programmed
-	}
-	else
-	{
-		Debug.print("Size of Data:");
-		Debug.println(sizeof(datalora));
-
-		LMIC_setTxData2(1, datalora, sizeof(datalora) - 1, 0);
-
-		Debug.println(F("Packet queued"));
-	}
-	// Next TX is scheduled after TX_COMPLETE event.
-}
-
-void onEvent(ev_t ev)
-{
-	Debug.print(os_getTime());
-	Debug.print(": ");
-	switch (ev)
-	{
-	case EV_SCAN_TIMEOUT:
-		Debug.println(F("EV_SCAN_TIMEOUT"));
-		//lora_connection_lost = true; //lora_connection_lost = true;
-		break;
-	case EV_BEACON_FOUND:
-		Debug.println(F("EV_BEACON_FOUND"));
-		break;
-	case EV_BEACON_MISSED:
-		Debug.println(F("EV_BEACON_MISSED"));
-		break;
-	case EV_BEACON_TRACKED:
-		Debug.println(F("EV_BEACON_TRACKED"));
-		break;
-	case EV_JOINING:
-		Debug.println(F("EV_JOINING"));
-		break;
-	case EV_JOINED:
-		Debug.println(F("EV_JOINED"));
-		{
-			u4_t netid = 0;
-			devaddr_t devaddr = 0;
-			u1_t nwkKey[16];
-			u1_t artKey[16];
-			LMIC_getSessionKeys(&netid, &devaddr, nwkKey, artKey);
-			Debug.print("netid: ");
-			Debug.println(netid, DEC);
-			Debug.print("devaddr: ");
-			Debug.println(devaddr, HEX);
-			Debug.print("AppSKey: ");
-			for (size_t i = 0; i < sizeof(artKey); ++i)
-			{
-				if (i != 0)
-					Debug.print("-");
-				printHex2(artKey[i]);
-			}
-			Debug.println("");
-			Debug.print("NwkSKey: ");
-			for (size_t i = 0; i < sizeof(nwkKey); ++i)
-			{
-				if (i != 0)
-					Debug.print("-");
-				printHex2(nwkKey[i]);
-			}
-			Debug.println();
-		}
-		// Disable link check validation (automatically enabled
-		// during join, but because slow data rates change max TX
-		// size, we don't use it in this example.
-		// LMIC_setLinkCheckMode(0);
-
-		lora_connection_lost = false;
-		break;
-	/*
-		|| This event is defined but not used in the code. No
-		|| point in wasting codespace on it.
-		||
-		|| case EV_RFU1:
-		||     Debug.println(F("EV_RFU1"));
-		||     break;
-		*/
-	case EV_JOIN_FAILED:
-		Debug.println(F("EV_JOIN_FAILED")); //lora_connection_lost = true;
-		//lora_connection_lost = true;
-		break;
-	case EV_REJOIN_FAILED:
-		Debug.println(F("EV_REJOIN_FAILED")); //lora_connection_lost = true;
-		//lora_connection_lost = true;
-		break;
-	case EV_TXCOMPLETE:
-		Debug.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
-		if (LMIC.txrxFlags & TXRX_ACK)
-			Debug.println(F("Received ack"));
-		if (LMIC.dataLen)
-		{
-			Debug.print(F("Received "));
-			Debug.print(LMIC.dataLen);
-			Debug.println(F(" bytes of payload"));
-
-			if (cfg::display_forecast)
-			{
-				Debug.println(F("Downlink payload:"));
-				for (int i = 0; i < LMIC.dataLen; i++)
-				{
-					Debug.print(" ");
-					Debug.print(LMIC.frame[LMIC.dataBeg + i], HEX);
-					arrayDownlink[i] = LMIC.frame[LMIC.dataBeg + i];
-					if (i == 4)
-					{
-						Debug.printf("\n");
-						getDataLora(arrayDownlink);
-					}
-				}
-			}
-		}
-
-		lora_connection_lost = false;
-		// Schedule next transmission
-		os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), do_send);
-		Debug.println(F("Next transmission scheduled"));
-		//maybe boolean here to prevent problem if wifi transmission starts...
-		break;
-	case EV_LOST_TSYNC:
-		Debug.println(F("EV_LOST_TSYNC"));
-		break;
-	case EV_RESET:
-		Debug.println(F("EV_RESET"));
-		break;
-	case EV_RXCOMPLETE:
-		// data received in ping slot
-		Debug.println(F("EV_RXCOMPLETE"));
-		break;
-	case EV_LINK_DEAD:
-		Debug.println(F("EV_LINK_DEAD"));
-		break;
-	case EV_LINK_ALIVE:
-		Debug.println(F("EV_LINK_ALIVE"));
-		break;
-	/*
-		|| This event is defined but not used in the code. No
-		|| point in wasting codespace on it.
-		||
-		|| case EV_SCAN_FOUND:
-		||    Debug.println(F("EV_SCAN_FOUND"));
-		||    break;
-		*/
-	case EV_TXSTART:
-		Debug.println(F("EV_TXSTART"));
-		break;
-	case EV_TXCANCELED:
-		Debug.println(F("EV_TXCANCELED"));
-		break;
-	case EV_RXSTART:
-		/* do not print anything -- it wrecks timing */
-		break;
-	case EV_JOIN_TXCOMPLETE:
-		Debug.println(F("EV_JOIN_TXCOMPLETE: no JoinAccept"));
-		lora_connection_lost = true;
-		break;
-
-	default:
-		Debug.print(F("Unknown event: "));
-		Debug.println((unsigned)ev);
-		break;
-	}
-}
-
-static void prepareTxFrame()
-{
-
-	//Take care of the endianess in the byte array!
-
-	// 00 00 00 c3
-	// C3 00 00 00 = -128.0 in Little Endian
-
-	// 00 00 80 bf
-	// bf 80 00 00 = -1.0 in Little Endian
-
-	union int16_2_byte
-	{
-		int16_t temp_int;
-		byte temp_byte[2];
-	} u1;
-
-	union uint16_2_byte
-	{
-		uint16_t temp_uint;
-		byte temp_byte[2];
-	} u2;
-
-	union float_2_byte
-	{
-		float temp_float;
-		byte temp_byte[4];
-	} u3;
-
-	//Take care of the signed/unsigned and endianess
-
-	//Inverser ordre pour les int16_t !
-
-	//datalora[0] is already defined and is 1 byte
-
-	if (wifi_connection_lost && cfg::has_wifi)
-	{
-		configlorawan[7] = false;
-		datalora[0] = booltobyte(configlorawan); //wifi perdu et lora connecté
-	}
-
-	if (!wifi_connection_lost && cfg::has_wifi)
-	{
-		configlorawan[7] = true;
-		datalora[0] = booltobyte(configlorawan); //wifi OK et lora connecté => priorité wifi
-	}
-
-	//x10 to get 1 decimal for PM
-
-	if (last_value_SDS_P1 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_SDS_P1 * 10);
-	else
-		u1.temp_int = (int16_t)round(last_value_SDS_P1);
-
-	datalora[1] = u1.temp_byte[1];
-	datalora[2] = u1.temp_byte[0];
-
-	if (last_value_SDS_P2 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_SDS_P2 * 10);
-	else
-		u1.temp_int = (int16_t)round(last_value_SDS_P2);
-
-	datalora[3] = u1.temp_byte[1];
-	datalora[4] = u1.temp_byte[0];
-
-	if (last_value_NPM_P0 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_NPM_P0 * 10);
-	else
-		u1.temp_int = (int16_t)round(last_value_NPM_P0);
-
-	datalora[5] = u1.temp_byte[1];
-	datalora[6] = u1.temp_byte[0];
-
-	if (last_value_NPM_P1 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_NPM_P1 * 10);
-	else
-		u1.temp_int = (int16_t)round(last_value_NPM_P1);
-
-	datalora[7] = u1.temp_byte[1];
-	datalora[8] = u1.temp_byte[0];
-
-	if (last_value_NPM_P2 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_NPM_P2 * 10);
-	else
-		u1.temp_int = (int16_t)round(last_value_NPM_P2);
-
-	datalora[9] = u1.temp_byte[1];
-	datalora[10] = u1.temp_byte[0];
-
-	if (last_value_NPM_N1 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_NPM_N1 * 1000);
-	else
-		u1.temp_int = (int16_t)round(last_value_NPM_N1);
-
-	datalora[11] = u1.temp_byte[1];
-	datalora[12] = u1.temp_byte[0];
-
-	if (last_value_NPM_N10 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_NPM_N10 * 1000);
-	else
-		u1.temp_int = (int16_t)round(last_value_NPM_N10);
-
-	datalora[13] = u1.temp_byte[1];
-	datalora[14] = u1.temp_byte[0];
-
-	if (last_value_NPM_N25 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_NPM_N25 * 1000);
-	else
-		u1.temp_int = (int16_t)round(last_value_NPM_N25);
-
-	datalora[15] = u1.temp_byte[1];
-	datalora[16] = u1.temp_byte[0];
-
-	u1.temp_int = (int16_t)round(last_value_MHZ16);
-
-	datalora[17] = u1.temp_byte[1];
-	datalora[18] = u1.temp_byte[0];
-
-	u1.temp_int = (int16_t)round(last_value_MHZ19);
-
-	datalora[19] = u1.temp_byte[1];
-	datalora[20] = u1.temp_byte[0];
-
-	u1.temp_int = (int16_t)round(last_value_CCS811);
-
-	datalora[21] = u1.temp_byte[1];
-	datalora[22] = u1.temp_byte[0];
-
-	if (last_value_BMX280_T != -128.0)
-		u1.temp_int = (int16_t)round(last_value_BMX280_T * 10);
-	else
-		u1.temp_int = (int16_t)round(last_value_BMX280_T);
-
-	datalora[23] = u1.temp_byte[1];
-	datalora[24] = u1.temp_byte[0];
-
-	//datalora[23] = (int8_t)round(last_value_BMX280_T);
-
-	datalora[25] = (int8_t)round(last_value_BME280_H);
-
-	u1.temp_int = (int16_t)round(last_value_BMX280_P);
-
-	datalora[26] = u1.temp_byte[1];
-	datalora[27] = u1.temp_byte[0];
-
-	u3.temp_float = atof(cfg::latitude);
-
-	datalora[28] = u3.temp_byte[0];
-	datalora[29] = u3.temp_byte[1];
-	datalora[30] = u3.temp_byte[2];
-	datalora[31] = u3.temp_byte[3];
-
-	u3.temp_float = atof(cfg::longitude);
-
-	datalora[32] = u3.temp_byte[0];
-	datalora[33] = u3.temp_byte[1];
-	datalora[34] = u3.temp_byte[2];
-	datalora[35] = u3.temp_byte[3];
-
-	datalora[36] = forecast_selector;
-
-	Debug.printf("HEX values:\n");
-	for (int i = 0; i < 37; i++)
-	{
-		Debug.printf(" %02x", datalora[i]);
-		if (i == 36)
-		{
-			Debug.printf("\n");
-		}
-	}
-}
-
-bool lorachip;
-bool loratest(int lora_dio0)
-{
-	pinMode(lora_dio0, INPUT_PULLUP);
-	delay(200);
-	if (!digitalRead(lora_dio0))
-	{ // low => LoRa chip detected
-		return true;
-	}
-	return false;
-}
-
-/*****************************************************************
  * Check stack                                                    *
  *****************************************************************/
 void *StackPtrAtStart;
@@ -6850,9 +5887,6 @@ void setup()
 	}
 
 	Wire.begin(I2C_PIN_SDA, I2C_PIN_SCL);
-	lorachip = loratest(D26); // test if the LoRa module is connected when LoRaWAN option checked, otherwise freeze...
-	Debug.print("Lora chip connected:");
-	Debug.println(lorachip);
 
 	if (cfg::npm_read)
 	{
@@ -6977,71 +6011,10 @@ void setup()
 		last_display_millis_matrix = starttime_CCS811 = starttime;
 	}
 
-	if (cfg::has_lora && lorachip)
-	{
-
-		ToByteArray();
-
-		Debug.printf("APPEUI:\n");
-		for (int i = 0; i < 8; i++)
-		{
-			Debug.printf(" %02x", appeui_hex[i]);
-			if (i == 7)
-			{
-				Debug.printf("\n");
-			}
-		}
-
-		Debug.printf("DEVEUI:\n");
-		for (int i = 0; i < 8; i++)
-		{
-			Debug.printf(" %02x", deveui_hex[i]);
-			if (i == 7)
-			{
-				Debug.printf("\n");
-			}
-		}
-
-		Debug.printf("APPKEY:\n");
-		for (int i = 0; i < 16; i++)
-		{
-			Debug.printf(" %02x", appkey_hex[i]);
-			if (i == 15)
-			{
-				Debug.printf("\n");
-			}
-		}
-		// LMIC init
-		os_init();
-
-		// Reset the MAC state. Session and pending data transfers will be discarded.
-		LMIC_reset();
-
-		// Start job (sending automatically starts OTAA too)
-		do_send(&sendjob); // values are -1, -128 etc. they can be easily filtered
-	}
-
 	if (cfg::display_forecast)
 	{
 		forecast_selector = 0; //initialisation after first LoRaWAN payload
 	}
-
-	// Prepare the configuration summary for the following messages (the first is 00000000)
-
-	configlorawan[0] = cfg::sds_read;
-	configlorawan[1] = cfg::npm_read;
-	configlorawan[2] = cfg::bmx280_read;
-	configlorawan[3] = cfg::mhz16_read;
-	configlorawan[4] = cfg::mhz19_read;
-	configlorawan[5] = cfg::ccs811_read;
-	configlorawan[6] = cfg::display_forecast;
-	configlorawan[7] = cfg::has_wifi; //si connection manquée => false
-
-	//IL va falloir ajouter un byte pour RGPD?
-
-	Debug.print("Configuration:");
-	Debug.println(booltobyte(configlorawan));
-	datalora[0] = booltobyte(configlorawan);
 
 	Debug.printf("End of void setup()\n");
 	time_end_setup = millis();
@@ -7325,22 +6298,22 @@ void loop()
 			switch (forecast_selector)
 			{
 			case 0:
-				atmoSud.multi = getDataAtmoSud(forecast_selector);
+				getScreenAircarto(esp_chipid, forecast_selector);
 				break;
 			case 1:
-				atmoSud.no2 = getDataAtmoSud(forecast_selector);
+				getScreenAircarto(esp_chipid, forecast_selector);
 				break;
 			case 2:
-				atmoSud.o3 = getDataAtmoSud(forecast_selector);
+				getScreenAircarto(esp_chipid, forecast_selector);
 				break;
 			case 3:
-				atmoSud.pm10 = getDataAtmoSud(forecast_selector);
+				getScreenAircarto(esp_chipid, forecast_selector);
 				break;
 			case 4:
-				atmoSud.pm2_5 = getDataAtmoSud(forecast_selector);
+				getScreenAircarto(esp_chipid, forecast_selector);
 				break;
 			case 5:
-				atmoSud.so2 = getDataAtmoSud(forecast_selector);
+				getScreenAircarto(esp_chipid, forecast_selector);
 				break;
 			}
 		}
@@ -7349,33 +6322,24 @@ void loop()
 			switch (forecast_selector)
 			{
 			case 0:
-				atmoSud.multi = -1.0;
+				memcpy(atmoSud.multi,emptyarray,2048);
 				break;
 			case 1:
-				atmoSud.no2 = -1.0;
+				memcpy(atmoSud.no2,emptyarray,2048);
 				break;
 			case 2:
-				atmoSud.o3 = -1.0;
+				memcpy(atmoSud.o3,emptyarray,2048);
 				break;
 			case 3:
-				atmoSud.pm10 = -1.0;
+				memcpy(atmoSud.pm10,emptyarray,2048);
 				break;
 			case 4:
-				atmoSud.pm2_5 = -1.0;
+				memcpy(atmoSud.pm2_5,emptyarray,2048);
 				break;
 			case 5:
-				atmoSud.so2 = -1.0;
+				memcpy(atmoSud.so2,emptyarray,2048);
 				break;
 			}
-		}
-
-		if (cfg::has_lora && lorachip)
-		{
-			prepareTxFrame();
-			do_send(&sendjob);
-
-			//os_run_loop_once here ?
-			//boolean in EV_TX_COMPLETE to allow WiFi after?
 		}
 
 		starttime = millis(); // store the start time
@@ -7398,12 +6362,6 @@ void loop()
 	if (sample_count % 500 == 0)
 	{
 		//		Serial.println(ESP.getFreeHeap(),DEC);
-	}
-
-	if (cfg::has_lora && lorachip)
-	{
-		os_runloop_once();
-		//place in the send now ? Let here to let Lora lib control itself
 	}
 }
 

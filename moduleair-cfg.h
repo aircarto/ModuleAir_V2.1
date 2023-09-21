@@ -27,10 +27,6 @@ struct ConfigShapeEntry {
 
 enum ConfigShapeId {
 	Config_has_wifi,
-	Config_has_lora,
-	Config_appeui,
-	Config_deveui,
-	Config_appkey,
 	Config_current_lang,
 	Config_wlanssid,
 	Config_wlanpwd,
@@ -58,7 +54,6 @@ enum ConfigShapeId {
 	Config_display_measure,
 	Config_display_forecast,
 	Config_display_wifi_info,
-	Config_display_lora_info,
 	Config_display_device_info,
 	Config_debug,
 	Config_sending_intervall_ms,
@@ -79,10 +74,6 @@ enum ConfigShapeId {
 	Config_ssl_custom2,
 };
 static constexpr char CFG_KEY_HAS_WIFI[] PROGMEM = "has_wifi";
-static constexpr char CFG_KEY_HAS_LORA[] PROGMEM = "has_lora";
-static constexpr char CFG_KEY_APPEUI[] PROGMEM = "appeui";
-static constexpr char CFG_KEY_DEVEUI[] PROGMEM = "deveui";
-static constexpr char CFG_KEY_APPKEY[] PROGMEM = "appkey";
 static constexpr char CFG_KEY_CURRENT_LANG[] PROGMEM = "current_lang";
 static constexpr char CFG_KEY_WLANSSID[] PROGMEM = "wlanssid";
 static constexpr char CFG_KEY_WLANPWD[] PROGMEM = "wlanpwd";
@@ -110,7 +101,6 @@ static constexpr char CFG_KEY_HAS_MATRIX[] PROGMEM = "has_matrix";
 static constexpr char CFG_KEY_DISPLAY_MEASURE[] PROGMEM = "display_measure";
 static constexpr char CFG_KEY_DISPLAY_FORECAST[] PROGMEM = "display_forecast";
 static constexpr char CFG_KEY_DISPLAY_WIFI_INFO[] PROGMEM = "display_wifi_info";
-static constexpr char CFG_KEY_DISPLAY_LORA_INFO[] PROGMEM = "display_lora_info";
 static constexpr char CFG_KEY_DISPLAY_DEVICE_INFO[] PROGMEM = "display_device_info";
 static constexpr char CFG_KEY_DEBUG[] PROGMEM = "debug";
 static constexpr char CFG_KEY_SENDING_INTERVALL_MS[] PROGMEM = "sending_intervall_ms";
@@ -131,10 +121,6 @@ static constexpr char CFG_KEY_PWD_CUSTOM2[] PROGMEM = "pwd_custom2";
 static constexpr char CFG_KEY_SSL_CUSTOM2[] PROGMEM = "ssl_custom2";
 static constexpr ConfigShapeEntry configShape[] PROGMEM = {
 	{ Config_Type_Bool, 0, CFG_KEY_HAS_WIFI, &cfg::has_wifi },
-	{ Config_Type_Bool, 0, CFG_KEY_HAS_LORA, &cfg::has_lora },
-	{ Config_Type_Hex, sizeof(cfg::appeui)-1, CFG_KEY_APPEUI, cfg::appeui },
-	{ Config_Type_Hex, sizeof(cfg::deveui)-1, CFG_KEY_DEVEUI, cfg::deveui },
-	{ Config_Type_Hex, sizeof(cfg::appkey)-1, CFG_KEY_APPKEY, cfg::appkey },
 	{ Config_Type_String, sizeof(cfg::current_lang)-1, CFG_KEY_CURRENT_LANG, cfg::current_lang },
 	{ Config_Type_String, sizeof(cfg::wlanssid)-1, CFG_KEY_WLANSSID, cfg::wlanssid },
 	{ Config_Type_Password, sizeof(cfg::wlanpwd)-1, CFG_KEY_WLANPWD, cfg::wlanpwd },
@@ -162,7 +148,6 @@ static constexpr ConfigShapeEntry configShape[] PROGMEM = {
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_MEASURE, &cfg::display_measure },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_FORECAST, &cfg::display_forecast },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_WIFI_INFO, &cfg::display_wifi_info },
-	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_LORA_INFO, &cfg::display_lora_info },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_DEVICE_INFO, &cfg::display_device_info },
 	{ Config_Type_UInt, 0, CFG_KEY_DEBUG, &cfg::debug },
 	{ Config_Type_Time, 0, CFG_KEY_SENDING_INTERVALL_MS, &cfg::sending_intervall_ms },
