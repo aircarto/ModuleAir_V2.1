@@ -1,8 +1,8 @@
 #include <WString.h>
 #include <pgmspace.h>
 
-#define SOFTWARE_VERSION_STR "ModuleAirV2-V1-042022"
-#define SOFTWARE_VERSION_STR_SHORT "V1-042022"
+#define SOFTWARE_VERSION_STR "ModuleAirV2.1-Stream-092023"
+#define SOFTWARE_VERSION_STR_SHORT "V2.1-Stream-092023"
 String SOFTWARE_VERSION(SOFTWARE_VERSION_STR);
 String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 
@@ -320,6 +320,21 @@ void drawImage(int x, int y, int h, int w, uint16_t image[])
 		{
 			display.drawPixel(xx + x, yy + y, image[counter]);
 			counter++;
+		}
+	}
+}
+
+void drawImage2(int x, int y, int h, int w, uint8_t image[])
+{
+	int imageHeight = h;
+	int imageWidth = w;
+	int counter = 0;
+	for (int yy = 0; yy < imageHeight; yy++)
+	{
+		for (int xx = 0; xx < imageWidth; xx++)
+		{
+			display.drawPixel(xx + x, yy + y, word(image[counter], image[counter + 1])); //creer ici avec le word
+			counter += 2;
 		}
 	}
 }
@@ -4051,9 +4066,6 @@ static void send_csv(const String &data)
 
 void getScreenAircarto(String id, unsigned int type)
 {
-	// String reponseAPI;
-	// char reponseJSON[4096];
-
 	Debug.println(String(ESP.getFreeHeap()));
 
 	String reponseAPI;
@@ -4062,14 +4074,13 @@ void getScreenAircarto(String id, unsigned int type)
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
-	String urlAirCarto = "https://aircarto.fr/test/imageCreate/";
+	String urlAirCarto = "http://data.moduleair.fr/imageCreate/";
 	String serverPath = urlAirCarto;
 
 	debug_outln_info(F("Call: "), serverPath);
 	http.begin(serverPath.c_str());
 
 	//bool HTTPClient::begin(String url, const char* CAcert)
-
 
 	int httpResponseCode = http.GET();
 
@@ -4101,16 +4112,9 @@ void getScreenAircarto(String id, unsigned int type)
 			}
 		}
 
-		debug_outln_info(F("Response: "), reponseAPI);
-		// strcpy(reponseJSON, reponseAPI.c_str());
-
+		// debug_outln_info(F("Response: "), reponseAPI);
 		Debug.println(String(ESP.getFreeHeap()));
-
-
-		// DeserializationError error = deserializeJson(screenarray, reponseJSON);
 		DeserializationError error = deserializeJson(screenarray, reponseAPI.c_str());
-
-		// serializeJson(screenarray, Debug);
 
 		if (strcmp(error.c_str(), "Ok") == 0)
 		{
@@ -4124,27 +4128,27 @@ void getScreenAircarto(String id, unsigned int type)
 				break;
 			case 1:
 				for (int i = 0; i < 4096; i++) {
-				forecast_no2[i] = screenarray[i];
+				forecast_no2[i] = screenarraybyte[i];
 				}
 				break;
 			case 2:
 				for (int i = 0; i < 4096; i++) {
-				forecast_o3[i] = screenarray[i];
+				forecast_o3[i] = screenarraybyte[i];
 				}
 				break;
 			case 3:
 				for (int i = 0; i < 4096; i++) {
-				forecast_pm10[i] = screenarray[i];
+				forecast_pm10[i] = screenarraybyte[i];
 				}
 				break;
 			case 4:
 				for (int i = 0; i < 4096; i++) {
-				forecast_pm2_5[i] = screenarray[i];
+				forecast_pm2_5[i] = screenarraybyte[i];
 				}
 				break;
 			case 5:
 				for (int i = 0; i < 4096; i++) {
-				forecast_so2[i] = screenarray[i];
+				forecast_so2[i] = screenarraybyte[i];
 				}
 				break;
 			}
@@ -5447,6 +5451,7 @@ static void display_values_matrix()
 			Debug.println(forecast_multi[0]);
 			Debug.println(forecast_multi[1]);
 			Debug.println(word(forecast_multi[0], forecast_multi[1]),HEX);
+			drawImage2(0, 0, 32, 64, forecast_multi);
 		}
 		else
 		{
