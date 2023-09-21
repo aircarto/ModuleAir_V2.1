@@ -8,9 +8,6 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 
 #include <Arduino.h>
 #include "PxMatrix.h"
-#include <arduino_lmic.h>
-#include <lmic.h>
-#include <hal/hal.h>
 #include <SPI.h>
 
 /*****************************************************************
@@ -901,27 +898,27 @@ struct gps
 /*****************************************************************
  * Forecast Atmosud                                              *
  *****************************************************************/
-struct forecast
-{
-	uint16_t multi[2048];
-	uint16_t no2[2048];
-	uint16_t o3[2048];
-	uint16_t pm10[2048];
-	uint16_t pm2_5[2048];
-	uint16_t so2[2048];
-};
 
-struct forecast atmoSud
-{
-	{},
-	{},
-	{},
-	{},
-	{},
-	{},
-};
+	uint8_t forecast_multi[4096] = {};
+	uint8_t forecast_no2[4096] = {};
+	uint8_t forecast_o3[4096] = {};
+	uint8_t forecast_pm10[4096] = {};
+	uint8_t forecast_pm2_5[4096] = {};
+	uint8_t forecast_so2[4096] = {};
 
-uint16_t emptyarray[2048] = {};
+	// uint8_t *forecast_multi = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_no2 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_o3 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_pm10 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_pm2_5 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_so2 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+
+// malloc
+// free
+//realloc
+
+
+uint8_t emptyarray[4096] = {};
 
 uint8_t arrayDownlink[5];
 uint8_t forecast_selector;
@@ -3341,9 +3338,10 @@ gps getGPS(String id)
 
 		DeserializationError error = deserializeJson(json, reponseJSON);
 
+
 		if (strcmp(error.c_str(), "Ok") == 0)
 		{
-			return {json["latitude"], json["longitude"]};
+			return {json[0]["latitude"], json[0]["longitude"]};
 		}
 		else
 		{
@@ -3968,85 +3966,255 @@ static void send_csv(const String &data)
  * get data from AtmoSud api                                         *
  *****************************************************************/
 
+// void getScreenAircarto(String id, unsigned int type)
+// {
+// 	DynamicJsonDocument screenarray(4096);
+// 	HTTPClient http;
+// 	http.setTimeout(20 * 1000);
+// 	http.useHTTP10(true);
+
+// 	String sensor_type;
+
+// 	String urlAircarto1 = "https://aircarto.fr/test/imageCreate/";
+
+// 	switch (type)
+// 	{
+// 	case 0:
+// 		sensor_type = "icairh";
+// 		break;
+// 	case 1:
+// 		sensor_type = "no2";
+// 		break;
+// 	case 2:
+// 		sensor_type = "o3";
+// 		break;
+// 	case 3:
+// 		sensor_type = "pm10";
+// 		break;
+// 	case 4:
+// 		sensor_type = "pm2.5";
+// 		break;
+// 	case 5:
+// 		sensor_type = "so2";
+// 		break;
+// 	}
+
+// 	String serverPath = urlAircarto1;
+
+// 	debug_outln_info(F("Call: "), serverPath);
+
+// 	http.begin(serverPath.c_str());
+
+// 	int httpResponseCode = http.GET();
+
+// 	if (httpResponseCode > 0)
+// 	{
+
+//     WiFiClient& stream = http.getStream();
+//     while(stream.available()){
+//         Debug.print(stream.read());
+// 		Debug.print(",");
+//     }
+
+// 		http.end();
+// 	}
+// 	else
+// 	{
+// 		debug_outln_info(F("Failed connecting to Aircarto server with error code:"), String(httpResponseCode));
+// 			switch (type)
+// 			{
+// 			case 0:
+// 				memcpy(forecast_multi,emptyarray,2048);
+// 				break;
+// 			case 1:
+// 				memcpy(forecast_no2,emptyarray,2048);
+// 				break;
+// 			case 2:
+// 				memcpy(forecast_o3,emptyarray,2048);
+// 				break;
+// 			case 3:
+// 				memcpy(forecast_pm10,emptyarray,2048);
+// 				break;
+// 			case 4:
+// 				memcpy(forecast_pm2_5,emptyarray,2048);
+// 				break;
+// 			case 5:
+// 				memcpy(forecast_so2,emptyarray,2048);
+// 				break;
+// 			}
+// 		http.end();
+// 	}
+// }
+
+
+
+
 void getScreenAircarto(String id, unsigned int type)
 {
-	DynamicJsonDocument screenarray(2048);
+	// String reponseAPI;
+	// char reponseJSON[4096];
+
+	Debug.println(String(ESP.getFreeHeap()));
+
+	String reponseAPI;
+	DynamicJsonDocument screenarray(65536);
+	Debug.println(screenarray.capacity());
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
-	http.useHTTP10(true);
 
-	String sensor_type;
-
-	String urlAircarto1 = "https://api.atmosud.org/prevision/cartes/horaires/point?x=";
-
-	switch (type)
-	{
-	case 0:
-		sensor_type = "icairh";
-		break;
-	case 1:
-		sensor_type = "no2";
-		break;
-	case 2:
-		sensor_type = "o3";
-		break;
-	case 3:
-		sensor_type = "pm10";
-		break;
-	case 4:
-		sensor_type = "pm2.5";
-		break;
-	case 5:
-		sensor_type = "so2";
-		break;
-	}
-
-	String serverPath = urlAircarto1 + id;
+	String urlAirCarto = "https://aircarto.fr/test/imageCreate/";
+	String serverPath = urlAirCarto;
 
 	debug_outln_info(F("Call: "), serverPath);
-
 	http.begin(serverPath.c_str());
+
+	//bool HTTPClient::begin(String url, const char* CAcert)
+
 
 	int httpResponseCode = http.GET();
 
 	if (httpResponseCode > 0)
 	{
+		reponseAPI = http.getString();
+		if (reponseAPI == "null")
+		{
+			switch (type)
+			{
+			case 0:
+				memcpy(forecast_multi,emptyarray,4096);
+				break;
+			case 1:
+				memcpy(forecast_no2,emptyarray,4096);
+				break;
+			case 2:
+				memcpy(forecast_o3,emptyarray,4096);
+				break;
+			case 3:
+				memcpy(forecast_pm10,emptyarray,4096);
+				break;
+			case 4:
+				memcpy(forecast_pm2_5,emptyarray,4096);
+				break;
+			case 5:
+				memcpy(forecast_so2,emptyarray,4096);
+				break;
+			}
+		}
 
-    WiFiClient& stream = http.getStream();
-    while(stream.available()){
-        Debug.print(stream.read());
-		Debug.print(",");
-    }
+		debug_outln_info(F("Response: "), reponseAPI);
+		// strcpy(reponseJSON, reponseAPI.c_str());
 
+		Debug.println(String(ESP.getFreeHeap()));
+
+
+		// DeserializationError error = deserializeJson(screenarray, reponseJSON);
+		DeserializationError error = deserializeJson(screenarray, reponseAPI.c_str());
+
+		// serializeJson(screenarray, Debug);
+
+		if (strcmp(error.c_str(), "Ok") == 0)
+		{
+			JsonArray screenarraybyte = screenarray.as<JsonArray>();
+			switch (type)
+			{
+			case 0:
+				for (int i = 0; i < 4096; i++) {
+				forecast_multi[i] = screenarraybyte[i];
+				}
+				break;
+			case 1:
+				for (int i = 0; i < 4096; i++) {
+				forecast_no2[i] = screenarray[i];
+				}
+				break;
+			case 2:
+				for (int i = 0; i < 4096; i++) {
+				forecast_o3[i] = screenarray[i];
+				}
+				break;
+			case 3:
+				for (int i = 0; i < 4096; i++) {
+				forecast_pm10[i] = screenarray[i];
+				}
+				break;
+			case 4:
+				for (int i = 0; i < 4096; i++) {
+				forecast_pm2_5[i] = screenarray[i];
+				}
+				break;
+			case 5:
+				for (int i = 0; i < 4096; i++) {
+				forecast_so2[i] = screenarray[i];
+				}
+				break;
+			}
+		}
+		else
+		{
+			Debug.print(F("deserializeJson() failed: "));
+			Debug.println(error.c_str());
+			switch (type)
+			{
+			case 0:
+				memcpy(forecast_multi,emptyarray,4096);
+				break;
+			case 1:
+				memcpy(forecast_no2,emptyarray,4096);
+				break;
+			case 2:
+				memcpy(forecast_o3,emptyarray,4096);
+				break;
+			case 3:
+				memcpy(forecast_pm10,emptyarray,4096);
+				break;
+			case 4:
+				memcpy(forecast_pm2_5,emptyarray,4096);
+				break;
+			case 5:
+				memcpy(forecast_so2,emptyarray,4096);
+				break;
+			}
+		}
 		http.end();
 	}
 	else
 	{
-		debug_outln_info(F("Failed connecting to Aircarto server with error code:"), String(httpResponseCode));
+		debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
 			switch (type)
 			{
 			case 0:
-				memcpy(atmoSud.multi,emptyarray,2048);
+				memcpy(forecast_multi,emptyarray,4096);
 				break;
 			case 1:
-				memcpy(atmoSud.no2,emptyarray,2048);
+				memcpy(forecast_no2,emptyarray,4096);
 				break;
 			case 2:
-				memcpy(atmoSud.o3,emptyarray,2048);
+				memcpy(forecast_o3,emptyarray,4096);
 				break;
 			case 3:
-				memcpy(atmoSud.pm10,emptyarray,2048);
+				memcpy(forecast_pm10,emptyarray,4096);
 				break;
 			case 4:
-				memcpy(atmoSud.pm2_5,emptyarray,2048);
+				memcpy(forecast_pm2_5,emptyarray,4096);
 				break;
 			case 5:
-				memcpy(atmoSud.so2,emptyarray,2048);
+				memcpy(forecast_so2,emptyarray,4096);
 				break;
 			}
 		http.end();
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
 
 /*****************************************************************
  * read BMP280/BME280 sensor values                              *
@@ -5262,7 +5430,8 @@ static void display_values_matrix()
 		}
 		break;
 	case 12:
-		if (sizeof(atmoSud.multi) != 0 || sizeof(atmoSud.no2) != 0 || sizeof(atmoSud.o3) != 0 || sizeof(atmoSud.pm10) != 0 || sizeof(atmoSud.pm2_5) != 0 || sizeof(atmoSud.so2) != 0)
+		if (memcmp(forecast_multi,emptyarray, 4096) != 0 || memcmp(forecast_no2,emptyarray, 4096) !=  0 || memcmp(forecast_o3,emptyarray, 4096) !=  0 || memcmp(forecast_pm10,emptyarray, 4096) !=  0 || memcmp(forecast_pm2_5,emptyarray, 4096) !=  0 || memcmp(forecast_so2,emptyarray, 4096) !=  0)
+		// if (memcmp(forecast_multi,emptyarray, 4096) != 0)
 		{
 			drawImage(0, 0, 32, 64, exterieur);
 		}
@@ -5272,8 +5441,12 @@ static void display_values_matrix()
 		}
 		break;
 	case 13:
-		if (sizeof(atmoSud.multi) != 0)
+		if (memcmp(forecast_multi,emptyarray, 4096) != 0)
 		{
+			Debug.println("2Bytes:");
+			Debug.println(forecast_multi[0]);
+			Debug.println(forecast_multi[1]);
+			Debug.println(word(forecast_multi[0], forecast_multi[1]),HEX);
 		}
 		else
 		{
@@ -5281,7 +5454,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 14:
-		if (sizeof(atmoSud.no2) != 0)
+		if (memcmp(forecast_no2,emptyarray, 4096) ==  0)
 		{
 		}
 		else
@@ -5290,7 +5463,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 15:
-		if (sizeof(atmoSud.o3) != 0)
+		if (memcmp(forecast_o3,emptyarray, 4096) ==  0)
 		{
 		}
 		else
@@ -5299,7 +5472,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 16:
-		if (sizeof(atmoSud.pm10) != 0)
+		if (memcmp(forecast_pm10,emptyarray, 4096) ==  0)
 		{
 		}
 		else
@@ -5308,7 +5481,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 17:
-		if (sizeof(atmoSud.pm2_5) != 0)
+		if (memcmp(forecast_pm2_5,emptyarray, 4096) ==  0)
 		{
 		}
 		else
@@ -5317,7 +5490,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 18:
-		if (sizeof(atmoSud.so2) != 0)
+		if (memcmp(forecast_so2,emptyarray, 4096) ==  0)
 		{
 		}
 		else
@@ -6322,22 +6495,22 @@ void loop()
 			switch (forecast_selector)
 			{
 			case 0:
-				memcpy(atmoSud.multi,emptyarray,2048);
+				memcpy(forecast_multi,emptyarray,4096);
 				break;
 			case 1:
-				memcpy(atmoSud.no2,emptyarray,2048);
+				memcpy(forecast_no2,emptyarray,4096);
 				break;
 			case 2:
-				memcpy(atmoSud.o3,emptyarray,2048);
+				memcpy(forecast_o3,emptyarray,4096);
 				break;
 			case 3:
-				memcpy(atmoSud.pm10,emptyarray,2048);
+				memcpy(forecast_pm10,emptyarray,4096);
 				break;
 			case 4:
-				memcpy(atmoSud.pm2_5,emptyarray,2048);
+				memcpy(forecast_pm2_5,emptyarray,4096);
 				break;
 			case 5:
-				memcpy(atmoSud.so2,emptyarray,2048);
+				memcpy(forecast_so2,emptyarray,4096);
 				break;
 			}
 		}

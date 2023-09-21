@@ -140,7 +140,7 @@ const char INTL_THE_WIFI[] = "le WiFi";
 
 const char INTL_CONNECTION[] = "Connexion";
 const char INTL_DONE[] = "établie";
-const char INTL_TRY[] = "1er essai";
+const char INTL_TRY[] = "1 essai";
 
 const char INTL_FIRST[] = "Premières";
 const char INTL_MEASURES[] = "mesures";
