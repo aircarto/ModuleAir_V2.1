@@ -3377,7 +3377,7 @@ gps getGPS(String id)
 
 		if (strcmp(error.c_str(), "Ok") == 0)
 		{
-			return {json["latitude"], json["longitude"]};
+			return {json[0]["latitude"], json[0]["longitude"]};
 		}
 		else
 		{
