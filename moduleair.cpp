@@ -5170,15 +5170,30 @@ static void display_values_matrix()
 		{
 			if ((!cfg::has_wifi && !cfg::has_lora) || (cfg::has_wifi && wifi_connection_lost && !cfg::has_lora) || (cfg::has_lora && lora_connection_lost && !cfg::has_wifi))
 			{
-				drawImage(0, 0, 32, 64, interieur_no_connection);
+			#if defined(INTL_EN)
+			drawImage(0, 0, 32, 64, interieur_no_connection_en);
+			#endif
+			#if defined(INTL_FR)
+			drawImage(0, 0, 32, 64, interieur_no_connection);
+			#endif
 			}
 			if (cfg::has_wifi && !wifi_connection_lost)
 			{
-				drawImage(0, 0, 32, 64, interieur_wifi);
+			#if defined(INTL_EN)
+			drawImage(0, 0, 32, 64, interieur_wifi_en);
+			#endif
+			#if defined(INTL_FR)
+			drawImage(0, 0, 32, 64, interieur_wifi);
+			#endif
 			}
 			if (cfg::has_lora && (!cfg::has_wifi || (cfg::has_wifi && wifi_connection_lost)) && !lora_connection_lost)
 			{
-				drawImage(0, 0, 32, 64, interieur_lora);
+			#if defined(INTL_EN)
+			drawImage(0, 0, 32, 64, interieur_lora);
+			#endif
+			#if defined(INTL_FR)
+			drawImage(0, 0, 32, 64, interieur_lora);
+			#endif
 			} //wifi prioritaire
 		}
 		else
