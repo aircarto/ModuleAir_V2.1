@@ -2,8 +2,8 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "luftdaten";
-const char WLANPWD[] PROGMEM = "luftd4ten";
+const char WLANSSID[] PROGMEM = "XXXXXXXXXX";
+const char WLANPWD[] PROGMEM = "XXXXXXXXXX";
 
 
 #define TIME_FOR_WIFI_CONFIG 180000;
@@ -19,10 +19,6 @@ const char WWW_PASSWORD[] PROGMEM = "";
 #define FS_PWD "moduleaircfg"
 
 #define HAS_WIFI 1
-#define HAS_LORA 1
-const char APPEUI[] = "0000";
-const char DEVEUI [] = "0000";
-const char APPKEY[] = "0000";
 
 // Where to send the data?
 #define SEND2SENSORCOMMUNITY 0
@@ -146,7 +142,6 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 
 // Tera Sensor Next PM sensor
 #define NPM_READ 1
-// #define NPM_FULLTIME 1
 #define NPM_API_PIN 1
 
 // BMP280/BME280, temperature, pressure (humidity on BME280)
@@ -160,15 +155,10 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 // #define MHZ16_API_PIN X
 // #define MHZ19_API_PIN X
 
-// SGP40, COV Sensor
+// CCS811, COV Sensor
 
 #define CCS811_READ 1
 // #define CCS811_API_PIN X
-
-//Location
-
-const char LATITUDE[] PROGMEM = "43.296";
-const char LONGITUDE[] PROGMEM = "5.369";
 
 // GPS, preferred Neo-6M
 #define GPS_READ 0
@@ -180,16 +170,8 @@ const char LONGITUDE[] PROGMEM = "5.369";
 // RGB Matrix
 #define HAS_MATRIX 1
 
-//Actual Data
-
-#define DISPLAY_MEASURE 1
-#define DISPLAY_FORECAST 0
-
 // Show wifi info on displays
 #define DISPLAY_WIFI_INFO 0
-
-// Show wifi info on displays
-#define DISPLAY_LORA_INFO 0
 
 // Show device info on displays
 #define DISPLAY_DEVICE_INFO 0
@@ -197,4 +179,9 @@ const char LONGITUDE[] PROGMEM = "5.369";
 // Set debug level for serial output?
 #define DEBUG 5
 
-static const char URL_API_SENSORCOMMUNITY[] PROGMEM = "https://data.sensor.community/airrohr/v1/sensor/";
+//Actual data
+
+#define DISPLAY_MEASURE 1
+#define DISPLAY_FORECAST 0
+#define DISPLAY_LOGO 0
+#define DISPLAY_ALERT 0

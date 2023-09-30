@@ -141,9 +141,6 @@ namespace cfg
 
 	// Location
 
-	char latitude[LEN_GEOCOORDINATES];
-	char longitude[LEN_GEOCOORDINATES];
-
 	char height_above_sealevel[8] = "0";
 
 	// send to "APIs"
@@ -158,6 +155,8 @@ namespace cfg
 	bool has_matrix = HAS_MATRIX;
 	bool display_measure = DISPLAY_MEASURE;
 	bool display_forecast = DISPLAY_FORECAST;
+	bool display_logo = DISPLAY_LOGO;
+	bool display_alert = DISPLAY_ALERT;
 	bool display_wifi_info = DISPLAY_WIFI_INFO;
 	bool display_device_info = DISPLAY_DEVICE_INFO;
 
@@ -193,8 +192,6 @@ namespace cfg
 		strcpy_P(url_custom, URL_CUSTOM);
 		strcpy_P(host_custom2, HOST_CUSTOM2);
 		strcpy_P(url_custom2, URL_CUSTOM2);
-		strcpy_P(latitude, LATITUDE);
-		strcpy_P(longitude, LONGITUDE);
 
 		if (!*fs_ssid)
 		{
@@ -253,7 +250,7 @@ portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 uint8_t display_draw_time = 30; //10-50 is usually fine
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
-uint8_t logos[6] = {0, 0, 0, 0, 0, 0};
+uint8_t logos[3] = {0, 0, 0};
 uint8_t logo_index = -1;
 bool has_logo;
 
@@ -901,42 +898,69 @@ void messager5(int value) // Indice Atmo
 }
 
 /*****************************************************************
- * GPS coordinates                                              *
+ * Forecast                                               *
  *****************************************************************/
 
-struct gps
-{
-	String latitude;
-	String longitude;
-};
+	// uint8_t forecast_screen_0[4096] = {};
+	// uint8_t forecast_screen_1[4096] = {};
+	// uint8_t forecast_screen_2[4096] = {};
+	// uint8_t forecast_screen_3[4096] = {};
+	// uint8_t forecast_screen_4[4096] = {};
+	// uint8_t forecast_screen_5[4096] = {};
+	// uint8_t forecast_screen_6[4096] = {};
+	// uint8_t forecast_screen_7[4096] = {};
+	// uint8_t forecast_screen_8[4096] = {};
+	// uint8_t forecast_screen_9[4096] = {};
+	// uint8_t forecast_screen_10[4096] = {};
 
-/*****************************************************************
- * Forecast Atmosud                                              *
- *****************************************************************/
+	// uint8_t *forecast_screen_0 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_1 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_2 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_3 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_4 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_5 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_6 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_7 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_8 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_9 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	// uint8_t *forecast_screen_10 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 
-	uint8_t forecast_multi[4096] = {};
-	uint8_t forecast_no2[4096] = {};
-	uint8_t forecast_o3[4096] = {};
-	uint8_t forecast_pm10[4096] = {};
-	uint8_t forecast_pm2_5[4096] = {};
-	uint8_t forecast_so2[4096] = {};
-
-	// uint8_t *forecast_multi = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_no2 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_o3 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_pm10 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_pm2_5 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_so2 = (uint8_t *) malloc(4096*sizeof(uint8_t));
+	uint8_t *forecast_screen_0 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_1 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_2 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_3 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_4 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_5 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_6 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_7 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_8 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_9 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	uint8_t *forecast_screen_10 = (uint8_t *) calloc(4096,sizeof(uint8_t));
 
 // malloc
 // free
 //realloc
+// ON CHERCHE LE DERNIER ECRAN => FREE
+//ON APPEL ECRAN ET SI QC REALLOC ET AU PROCHAIN TOUR CHARGE
 
 
 uint8_t emptyarray[4096] = {};
 
 uint8_t arrayDownlink[5];
 uint8_t forecast_selector;
+uint8_t last_selector = 10;
+
+/*****************************************************************
+ * Logo                                               *
+ *****************************************************************/
+
+uint8_t logo_screen[4096] = {};
+
+/*****************************************************************
+ * Alert                                               *
+ *****************************************************************/
+
+uint8_t alert_screen[4096] = {};
 
 /*****************************************************************
  * Serial declarations                                           *
@@ -2085,8 +2109,6 @@ static void webserver_config_send_body_get(String &page_content)
 
 	page_content += F("<b>" INTL_LOCATION "</b>&nbsp;");
 	page_content += FPSTR(TABLE_TAG_OPEN);
-	add_form_input(page_content, Config_latitude, FPSTR(INTL_LATITUDE), LEN_GEOCOORDINATES - 1);
-	add_form_input(page_content, Config_longitude, FPSTR(INTL_LONGITUDE), LEN_GEOCOORDINATES - 1);
 	add_form_input(page_content, Config_height_above_sealevel, FPSTR(INTL_HEIGHT_ABOVE_SEALEVEL), LEN_HEIGHT_ABOVE_SEALEVEL - 1);
 	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 
@@ -2102,6 +2124,8 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_checkbox(Config_has_matrix, FPSTR(INTL_MATRIX));
 	add_form_checkbox(Config_display_measure, FPSTR(INTL_DISPLAY_MEASURES));
 	add_form_checkbox(Config_display_forecast, FPSTR(INTL_DISPLAY_FORECAST));
+	add_form_checkbox(Config_display_logo, FPSTR(INTL_DISPLAY_LOGO));
+	add_form_checkbox(Config_display_alert, FPSTR(INTL_DISPLAY_ALERT));
 	add_form_checkbox(Config_display_wifi_info, FPSTR(INTL_DISPLAY_WIFI_INFO));
 	add_form_checkbox(Config_display_device_info, FPSTR(INTL_DISPLAY_DEVICE_INFO));
 
@@ -3299,6 +3323,8 @@ static void wifiConfig()
 	debug_outln_info_bool(F("Matrix: "), cfg::has_matrix);
 	debug_outln_info_bool(F("Display Measures: "), cfg::display_measure);
 	debug_outln_info_bool(F("Display forecast: "), cfg::display_forecast);
+	debug_outln_info_bool(F("Display logo: "), cfg::display_logo);
+	debug_outln_info_bool(F("Display alert: "), cfg::display_alert);
 	debug_outln_info(F("Debug: "), String(cfg::debug));
 	wificonfig_loop = false; // VOIR ICI
 }
@@ -3314,29 +3340,31 @@ static void waitForWifiToConnect(int maxRetries)
 	}
 }
 
+
 /*****************************************************************
- * get GPS from AirCarto                                       *
+ * get screens                                         *
  *****************************************************************/
 
-String latitude_aircarto = "0.00000";
-String longitude_aircarto = "0.00000";
 
-gps getGPS(String id)
+void getScreenAircarto(unsigned int screen, String type, String id)
 {
+	Debug.println(String(ESP.getFreeHeap()));
+
 	String reponseAPI;
-	StaticJsonDocument<JSON_BUFFER_SIZE2> json;
-	char reponseJSON[JSON_BUFFER_SIZE2];
-
-	gps coordinates{"0.00000", "0.00000"};
-
+	DynamicJsonDocument screenarray(65536);
+	Debug.println(screenarray.capacity());
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
-	String urlAirCarto = "http://data.moduleair.fr/get_loc.php?id=";
-	String serverPath = urlAirCarto + id;
+	String urlAirCarto1 = "http://data.moduleair.fr/imageCreate/index?screen=";
+	String urlAirCarto2 = "&type=";
+	String urlAirCarto3 ="&device=";
+	String serverPath = urlAirCarto1 + String(screen) + urlAirCarto2 + type + urlAirCarto3 + id;
 
 	debug_outln_info(F("Call: "), serverPath);
 	http.begin(serverPath.c_str());
+
+	//bool HTTPClient::begin(String url, const char* CAcert)
 
 	int httpResponseCode = http.GET();
 
@@ -3345,34 +3373,233 @@ gps getGPS(String id)
 		reponseAPI = http.getString();
 		if (reponseAPI == "null")
 		{
-			return {"0.00000", "0.00000"};
+
+			if(type == "mod"){
+			switch (screen)
+			{
+			case 0:
+				memcpy(forecast_screen_0,emptyarray,4096);
+				break;
+			case 1:
+				memcpy(forecast_screen_1,emptyarray,4096);
+				break;
+			case 2:
+				memcpy(forecast_screen_2,emptyarray,4096);
+				break;
+			case 3:
+				memcpy(forecast_screen_3,emptyarray,4096);
+				break;
+			case 4:
+				memcpy(forecast_screen_4,emptyarray,4096);
+				break;
+			case 5:
+				memcpy(forecast_screen_5,emptyarray,4096);
+				break;
+			case 6:
+				memcpy(forecast_screen_6,emptyarray,4096);
+				break;
+			case 7:
+				memcpy(forecast_screen_7,emptyarray,4096);
+				break;
+			case 8:
+				memcpy(forecast_screen_8,emptyarray,4096);
+				break;
+			case 9:
+				memcpy(forecast_screen_9,emptyarray,4096);
+				break;
+			case 10:
+				memcpy(forecast_screen_10,emptyarray,4096);
+				break;
+			}
+			}
+			if(type == "logo"){
+				memcpy(logo_screen,emptyarray,4096);
+			}
+			if(type == "alert"){
+				memcpy(alert_screen,emptyarray,4096);
+			}
 		}
-
-		debug_outln_info(F("Response: "), reponseAPI);
-		strcpy(reponseJSON, reponseAPI.c_str());
-
-		DeserializationError error = deserializeJson(json, reponseJSON);
-
+		// debug_outln_info(F("Response: "), reponseAPI);
+		Debug.println(String(ESP.getFreeHeap()));
+		DeserializationError error = deserializeJson(screenarray, reponseAPI.c_str());
 
 		if (strcmp(error.c_str(), "Ok") == 0)
 		{
-			return {json[0]["latitude"], json[0]["longitude"]};
+			JsonArray screenarraybyte = screenarray.as<JsonArray>();
+			if(type == "mod"){
+			switch (screen)
+			{
+			case 0:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_0[i] = screenarraybyte[i];
+				}
+				break;
+			case 1:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_1[i] = screenarraybyte[i];
+				}
+				break;
+			case 2:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_2[i] = screenarraybyte[i];
+				}
+				break;
+			case 3:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_3[i] = screenarraybyte[i];
+				}
+				break;
+			case 4:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_4[i] = screenarraybyte[i];
+				}
+				break;
+			case 5:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_5[i] = screenarraybyte[i];
+				}
+				break;
+			case 6:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_6[i] = screenarraybyte[i];
+				}
+				break;
+			case 7:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_7[i] = screenarraybyte[i];
+				}
+				break;
+			case 8:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_8[i] = screenarraybyte[i];
+				}
+				break;
+			case 9:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_9[i] = screenarraybyte[i];
+				}
+				break;
+			case 10:
+				for (int i = 0; i < 4096; i++) {
+				forecast_screen_10[i] = screenarraybyte[i];
+				}
+				break;
+			}
+			}
+			if(type == "logo"){
+				for (int i = 0; i < 4096; i++) {
+				logo_screen[i] = screenarraybyte[i];
+				}
+				logos[2] == cfg::display_logo;
+			}
+			if(type == "alert"){
+				for (int i = 0; i < 4096; i++) {
+				alert_screen[i] = screenarraybyte[i];
+				}
+			}
 		}
 		else
 		{
 			Debug.print(F("deserializeJson() failed: "));
 			Debug.println(error.c_str());
-			return {"0.00000", "0.00000"};
+			if(type == "mod"){
+			switch (screen)
+			{
+			case 0:
+				memcpy(forecast_screen_0,emptyarray,4096);
+				break;
+			case 1:
+				memcpy(forecast_screen_1,emptyarray,4096);
+				break;
+			case 2:
+				memcpy(forecast_screen_2,emptyarray,4096);
+				break;
+			case 3:
+				memcpy(forecast_screen_3,emptyarray,4096);
+				break;
+			case 4:
+				memcpy(forecast_screen_4,emptyarray,4096);
+				break;
+			case 5:
+				memcpy(forecast_screen_5,emptyarray,4096);
+				break;
+			case 6:
+				memcpy(forecast_screen_6,emptyarray,4096);
+				break;
+			case 7:
+				memcpy(forecast_screen_7,emptyarray,4096);
+				break;
+			case 8:
+				memcpy(forecast_screen_8,emptyarray,4096);
+				break;
+			case 9:
+				memcpy(forecast_screen_9,emptyarray,4096);
+				break;
+			case 10:
+				memcpy(forecast_screen_10,emptyarray,4096);
+				break;
+			}
+			}
+			if(type == "logo"){
+			memcpy(logo_screen,emptyarray,4096);
+			}
+			if(type == "alert"){
+			memcpy(alert_screen,emptyarray,4096);
+			}
 		}
 		http.end();
 	}
 	else
 	{
 		debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
-		return {"0.00000", "0.00000"};
+			if(type == "mod"){
+			switch (screen)
+			{
+			case 0:
+				memcpy(forecast_screen_0,emptyarray,4096);
+				break;
+			case 1:
+				memcpy(forecast_screen_1,emptyarray,4096);
+				break;
+			case 2:
+				memcpy(forecast_screen_2,emptyarray,4096);
+				break;
+			case 3:
+				memcpy(forecast_screen_3,emptyarray,4096);
+				break;
+			case 4:
+				memcpy(forecast_screen_4,emptyarray,4096);
+				break;
+			case 5:
+				memcpy(forecast_screen_5,emptyarray,4096);
+				break;
+			case 6:
+				memcpy(forecast_screen_6,emptyarray,4096);
+				break;
+			case 7:
+				memcpy(forecast_screen_7,emptyarray,4096);
+				break;
+			case 8:
+				memcpy(forecast_screen_8,emptyarray,4096);
+				break;
+			case 9:
+				memcpy(forecast_screen_9,emptyarray,4096);
+				break;
+			case 10:
+				memcpy(forecast_screen_10,emptyarray,4096);
+				break;
+			}
+			}
+			if(type == "logo"){
+				memcpy(logo_screen,emptyarray,4096);
+			}
+			if(type == "alert"){
+				memcpy(alert_screen,emptyarray,4096);
+			}
 		http.end();
 	}
 }
+
 
 /*****************************************************************
  * WiFi auto connecting script                                   *
@@ -3476,59 +3703,19 @@ static void connectWifi()
 		Debug.println("Force change WiFi config");
 		wifi_connection_lost = true;
 		cfg::has_wifi = false;
-		// strcpy_P(cfg::wlanssid, "TYPE SSID");
-		// strcpy_P(cfg::wlanpwd, "TYPE PWD");
 
 		if (cfg::has_matrix)
 		{
 			display_update_enable(true);
-			// drawImage(36, 6, 20, 27, wifiblue);
-			// 	display.setTextColor(myWHITE);
-			// 	display.setFont(NULL);
-			// 	display.setTextSize(1);
-			// 	display.setCursor(1, 0);
-			// 	display.print("Configurer");
-			// 	display.setCursor(1, 11);
-			// 	display.print("le WiFi");
-			// 	display.setCursor(1, 22);
-			// 	display.print("3 min.");
-
-			// 	for (int i = 0; i < 5; i++)
-			// 		{
-			// 			display.fillRect(47, 15, 16, 16, myBLACK);
-			// 			drawImage(47, 15, 16, 16, wifiloop1);
-			// 			delay(200);
-			// 			display.fillRect(47, 15, 16, 16, myBLACK);
-			// 			drawImage(47, 15, 16, 16, wifiloop2);
-			// 			delay(200);
-			// 			display.fillRect(47, 15, 16, 16, myBLACK);
-			// 			drawImage(47, 15, 16, 16, wifiloop3);
-			// 			delay(200);
-			// 			display.fillRect(47, 15, 16, 16, myBLACK);
-			// 			drawImage(47, 15, 16, 16, wifiloop4);
-			// 			delay(200);
-			// 			display.fillRect(47, 15, 16, 16, myBLACK);
-			// 			drawImage(47, 15, 16, 16, wifiloop5);
-			// 			delay(200);
-			// 		}
-			// display.fillScreen(myBLACK);
 		}
 		wifiConfig();
 	}
 	else
 	{
 		wifi_connection_lost = false;
-		Debug.println("Get coordinates..."); //only once!
-		gps coordinates = getGPS(esp_chipid);
-		latitude_aircarto = coordinates.latitude;
-		longitude_aircarto = coordinates.longitude;
-
-		Debug.println(coordinates.latitude);
-		Debug.println(coordinates.longitude);
-		if (coordinates.latitude != "0.00000" && coordinates.latitude != "0.00000")
-		{
-			strcpy_P(cfg::latitude, latitude_aircarto.c_str()); //replace the values in the firmware but not in the SPIFFS
-			strcpy_P(cfg::longitude, longitude_aircarto.c_str());
+		if(cfg::display_logo){
+		Debug.println("Get custom logo..."); //only once!
+		getScreenAircarto(0,"logo",esp_chipid);
 		}
 	}
 
@@ -3976,249 +4163,6 @@ static void send_csv(const String &data)
 		debug_outln_error(FPSTR(DBG_TXT_DATA_READ_FAILED));
 	}
 }
-
-/*****************************************************************
- * get data from AtmoSud api                                         *
- *****************************************************************/
-
-// void getScreenAircarto(String id, unsigned int type)
-// {
-// 	DynamicJsonDocument screenarray(4096);
-// 	HTTPClient http;
-// 	http.setTimeout(20 * 1000);
-// 	http.useHTTP10(true);
-
-// 	String sensor_type;
-
-// 	String urlAircarto1 = "https://aircarto.fr/test/imageCreate/";
-
-// 	switch (type)
-// 	{
-// 	case 0:
-// 		sensor_type = "icairh";
-// 		break;
-// 	case 1:
-// 		sensor_type = "no2";
-// 		break;
-// 	case 2:
-// 		sensor_type = "o3";
-// 		break;
-// 	case 3:
-// 		sensor_type = "pm10";
-// 		break;
-// 	case 4:
-// 		sensor_type = "pm2.5";
-// 		break;
-// 	case 5:
-// 		sensor_type = "so2";
-// 		break;
-// 	}
-
-// 	String serverPath = urlAircarto1;
-
-// 	debug_outln_info(F("Call: "), serverPath);
-
-// 	http.begin(serverPath.c_str());
-
-// 	int httpResponseCode = http.GET();
-
-// 	if (httpResponseCode > 0)
-// 	{
-
-//     WiFiClient& stream = http.getStream();
-//     while(stream.available()){
-//         Debug.print(stream.read());
-// 		Debug.print(",");
-//     }
-
-// 		http.end();
-// 	}
-// 	else
-// 	{
-// 		debug_outln_info(F("Failed connecting to Aircarto server with error code:"), String(httpResponseCode));
-// 			switch (type)
-// 			{
-// 			case 0:
-// 				memcpy(forecast_multi,emptyarray,2048);
-// 				break;
-// 			case 1:
-// 				memcpy(forecast_no2,emptyarray,2048);
-// 				break;
-// 			case 2:
-// 				memcpy(forecast_o3,emptyarray,2048);
-// 				break;
-// 			case 3:
-// 				memcpy(forecast_pm10,emptyarray,2048);
-// 				break;
-// 			case 4:
-// 				memcpy(forecast_pm2_5,emptyarray,2048);
-// 				break;
-// 			case 5:
-// 				memcpy(forecast_so2,emptyarray,2048);
-// 				break;
-// 			}
-// 		http.end();
-// 	}
-// }
-
-
-
-
-void getScreenAircarto(String id, unsigned int type)
-{
-	Debug.println(String(ESP.getFreeHeap()));
-
-	String reponseAPI;
-	DynamicJsonDocument screenarray(65536);
-	Debug.println(screenarray.capacity());
-	HTTPClient http;
-	http.setTimeout(20 * 1000);
-
-	String urlAirCarto = "http://data.moduleair.fr/imageCreate/";
-	String serverPath = urlAirCarto;
-
-	debug_outln_info(F("Call: "), serverPath);
-	http.begin(serverPath.c_str());
-
-	//bool HTTPClient::begin(String url, const char* CAcert)
-
-	int httpResponseCode = http.GET();
-
-	if (httpResponseCode > 0)
-	{
-		reponseAPI = http.getString();
-		if (reponseAPI == "null")
-		{
-			switch (type)
-			{
-			case 0:
-				memcpy(forecast_multi,emptyarray,4096);
-				break;
-			case 1:
-				memcpy(forecast_no2,emptyarray,4096);
-				break;
-			case 2:
-				memcpy(forecast_o3,emptyarray,4096);
-				break;
-			case 3:
-				memcpy(forecast_pm10,emptyarray,4096);
-				break;
-			case 4:
-				memcpy(forecast_pm2_5,emptyarray,4096);
-				break;
-			case 5:
-				memcpy(forecast_so2,emptyarray,4096);
-				break;
-			}
-		}
-
-		// debug_outln_info(F("Response: "), reponseAPI);
-		Debug.println(String(ESP.getFreeHeap()));
-		DeserializationError error = deserializeJson(screenarray, reponseAPI.c_str());
-
-		if (strcmp(error.c_str(), "Ok") == 0)
-		{
-			JsonArray screenarraybyte = screenarray.as<JsonArray>();
-			switch (type)
-			{
-			case 0:
-				for (int i = 0; i < 4096; i++) {
-				forecast_multi[i] = screenarraybyte[i];
-				}
-				break;
-			case 1:
-				for (int i = 0; i < 4096; i++) {
-				forecast_no2[i] = screenarraybyte[i];
-				}
-				break;
-			case 2:
-				for (int i = 0; i < 4096; i++) {
-				forecast_o3[i] = screenarraybyte[i];
-				}
-				break;
-			case 3:
-				for (int i = 0; i < 4096; i++) {
-				forecast_pm10[i] = screenarraybyte[i];
-				}
-				break;
-			case 4:
-				for (int i = 0; i < 4096; i++) {
-				forecast_pm2_5[i] = screenarraybyte[i];
-				}
-				break;
-			case 5:
-				for (int i = 0; i < 4096; i++) {
-				forecast_so2[i] = screenarraybyte[i];
-				}
-				break;
-			}
-		}
-		else
-		{
-			Debug.print(F("deserializeJson() failed: "));
-			Debug.println(error.c_str());
-			switch (type)
-			{
-			case 0:
-				memcpy(forecast_multi,emptyarray,4096);
-				break;
-			case 1:
-				memcpy(forecast_no2,emptyarray,4096);
-				break;
-			case 2:
-				memcpy(forecast_o3,emptyarray,4096);
-				break;
-			case 3:
-				memcpy(forecast_pm10,emptyarray,4096);
-				break;
-			case 4:
-				memcpy(forecast_pm2_5,emptyarray,4096);
-				break;
-			case 5:
-				memcpy(forecast_so2,emptyarray,4096);
-				break;
-			}
-		}
-		http.end();
-	}
-	else
-	{
-		debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
-			switch (type)
-			{
-			case 0:
-				memcpy(forecast_multi,emptyarray,4096);
-				break;
-			case 1:
-				memcpy(forecast_no2,emptyarray,4096);
-				break;
-			case 2:
-				memcpy(forecast_o3,emptyarray,4096);
-				break;
-			case 3:
-				memcpy(forecast_pm10,emptyarray,4096);
-				break;
-			case 4:
-				memcpy(forecast_pm2_5,emptyarray,4096);
-				break;
-			case 5:
-				memcpy(forecast_so2,emptyarray,4096);
-				break;
-			}
-		http.end();
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
 
 /*****************************************************************
  * read BMP280/BME280 sensor values                              *
@@ -4831,7 +4775,7 @@ static void display_values_oled() //COMPLETER LES ECRANS
 		display_lines[0] = std::move(tmpl(F("COV: {v} ppb"), check_display_value(cov_value, -1, 1, 6)));
 		break;
 	case 6:
-		display_header = F("Forecast AtmoSud");
+		display_header = F("Forecast");
 		break;
 	case 7:
 		display_header = F("Wifi info");
@@ -4909,7 +4853,7 @@ static void display_values_matrix()
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
 	uint8_t screen_count = 0;
-	uint8_t screens[24];
+	uint8_t screens[30];
 	int line_count = 0;
 	//debug_outln_info(F("output values to matrix..."));
 
@@ -5017,35 +4961,39 @@ static void display_values_matrix()
 	if (cfg::display_forecast)
 	{
 		screens[screen_count++] = 12; // Air exterieur
-		if (cfg_screen_atmo_index)
-			screens[screen_count++] = 13; // Atmo Sud forecast Indice
-		if (cfg_screen_atmo_no2)
-			screens[screen_count++] = 14; // Atmo Sud forecast NO2
-		if (cfg_screen_atmo_o3)
-			screens[screen_count++] = 15; // Atmo Sud forecast O3
-		if (cfg_screen_atmo_pm10)
-			screens[screen_count++] = 16; // Atmo Sud forecast PM10
-		if (cfg_screen_atmo_pm25)
-			screens[screen_count++] = 17; // Atmo Sud forecast PM2.5
-		if (cfg_screen_atmo_so2)
-			screens[screen_count++] = 18; // Atmo Sud forecast PM2.5
+		screens[screen_count++] = 13; 
+		screens[screen_count++] = 14; 
+		screens[screen_count++] = 15; 
+		screens[screen_count++] = 16; 
+		screens[screen_count++] = 17; 
+		screens[screen_count++] = 18; 
+		screens[screen_count++] = 19; 
+		screens[screen_count++] = 20; 
+		screens[screen_count++] = 21; 
+		screens[screen_count++] = 22; 
+		screens[screen_count++] = 23; 
 	}
 
 	if (cfg::display_wifi_info && cfg::has_wifi)
 	{
-		screens[screen_count++] = 19; // Wifi info
+		screens[screen_count++] = 24; // Wifi info
 	}
 	if (cfg::display_device_info)
 	{
-		screens[screen_count++] = 20; // chipID, firmware and count of measurements
-		screens[screen_count++] = 21; // Latitude, longitude, altitude
+		screens[screen_count++] = 25; // chipID, firmware and count of measurements
+		screens[screen_count++] = 26; // Latitude, longitude, altitude
 		if (cfg::npm_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 22; // info NPM
+			screens[screen_count++] = 27; // info NPM
 		}
 	}
 
-	screens[screen_count++] = 23; // Logos
+	if (cfg::display_alert)
+	{
+	screens[screen_count++] = 28; // Alert
+	}
+
+	screens[screen_count++] = 29; // Logos
 
 	switch (screens[next_display_count % screen_count])
 	{
@@ -5434,8 +5382,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 12:
-		if (memcmp(forecast_multi,emptyarray, 4096) != 0 || memcmp(forecast_no2,emptyarray, 4096) !=  0 || memcmp(forecast_o3,emptyarray, 4096) !=  0 || memcmp(forecast_pm10,emptyarray, 4096) !=  0 || memcmp(forecast_pm2_5,emptyarray, 4096) !=  0 || memcmp(forecast_so2,emptyarray, 4096) !=  0)
-		// if (memcmp(forecast_multi,emptyarray, 4096) != 0)
+		if ((memcmp(forecast_screen_0,emptyarray, 4096) != 0 && forecast_screen_0 != NULL) || (memcmp(forecast_screen_1,emptyarray, 4096) !=  0 && forecast_screen_1 != NULL)|| (memcmp(forecast_screen_2,emptyarray, 4096) !=  0 && forecast_screen_2 != NULL) || (memcmp(forecast_screen_3,emptyarray, 4096) !=  0 && forecast_screen_3 != NULL)|| (memcmp(forecast_screen_4,emptyarray, 4096) !=  0 && forecast_screen_4 != NULL) || (memcmp(forecast_screen_5,emptyarray, 4096) !=  0 && forecast_screen_5 != NULL) || (memcmp(forecast_screen_6,emptyarray, 4096) !=  0 && forecast_screen_6 != NULL) || (memcmp(forecast_screen_7,emptyarray, 4096) !=  0 && forecast_screen_7 != NULL) || (memcmp(forecast_screen_8,emptyarray, 4096) !=  0 && forecast_screen_8 != NULL) || (memcmp(forecast_screen_9,emptyarray, 4096) !=  0 && forecast_screen_9 != NULL) || (memcmp(forecast_screen_10,emptyarray, 4096) !=  0 && forecast_screen_10 != NULL))
 		{
 			drawImage(0, 0, 32, 64, exterieur);
 		}
@@ -5445,13 +5392,9 @@ static void display_values_matrix()
 		}
 		break;
 	case 13:
-		if (memcmp(forecast_multi,emptyarray, 4096) != 0)
+		if (memcmp(forecast_screen_0,emptyarray, 4096) != 0 && forecast_screen_0 != NULL)
 		{
-			Debug.println("2Bytes:");
-			Debug.println(forecast_multi[0]);
-			Debug.println(forecast_multi[1]);
-			Debug.println(word(forecast_multi[0], forecast_multi[1]),HEX);
-			drawImage2(0, 0, 32, 64, forecast_multi);
+			drawImage2(0, 0, 32, 64, forecast_screen_0);
 		}
 		else
 		{
@@ -5459,8 +5402,9 @@ static void display_values_matrix()
 		}
 		break;
 	case 14:
-		if (memcmp(forecast_no2,emptyarray, 4096) ==  0)
+		if (memcmp(forecast_screen_1,emptyarray, 4096) !=  0 && forecast_screen_1 != NULL)
 		{
+			drawImage2(0, 0, 32, 64, forecast_screen_1);
 		}
 		else
 		{
@@ -5468,8 +5412,9 @@ static void display_values_matrix()
 		}
 		break;
 	case 15:
-		if (memcmp(forecast_o3,emptyarray, 4096) ==  0)
+		if (memcmp(forecast_screen_2,emptyarray, 4096) !=  0 && forecast_screen_2 != NULL)
 		{
+			drawImage2(0, 0, 32, 64, forecast_screen_2);
 		}
 		else
 		{
@@ -5477,8 +5422,9 @@ static void display_values_matrix()
 		}
 		break;
 	case 16:
-		if (memcmp(forecast_pm10,emptyarray, 4096) ==  0)
+		if (memcmp(forecast_screen_3,emptyarray, 4096) !=  0 && forecast_screen_3 != NULL)
 		{
+			drawImage2(0, 0, 32, 64, forecast_screen_3);
 		}
 		else
 		{
@@ -5486,8 +5432,9 @@ static void display_values_matrix()
 		}
 		break;
 	case 17:
-		if (memcmp(forecast_pm2_5,emptyarray, 4096) ==  0)
+		if (memcmp(forecast_screen_4,emptyarray, 4096) !=  0 && forecast_screen_4 != NULL)
 		{
+			drawImage2(0, 0, 32, 64, forecast_screen_4);
 		}
 		else
 		{
@@ -5495,8 +5442,9 @@ static void display_values_matrix()
 		}
 		break;
 	case 18:
-		if (memcmp(forecast_so2,emptyarray, 4096) ==  0)
+		if (memcmp(forecast_screen_5,emptyarray, 4096) !=  0 && forecast_screen_5 != NULL)
 		{
+			drawImage2(0, 0, 32, 64, forecast_screen_5);
 		}
 		else
 		{
@@ -5504,6 +5452,56 @@ static void display_values_matrix()
 		}
 		break;
 	case 19:
+		if (memcmp(forecast_screen_6,emptyarray, 4096) !=  0 && forecast_screen_6 != NULL)
+		{
+			drawImage2(0, 0, 32, 64, forecast_screen_6);
+		}
+		else
+		{
+			act_milli += 5000;
+		}
+		break;
+	case 20:
+		if (memcmp(forecast_screen_7,emptyarray, 4096) !=  0 && forecast_screen_7 != NULL)
+		{
+			drawImage2(0, 0, 32, 64, forecast_screen_7);
+		}
+		else
+		{
+			act_milli += 5000;
+		}
+		break;
+	case 21:
+		if (memcmp(forecast_screen_8,emptyarray, 4096) !=  0 && forecast_screen_8 != NULL)
+		{
+			drawImage2(0, 0, 32, 64, forecast_screen_8);
+		}
+		else
+		{
+			act_milli += 5000;
+		}
+		break;
+	case 22:
+		if (memcmp(forecast_screen_9,emptyarray, 4096) !=  0 && forecast_screen_9 != NULL)
+		{
+			drawImage2(0, 0, 32, 64, forecast_screen_9);
+		}
+		else
+		{
+			act_milli += 5000;
+		}
+		break;
+	case 23:
+		if (memcmp(forecast_screen_10,emptyarray, 4096) !=  0 && forecast_screen_10 != NULL)
+		{
+			drawImage2(0, 0, 32, 64, forecast_screen_10);
+		}
+		else
+		{
+			act_milli += 5000;
+		}
+		break;
+	case 24:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5520,7 +5518,7 @@ static void display_values_matrix()
 		display.print("Signal:");
 		display.print(String(calcWiFiSignalQuality(last_signal_strength)));
 		break;
-	case 20:
+	case 25:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5536,23 +5534,17 @@ static void display_values_matrix()
 		display.print("Meas.:");
 		display.print(String(count_sends));
 		break;
-	case 21:
+	case 26:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
 		display.setCursor(0, 4);
-		display.print("GPS");
+		display.print("Position");
 		display.setCursor(0, 10);
-		display.print("Latitude:");
-		display.print(cfg::latitude);
-		display.setCursor(0, 16);
-		display.print("Longitude:");
-		display.print(cfg::longitude);
-		display.setCursor(0, 22);
-		display.print("Altitude:");
+		display.print("Hauteur:");
 		display.print(cfg::height_above_sealevel);
 		break;
-	case 22:
+	case 27:
 		if ((pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0))
 		{
 			display.fillScreen(myBLACK);
@@ -5570,12 +5562,22 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 23:
-		if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 5))
+	case 28:
+		if (memcmp(alert_screen,emptyarray, 4096) !=  0)
+		{
+			drawImage2(0, 0, 32, 64, alert_screen);
+		}
+		else
+		{
+			act_milli += 5000;
+		}
+		break;
+	case 29:
+		if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 2))
 		{
 			logo_index++;
 		}
-		else if (has_logo && (logos[logo_index + 1] == 0) || logo_index == 5)
+		else if (has_logo && (logos[logo_index + 1] == 0) || logo_index == 2)
 		{
 			logo_index = 0;
 		}
@@ -5584,15 +5586,8 @@ static void display_values_matrix()
 			drawImage(0, 0, 32, 64, logo_moduleair);
 		if (logos[logo_index] == cfg_logo_aircarto)
 			drawImage(0, 0, 32, 64, logo_aircarto);
-		if (logos[logo_index] == cfg_logo_atmo)
-			drawImage(0, 0, 32, 64, logo_atmo);
-		if (logos[logo_index] == cfg_logo_region)
-			drawImage(0, 0, 32, 64, logo_region);
-		if (logos[logo_index] == cfg_logo_custom1)
-			drawImage(0, 0, 32, 64, logo_custom1);
-		if (logos[logo_index] == cfg_logo_custom2)
-			drawImage(0, 0, 32, 64, logo_custom2);
-
+		if (logos[logo_index] == cfg::display_logo)
+			drawImage2(0, 0, 32, 64, logo_screen);
 		break;
 	}
 
@@ -5613,7 +5608,7 @@ static void init_matrix()
 	display_update_enable(true);
 	display.setFont(NULL); //Default font
 
-	for (int i = 1; i < 6; i++)
+	for (int i = 1; i < 2; i++)
 	{
 
 		if (i == cfg_logo_moduleair)
@@ -5628,38 +5623,6 @@ static void init_matrix()
 		{
 			display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
 			drawImage(0, 0, 32, 64, logo_aircarto);
-			logo_index++;
-			logos[logo_index] = i;
-			delay(5000);
-		}
-		if (i == cfg_logo_atmo)
-		{
-			display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
-			drawImage(0, 0, 32, 64, logo_atmo);
-			logo_index++;
-			logos[logo_index] = i;
-			delay(5000);
-		}
-		if (i == cfg_logo_region)
-		{
-			display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
-			drawImage(0, 0, 32, 64, logo_region);
-			logo_index++;
-			logos[logo_index] = i;
-			delay(5000);
-		}
-		if (i == cfg_logo_custom1)
-		{
-			display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
-			drawImage(0, 0, 32, 64, logo_custom1);
-			logo_index++;
-			logos[logo_index] = i;
-			delay(5000);
-		}
-		if (i == cfg_logo_custom2)
-		{
-			display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
-			drawImage(0, 0, 32, 64, logo_custom2);
 			logo_index++;
 			logos[logo_index] = i;
 			delay(5000);
@@ -6368,8 +6331,6 @@ void loop()
 		add_Value2Json(data, F("max_micro"), String(max_micro));
 		add_Value2Json(data, F("interval"), String(cfg::sending_intervall_ms));
 		add_Value2Json(data, F("signal"), String(last_signal_strength));
-		add_Value2Json(data, F("latitude"), String(cfg::latitude));
-		add_Value2Json(data, F("longitude"), String(cfg::longitude));
 
 		if ((unsigned)(data.lastIndexOf(',') + 1) == data.length())
 		{
@@ -6400,8 +6361,6 @@ void loop()
 			//{"value_type" : "max_micro", "value" : "351024"},
 			//{"value_type" : "interval", "value" : "145000"},
 			//{"value_type" : "signal", "value" : "-71"}
-			//{"value_type" : "latitude", "value" : "43.2964"},
-			//{"value_type" : "longitude", "value" : "5.36978"}
 			// ]}
 
 			// https://en.wikipedia.org/wiki/Moving_average#Cumulative_moving_average
@@ -6471,54 +6430,60 @@ void loop()
 		max_micro = 0;
 		sum_send_time = 0;
 
-		if (cfg::display_forecast && cfg::has_wifi && !wifi_connection_lost) //the reception through LoRaWAN downlink is automatically done
+		if (cfg::display_forecast && cfg::has_wifi && !wifi_connection_lost) 
 		{
-			switch (forecast_selector)
-			{
-			case 0:
-				getScreenAircarto(esp_chipid, forecast_selector);
-				break;
-			case 1:
-				getScreenAircarto(esp_chipid, forecast_selector);
-				break;
-			case 2:
-				getScreenAircarto(esp_chipid, forecast_selector);
-				break;
-			case 3:
-				getScreenAircarto(esp_chipid, forecast_selector);
-				break;
-			case 4:
-				getScreenAircarto(esp_chipid, forecast_selector);
-				break;
-			case 5:
-				getScreenAircarto(esp_chipid, forecast_selector);
-				break;
-			}
+			getScreenAircarto(forecast_selector,"mod",esp_chipid);
 		}
 		else
 		{
 			switch (forecast_selector)
 			{
 			case 0:
-				memcpy(forecast_multi,emptyarray,4096);
+				memcpy(forecast_screen_0,emptyarray,4096);
 				break;
 			case 1:
-				memcpy(forecast_no2,emptyarray,4096);
+				memcpy(forecast_screen_1,emptyarray,4096);
 				break;
 			case 2:
-				memcpy(forecast_o3,emptyarray,4096);
+				memcpy(forecast_screen_2,emptyarray,4096);
 				break;
 			case 3:
-				memcpy(forecast_pm10,emptyarray,4096);
+				memcpy(forecast_screen_3,emptyarray,4096);
 				break;
 			case 4:
-				memcpy(forecast_pm2_5,emptyarray,4096);
+				memcpy(forecast_screen_4,emptyarray,4096);
 				break;
 			case 5:
-				memcpy(forecast_so2,emptyarray,4096);
+				memcpy(forecast_screen_5,emptyarray,4096);
+				break;
+			case 6:
+				memcpy(forecast_screen_6,emptyarray,4096);
+				break;
+			case 7:
+				memcpy(forecast_screen_7,emptyarray,4096);
+				break;
+			case 8:
+				memcpy(forecast_screen_8,emptyarray,4096);
+				break;
+			case 9:
+				memcpy(forecast_screen_9,emptyarray,4096);
+				break;
+			case 10:
+				memcpy(forecast_screen_10,emptyarray,4096);
 				break;
 			}
 		}
+
+		if (cfg::display_alert && cfg::has_wifi && !wifi_connection_lost) 
+		{
+			getScreenAircarto(0,"alert",esp_chipid);
+		}
+		else
+		{
+			memcpy(alert_screen,emptyarray,4096);
+		}
+
+		//UPDATE DU LOGO ?
 
 		starttime = millis(); // store the start time
 		count_sends++;
@@ -6526,7 +6491,8 @@ void loop()
 		// Update Forecast selector
 		if (cfg::display_forecast)
 		{
-			if (forecast_selector < 5)
+			//if (forecast_selector < last_selector) // ESSAYER ? MAIS REBOOT NECESSAIRE SI ECRAN SUP.
+			if (forecast_selector < 10)
 			{
 				forecast_selector++;
 			}

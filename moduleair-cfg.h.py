@@ -17,8 +17,6 @@ String		height_above_sealevel
 Bool		mhz16_read
 Bool		mhz19_read
 Bool		ccs811_read
-String		latitude
-String		longitude
 Bool		send2dusti
 Bool		ssl_dusti
 Bool		send2madavi
@@ -27,7 +25,9 @@ Bool		send2csv
 Bool		has_ssd1306
 Bool		has_matrix
 Bool		display_measure
+Bool		display_logo
 Bool		display_forecast
+Bool		display_alert
 Bool		display_wifi_info
 Bool		display_device_info
 UInt		debug

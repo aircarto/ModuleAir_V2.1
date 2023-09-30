@@ -42,8 +42,6 @@ enum ConfigShapeId {
 	Config_mhz16_read,
 	Config_mhz19_read,
 	Config_ccs811_read,
-	Config_latitude,
-	Config_longitude,
 	Config_send2dusti,
 	Config_ssl_dusti,
 	Config_send2madavi,
@@ -52,7 +50,9 @@ enum ConfigShapeId {
 	Config_has_ssd1306,
 	Config_has_matrix,
 	Config_display_measure,
+	Config_display_logo,
 	Config_display_forecast,
+	Config_display_alert,
 	Config_display_wifi_info,
 	Config_display_device_info,
 	Config_debug,
@@ -89,8 +89,6 @@ static constexpr char CFG_KEY_HEIGHT_ABOVE_SEALEVEL[] PROGMEM = "height_above_se
 static constexpr char CFG_KEY_MHZ16_READ[] PROGMEM = "mhz16_read";
 static constexpr char CFG_KEY_MHZ19_READ[] PROGMEM = "mhz19_read";
 static constexpr char CFG_KEY_CCS811_READ[] PROGMEM = "ccs811_read";
-static constexpr char CFG_KEY_LATITUDE[] PROGMEM = "latitude";
-static constexpr char CFG_KEY_LONGITUDE[] PROGMEM = "longitude";
 static constexpr char CFG_KEY_SEND2DUSTI[] PROGMEM = "send2dusti";
 static constexpr char CFG_KEY_SSL_DUSTI[] PROGMEM = "ssl_dusti";
 static constexpr char CFG_KEY_SEND2MADAVI[] PROGMEM = "send2madavi";
@@ -99,7 +97,9 @@ static constexpr char CFG_KEY_SEND2CSV[] PROGMEM = "send2csv";
 static constexpr char CFG_KEY_HAS_SSD1306[] PROGMEM = "has_ssd1306";
 static constexpr char CFG_KEY_HAS_MATRIX[] PROGMEM = "has_matrix";
 static constexpr char CFG_KEY_DISPLAY_MEASURE[] PROGMEM = "display_measure";
+static constexpr char CFG_KEY_DISPLAY_LOGO[] PROGMEM = "display_logo";
 static constexpr char CFG_KEY_DISPLAY_FORECAST[] PROGMEM = "display_forecast";
+static constexpr char CFG_KEY_DISPLAY_ALERT[] PROGMEM = "display_alert";
 static constexpr char CFG_KEY_DISPLAY_WIFI_INFO[] PROGMEM = "display_wifi_info";
 static constexpr char CFG_KEY_DISPLAY_DEVICE_INFO[] PROGMEM = "display_device_info";
 static constexpr char CFG_KEY_DEBUG[] PROGMEM = "debug";
@@ -136,8 +136,6 @@ static constexpr ConfigShapeEntry configShape[] PROGMEM = {
 	{ Config_Type_Bool, 0, CFG_KEY_MHZ16_READ, &cfg::mhz16_read },
 	{ Config_Type_Bool, 0, CFG_KEY_MHZ19_READ, &cfg::mhz19_read },
 	{ Config_Type_Bool, 0, CFG_KEY_CCS811_READ, &cfg::ccs811_read },
-	{ Config_Type_String, sizeof(cfg::latitude)-1, CFG_KEY_LATITUDE, cfg::latitude },
-	{ Config_Type_String, sizeof(cfg::longitude)-1, CFG_KEY_LONGITUDE, cfg::longitude },
 	{ Config_Type_Bool, 0, CFG_KEY_SEND2DUSTI, &cfg::send2dusti },
 	{ Config_Type_Bool, 0, CFG_KEY_SSL_DUSTI, &cfg::ssl_dusti },
 	{ Config_Type_Bool, 0, CFG_KEY_SEND2MADAVI, &cfg::send2madavi },
@@ -146,7 +144,9 @@ static constexpr ConfigShapeEntry configShape[] PROGMEM = {
 	{ Config_Type_Bool, 0, CFG_KEY_HAS_SSD1306, &cfg::has_ssd1306 },
 	{ Config_Type_Bool, 0, CFG_KEY_HAS_MATRIX, &cfg::has_matrix },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_MEASURE, &cfg::display_measure },
+	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_LOGO, &cfg::display_logo },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_FORECAST, &cfg::display_forecast },
+	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_ALERT, &cfg::display_alert },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_WIFI_INFO, &cfg::display_wifi_info },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_DEVICE_INFO, &cfg::display_device_info },
 	{ Config_Type_UInt, 0, CFG_KEY_DEBUG, &cfg::debug },

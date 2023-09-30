@@ -35,7 +35,9 @@ const char INTL_SCREENS[] PROGMEM = "Écrans";
 const char INTL_SSD1306[] PROGMEM = "OLED SSD1306";
 const char INTL_MATRIX[] PROGMEM = "Matrice RGB 64x32";
 const char INTL_DISPLAY_MEASURES[] PROGMEM = "Afficher les mesures des capteurs";
-const char INTL_DISPLAY_FORECAST[] PROGMEM = "Afficher les prévisions Atmosud";
+const char INTL_DISPLAY_FORECAST[] PROGMEM = "Afficher le stream de modélisations";
+const char INTL_DISPLAY_LOGO[] PROGMEM = "Afficher le logo custom";
+const char INTL_DISPLAY_ALERT[] PROGMEM = "Activer les alertes";
 const char INTL_DISPLAY_WIFI_INFO[] PROGMEM = "Afficher les informations wifi";
 const char INTL_DISPLAY_LORA_INFO[] PROGMEM = "Afficher les informations LoRaWAN";
 const char INTL_DISPLAY_DEVICE_INFO[] PROGMEM = "Afficher les informations de l'appareil";
@@ -154,5 +156,3 @@ const char INTL_ACTIVATION[] = "Activation";
 const char INTL_PROBES[] = "des sondes";
 
 #include "./aircarto-logo-common.h"
-#include "./logos-custom.h"
-
