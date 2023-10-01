@@ -251,7 +251,7 @@ uint8_t display_draw_time = 30; //10-50 is usually fine
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
 uint8_t logos[3] = {0, 0, 0};
-uint8_t logo_index = -1;
+uint8_t logo_index = 0;
 bool has_logo;
 
 extern const uint8_t gamma8[]; //for gamma correction
@@ -925,17 +925,29 @@ void messager5(int value) // Indice Atmo
 	// uint8_t *forecast_screen_9 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 	// uint8_t *forecast_screen_10 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 
-	uint8_t *forecast_screen_0 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_1 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_2 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_3 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_4 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_5 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_6 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_7 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_8 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_9 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	uint8_t *forecast_screen_10 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_0 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_1 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_2 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_3 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_4 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_5 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_6 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_7 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_8 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_9 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+	// uint8_t *forecast_screen_10 = (uint8_t *) calloc(4096,sizeof(uint8_t));
+
+	uint8_t *forecast_screen_0 = nullptr;
+	uint8_t *forecast_screen_1 = nullptr;
+	uint8_t *forecast_screen_2 = nullptr;
+	uint8_t *forecast_screen_3 = nullptr;
+	uint8_t *forecast_screen_4 = nullptr;
+	uint8_t *forecast_screen_5 = nullptr;
+	uint8_t *forecast_screen_6 = nullptr;
+	uint8_t *forecast_screen_7 = nullptr;
+	uint8_t *forecast_screen_8 = nullptr;
+	uint8_t *forecast_screen_9 = nullptr;
+	uint8_t *forecast_screen_10 = nullptr;
 
 // malloc
 // free
@@ -943,10 +955,6 @@ void messager5(int value) // Indice Atmo
 // ON CHERCHE LE DERNIER ECRAN => FREE
 //ON APPEL ECRAN ET SI QC REALLOC ET AU PROCHAIN TOUR CHARGE
 
-
-uint8_t emptyarray[4096] = {};
-
-uint8_t arrayDownlink[5];
 uint8_t forecast_selector;
 uint8_t last_selector = 10;
 
@@ -954,13 +962,16 @@ uint8_t last_selector = 10;
  * Logo                                               *
  *****************************************************************/
 
-uint8_t logo_screen[4096] = {};
+//uint8_t *logo_screen = (uint8_t *) calloc(4096,sizeof(uint8_t));
+uint8_t *logo_screen = nullptr;
+//uint8_t logo_screen[4096] = {};
 
 /*****************************************************************
  * Alert                                               *
  *****************************************************************/
 
-uint8_t alert_screen[4096] = {};
+//uint8_t alert_screen[4096] = {};
+uint8_t *alert_screen = nullptr;
 
 /*****************************************************************
  * Serial declarations                                           *
@@ -3361,6 +3372,8 @@ void getScreenAircarto(unsigned int screen, String type, String id)
 	String urlAirCarto3 ="&device=";
 	String serverPath = urlAirCarto1 + String(screen) + urlAirCarto2 + type + urlAirCarto3 + id;
 
+	//String serverPath = "http://data.moduleair.fr/imageCreate/index?screen=0&type=logo&device=50349E9EF0C8";
+
 	debug_outln_info(F("Call: "), serverPath);
 	http.begin(serverPath.c_str());
 
@@ -3371,115 +3384,208 @@ void getScreenAircarto(unsigned int screen, String type, String id)
 	if (httpResponseCode > 0)
 	{
 		reponseAPI = http.getString();
+		//debug_outln_info(F("Response: "), reponseAPI);
 		if (reponseAPI == "null")
 		{
-
+			Debug.println("Response = null");
 			if(type == "mod"){
 			switch (screen)
 			{
 			case 0:
-				memcpy(forecast_screen_0,emptyarray,4096);
+				if (forecast_screen_0 != nullptr){
+					free(forecast_screen_0);
+					forecast_screen_0 = nullptr;
+				}
 				break;
 			case 1:
-				memcpy(forecast_screen_1,emptyarray,4096);
+				if (forecast_screen_1 != nullptr){
+					free(forecast_screen_1);
+					forecast_screen_1 = nullptr;
+				}				
 				break;
 			case 2:
-				memcpy(forecast_screen_2,emptyarray,4096);
+				if (forecast_screen_2 != nullptr){
+					free(forecast_screen_2);
+					forecast_screen_2 = nullptr;
+				}				
 				break;
 			case 3:
-				memcpy(forecast_screen_3,emptyarray,4096);
+				if (forecast_screen_3 != nullptr){
+					free(forecast_screen_3);
+					forecast_screen_3 = nullptr;
+				}				
 				break;
 			case 4:
-				memcpy(forecast_screen_4,emptyarray,4096);
+				if (forecast_screen_4 != nullptr){
+					free(forecast_screen_4);
+					forecast_screen_4 = nullptr;
+				}				
 				break;
 			case 5:
-				memcpy(forecast_screen_5,emptyarray,4096);
+				if (forecast_screen_5 != nullptr){
+					free(forecast_screen_5);
+					forecast_screen_5 = nullptr;
+				}				
 				break;
 			case 6:
-				memcpy(forecast_screen_6,emptyarray,4096);
+				if (forecast_screen_6 != nullptr){
+					free(forecast_screen_6);
+					forecast_screen_6 = nullptr;
+				}				
 				break;
 			case 7:
-				memcpy(forecast_screen_7,emptyarray,4096);
+				if (forecast_screen_7 != nullptr){
+					free(forecast_screen_7);
+					forecast_screen_7 = nullptr;
+				}				
 				break;
 			case 8:
-				memcpy(forecast_screen_8,emptyarray,4096);
+				if (forecast_screen_8 != nullptr){
+					free(forecast_screen_6);
+					forecast_screen_8 = nullptr;
+				}				
 				break;
 			case 9:
-				memcpy(forecast_screen_9,emptyarray,4096);
+				if (forecast_screen_9 != nullptr){
+					free(forecast_screen_9);
+					forecast_screen_9 = nullptr;
+				}				
 				break;
 			case 10:
-				memcpy(forecast_screen_10,emptyarray,4096);
+				if (forecast_screen_10 != nullptr){
+					free(forecast_screen_10);
+					forecast_screen_10 = nullptr;
+				}				
 				break;
 			}
 			}
 			if(type == "logo"){
-				memcpy(logo_screen,emptyarray,4096);
+				logos[2] = 0;
 			}
 			if(type == "alert"){
-				memcpy(alert_screen,emptyarray,4096);
-			}
-		}
-		// debug_outln_info(F("Response: "), reponseAPI);
+				if (alert_screen != nullptr){
+					free(alert_screen);
+					alert_screen = nullptr;
+				}
+			}				
+		}else{
+
 		Debug.println(String(ESP.getFreeHeap()));
 		DeserializationError error = deserializeJson(screenarray, reponseAPI.c_str());
 
 		if (strcmp(error.c_str(), "Ok") == 0)
 		{
 			JsonArray screenarraybyte = screenarray.as<JsonArray>();
+
 			if(type == "mod"){
 			switch (screen)
 			{
 			case 0:
+				if (forecast_screen_0 != nullptr){
+					free(forecast_screen_0);
+					forecast_screen_0 = nullptr;
+				}
+				forecast_screen_0 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_0[i] = screenarraybyte[i];
 				}
 				break;
 			case 1:
+				if (forecast_screen_1 != nullptr){
+					free(forecast_screen_1);
+					forecast_screen_1 = nullptr;
+				}
+				forecast_screen_1 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_1[i] = screenarraybyte[i];
 				}
 				break;
 			case 2:
+				if (forecast_screen_2 != nullptr){
+					free(forecast_screen_2);
+					forecast_screen_2 = nullptr;
+				}
+				forecast_screen_2 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_2[i] = screenarraybyte[i];
 				}
 				break;
 			case 3:
+				if (forecast_screen_3 != nullptr){
+					free(forecast_screen_3);
+					forecast_screen_3 = nullptr;
+				}
+				forecast_screen_3 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_3[i] = screenarraybyte[i];
 				}
 				break;
 			case 4:
+				if (forecast_screen_4 != nullptr){
+					free(forecast_screen_4);
+					forecast_screen_4 = nullptr;
+				}
+				forecast_screen_4 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_4[i] = screenarraybyte[i];
 				}
 				break;
 			case 5:
+				if (forecast_screen_5 != nullptr){
+					free(forecast_screen_5);
+					forecast_screen_5 = nullptr;
+				}
+				forecast_screen_5 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_5[i] = screenarraybyte[i];
 				}
 				break;
 			case 6:
+				if (forecast_screen_6 != nullptr){
+					free(forecast_screen_6);
+					forecast_screen_6 = nullptr;
+				}
+				forecast_screen_6 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_6[i] = screenarraybyte[i];
 				}
 				break;
 			case 7:
+				if (forecast_screen_7 != nullptr){
+					free(forecast_screen_7);
+					forecast_screen_7 = nullptr;
+				}
+				forecast_screen_7 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_7[i] = screenarraybyte[i];
 				}
 				break;
 			case 8:
+				if (forecast_screen_8 != nullptr){
+					free(forecast_screen_8);
+					forecast_screen_8 = nullptr;
+				}
+				forecast_screen_8 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_8[i] = screenarraybyte[i];
 				}
 				break;
 			case 9:
+				if (forecast_screen_9 != nullptr){
+					free(forecast_screen_9);
+					forecast_screen_9 = nullptr;
+				}
+				forecast_screen_9 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_9[i] = screenarraybyte[i];
 				}
 				break;
 			case 10:
+				if (forecast_screen_10 != nullptr){
+					free(forecast_screen_10);
+					forecast_screen_10 = nullptr;
+				}
+				forecast_screen_10 = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				forecast_screen_10[i] = screenarraybyte[i];
 				}
@@ -3487,12 +3593,21 @@ void getScreenAircarto(unsigned int screen, String type, String id)
 			}
 			}
 			if(type == "logo"){
+				logo_screen = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				logo_screen[i] = screenarraybyte[i];
 				}
-				logos[2] == cfg::display_logo;
+				logos[2] = cfg_logo_custom;
+				if(has_logo == false){
+					has_logo = true;
+				}
 			}
 			if(type == "alert"){
+				if (alert_screen != nullptr){
+					free(alert_screen);
+					alert_screen = nullptr;
+				}
+				alert_screen = (uint8_t *) malloc(4096*sizeof(uint8_t));
 				for (int i = 0; i < 4096; i++) {
 				alert_screen[i] = screenarraybyte[i];
 				}
@@ -3506,48 +3621,86 @@ void getScreenAircarto(unsigned int screen, String type, String id)
 			switch (screen)
 			{
 			case 0:
-				memcpy(forecast_screen_0,emptyarray,4096);
+				if (forecast_screen_0 != nullptr){
+					free(forecast_screen_0);
+					forecast_screen_0 = nullptr;
+				}
 				break;
 			case 1:
-				memcpy(forecast_screen_1,emptyarray,4096);
+				if (forecast_screen_1 != nullptr){
+					free(forecast_screen_1);
+					forecast_screen_1 = nullptr;
+				}				
 				break;
 			case 2:
-				memcpy(forecast_screen_2,emptyarray,4096);
+				if (forecast_screen_2 != nullptr){
+					free(forecast_screen_2);
+					forecast_screen_2 = nullptr;
+				}				
 				break;
 			case 3:
-				memcpy(forecast_screen_3,emptyarray,4096);
+				if (forecast_screen_3 != nullptr){
+					free(forecast_screen_3);
+					forecast_screen_3 = nullptr;
+				}				
 				break;
 			case 4:
-				memcpy(forecast_screen_4,emptyarray,4096);
+				if (forecast_screen_4 != nullptr){
+					free(forecast_screen_4);
+					forecast_screen_4 = nullptr;
+				}				
 				break;
 			case 5:
-				memcpy(forecast_screen_5,emptyarray,4096);
+				if (forecast_screen_5 != nullptr){
+					free(forecast_screen_5);
+					forecast_screen_5 = nullptr;
+				}				
 				break;
 			case 6:
-				memcpy(forecast_screen_6,emptyarray,4096);
+				if (forecast_screen_6 != nullptr){
+					free(forecast_screen_6);
+					forecast_screen_6 = nullptr;
+				}				
 				break;
 			case 7:
-				memcpy(forecast_screen_7,emptyarray,4096);
+				if (forecast_screen_7 != nullptr){
+					free(forecast_screen_7);
+					forecast_screen_7 = nullptr;
+				}				
 				break;
 			case 8:
-				memcpy(forecast_screen_8,emptyarray,4096);
+				if (forecast_screen_8 != nullptr){
+					free(forecast_screen_6);
+					forecast_screen_8 = nullptr;
+				}				
 				break;
 			case 9:
-				memcpy(forecast_screen_9,emptyarray,4096);
+				if (forecast_screen_9 != nullptr){
+					free(forecast_screen_9);
+					forecast_screen_9 = nullptr;
+				}				
 				break;
 			case 10:
-				memcpy(forecast_screen_10,emptyarray,4096);
+				if (forecast_screen_10 != nullptr){
+					free(forecast_screen_10);
+					forecast_screen_10 = nullptr;
+				}				
 				break;
 			}
 			}
 			if(type == "logo"){
-			memcpy(logo_screen,emptyarray,4096);
+			logos[2] = 0;
 			}
 			if(type == "alert"){
-			memcpy(alert_screen,emptyarray,4096);
+			// alert_screen = nullptr;
+			// ON NE FAIT RIEN ON GARDE l'ECRAN
+				if (alert_screen != nullptr){
+					free(alert_screen);
+					alert_screen = nullptr;
+				}
 			}
 		}
-		http.end();
+		}
 	}
 	else
 	{
@@ -3556,48 +3709,87 @@ void getScreenAircarto(unsigned int screen, String type, String id)
 			switch (screen)
 			{
 			case 0:
-				memcpy(forecast_screen_0,emptyarray,4096);
+				if (forecast_screen_0 != nullptr){
+					free(forecast_screen_0);
+					forecast_screen_0 = nullptr;
+				}
 				break;
 			case 1:
-				memcpy(forecast_screen_1,emptyarray,4096);
+				if (forecast_screen_1 != nullptr){
+					free(forecast_screen_1);
+					forecast_screen_1 = nullptr;
+				}				
 				break;
 			case 2:
-				memcpy(forecast_screen_2,emptyarray,4096);
+				if (forecast_screen_2 != nullptr){
+					free(forecast_screen_2);
+					forecast_screen_2 = nullptr;
+				}				
 				break;
 			case 3:
-				memcpy(forecast_screen_3,emptyarray,4096);
+				if (forecast_screen_3 != nullptr){
+					free(forecast_screen_3);
+					forecast_screen_3 = nullptr;
+				}				
 				break;
 			case 4:
-				memcpy(forecast_screen_4,emptyarray,4096);
+				if (forecast_screen_4 != nullptr){
+					free(forecast_screen_4);
+					forecast_screen_4 = nullptr;
+				}				
 				break;
 			case 5:
-				memcpy(forecast_screen_5,emptyarray,4096);
+				if (forecast_screen_5 != nullptr){
+					free(forecast_screen_5);
+					forecast_screen_5 = nullptr;
+				}				
 				break;
 			case 6:
-				memcpy(forecast_screen_6,emptyarray,4096);
+				if (forecast_screen_6 != nullptr){
+					free(forecast_screen_6);
+					forecast_screen_6 = nullptr;
+				}				
 				break;
 			case 7:
-				memcpy(forecast_screen_7,emptyarray,4096);
+				if (forecast_screen_7 != nullptr){
+					free(forecast_screen_7);
+					forecast_screen_7 = nullptr;
+				}				
 				break;
 			case 8:
-				memcpy(forecast_screen_8,emptyarray,4096);
+				if (forecast_screen_8 != nullptr){
+					free(forecast_screen_6);
+					forecast_screen_8 = nullptr;
+				}				
 				break;
 			case 9:
-				memcpy(forecast_screen_9,emptyarray,4096);
+				if (forecast_screen_9 != nullptr){
+					free(forecast_screen_9);
+					forecast_screen_9 = nullptr;
+				}				
 				break;
 			case 10:
-				memcpy(forecast_screen_10,emptyarray,4096);
+				if (forecast_screen_10 != nullptr){
+					free(forecast_screen_10);
+					forecast_screen_10 = nullptr;
+				}				
 				break;
 			}
 			}
 			if(type == "logo"){
-				memcpy(logo_screen,emptyarray,4096);
+				logos[2] = 0;
 			}
 			if(type == "alert"){
-				memcpy(alert_screen,emptyarray,4096);
+				//alert_screen = nullptr;
+				// ON NE FAIT RIEN ON GARDE l'ECRAN
+					if (alert_screen != nullptr){
+					free(alert_screen);
+					alert_screen = nullptr;
+				}
 			}
-		http.end();
 	}
+	http.end();
+	return;
 }
 
 
@@ -3766,28 +3958,6 @@ static void connectWifi()
 		}
 		else
 		{
-			// if (calcWiFiSignalQuality(last_signal_strength) > 0 && calcWiFiSignalQuality(last_signal_strength) < 25)
-			// {
-			// 	drawImage(36, 6, 20, 27, wifired);
-			// }
-
-			// if (calcWiFiSignalQuality(last_signal_strength) >= 25 && calcWiFiSignalQuality(last_signal_strength) < 50)
-			// {
-			// 	drawImage(36, 6, 20, 27, wifiorange);
-			// }
-
-			// if (calcWiFiSignalQuality(last_signal_strength) >= 50 && calcWiFiSignalQuality(last_signal_strength) < 75)
-			// {
-			// 	drawImage(36, 6, 20, 27, wifiyellow);
-			// }
-
-			// if (calcWiFiSignalQuality(last_signal_strength) >= 75 && calcWiFiSignalQuality(last_signal_strength) <= 100)
-			// {
-			// 	drawImage(36, 6, 20, 27, wifigreen);
-			// }
-
-			//String(calcWiFiSignalQuality(WiFi.RSSI()))
-
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
@@ -4064,7 +4234,6 @@ static unsigned long sendData(const LoggerEntry logger, const String &data, cons
 		{
 			https.addHeader(F("Content-Type"), contentType);
 			https.addHeader(F("X-Sensor"), String(F(SENSOR_BASENAME)) + esp_chipid);
-			// https.addHeader(F("X-MAC-ID"), String(F(SENSOR_BASENAME)) + esp_mac_id);
 			if (pin)
 			{
 				https.addHeader(F("X-PIN"), String(pin));
@@ -5382,7 +5551,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 12:
-		if ((memcmp(forecast_screen_0,emptyarray, 4096) != 0 && forecast_screen_0 != NULL) || (memcmp(forecast_screen_1,emptyarray, 4096) !=  0 && forecast_screen_1 != NULL)|| (memcmp(forecast_screen_2,emptyarray, 4096) !=  0 && forecast_screen_2 != NULL) || (memcmp(forecast_screen_3,emptyarray, 4096) !=  0 && forecast_screen_3 != NULL)|| (memcmp(forecast_screen_4,emptyarray, 4096) !=  0 && forecast_screen_4 != NULL) || (memcmp(forecast_screen_5,emptyarray, 4096) !=  0 && forecast_screen_5 != NULL) || (memcmp(forecast_screen_6,emptyarray, 4096) !=  0 && forecast_screen_6 != NULL) || (memcmp(forecast_screen_7,emptyarray, 4096) !=  0 && forecast_screen_7 != NULL) || (memcmp(forecast_screen_8,emptyarray, 4096) !=  0 && forecast_screen_8 != NULL) || (memcmp(forecast_screen_9,emptyarray, 4096) !=  0 && forecast_screen_9 != NULL) || (memcmp(forecast_screen_10,emptyarray, 4096) !=  0 && forecast_screen_10 != NULL))
+		if (forecast_screen_0 != nullptr || forecast_screen_1 != nullptr ||  forecast_screen_2 != nullptr || forecast_screen_3 != nullptr || forecast_screen_4 != nullptr || forecast_screen_5 != nullptr || forecast_screen_6 != nullptr || forecast_screen_7 != nullptr || forecast_screen_8 != nullptr || forecast_screen_9 != nullptr || forecast_screen_10 != nullptr)
 		{
 			drawImage(0, 0, 32, 64, exterieur);
 		}
@@ -5392,7 +5561,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 13:
-		if (memcmp(forecast_screen_0,emptyarray, 4096) != 0 && forecast_screen_0 != NULL)
+		if (forecast_screen_0 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_0);
 		}
@@ -5402,7 +5571,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 14:
-		if (memcmp(forecast_screen_1,emptyarray, 4096) !=  0 && forecast_screen_1 != NULL)
+		if (forecast_screen_1 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_1);
 		}
@@ -5412,7 +5581,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 15:
-		if (memcmp(forecast_screen_2,emptyarray, 4096) !=  0 && forecast_screen_2 != NULL)
+		if (forecast_screen_2 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_2);
 		}
@@ -5422,7 +5591,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 16:
-		if (memcmp(forecast_screen_3,emptyarray, 4096) !=  0 && forecast_screen_3 != NULL)
+		if (forecast_screen_3 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_3);
 		}
@@ -5432,7 +5601,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 17:
-		if (memcmp(forecast_screen_4,emptyarray, 4096) !=  0 && forecast_screen_4 != NULL)
+		if (forecast_screen_4 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_4);
 		}
@@ -5442,7 +5611,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 18:
-		if (memcmp(forecast_screen_5,emptyarray, 4096) !=  0 && forecast_screen_5 != NULL)
+		if (forecast_screen_5 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_5);
 		}
@@ -5452,7 +5621,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 19:
-		if (memcmp(forecast_screen_6,emptyarray, 4096) !=  0 && forecast_screen_6 != NULL)
+		if (forecast_screen_6 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_6);
 		}
@@ -5462,7 +5631,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 20:
-		if (memcmp(forecast_screen_7,emptyarray, 4096) !=  0 && forecast_screen_7 != NULL)
+		if (forecast_screen_7 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_7);
 		}
@@ -5472,7 +5641,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 21:
-		if (memcmp(forecast_screen_8,emptyarray, 4096) !=  0 && forecast_screen_8 != NULL)
+		if (forecast_screen_8 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_8);
 		}
@@ -5482,7 +5651,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 22:
-		if (memcmp(forecast_screen_9,emptyarray, 4096) !=  0 && forecast_screen_9 != NULL)
+		if (forecast_screen_9 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_9);
 		}
@@ -5492,7 +5661,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 23:
-		if (memcmp(forecast_screen_10,emptyarray, 4096) !=  0 && forecast_screen_10 != NULL)
+		if (forecast_screen_10 != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, forecast_screen_10);
 		}
@@ -5563,7 +5732,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 28:
-		if (memcmp(alert_screen,emptyarray, 4096) !=  0)
+		if (alert_screen != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, alert_screen);
 		}
@@ -5573,21 +5742,28 @@ static void display_values_matrix()
 		}
 		break;
 	case 29:
-		if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 2))
-		{
-			logo_index++;
-		}
-		else if (has_logo && (logos[logo_index + 1] == 0) || logo_index == 2)
-		{
-			logo_index = 0;
-		}
-
-		if (logos[logo_index] == cfg_logo_moduleair)
+		if (has_logo  && logo_index < 3)
+		{	
+		if(logos[logo_index] !=0){
+		switch(logos[logo_index]) {
+		case cfg_logo_moduleair:
 			drawImage(0, 0, 32, 64, logo_moduleair);
-		if (logos[logo_index] == cfg_logo_aircarto)
+			break;
+		case cfg_logo_aircarto:
 			drawImage(0, 0, 32, 64, logo_aircarto);
-		if (logos[logo_index] == cfg::display_logo)
+			break;
+		case cfg_logo_custom:
 			drawImage2(0, 0, 32, 64, logo_screen);
+			break;
+		}
+		}else{
+			act_milli += 5000;
+		}
+		logo_index++;
+		}else {
+			logo_index = 0;
+			act_milli += 5000;
+		}
 		break;
 	}
 
@@ -5608,36 +5784,84 @@ static void init_matrix()
 	display_update_enable(true);
 	display.setFont(NULL); //Default font
 
-	for (int i = 1; i < 2; i++)
-	{
-
-		if (i == cfg_logo_moduleair)
-		{
-			display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
-			drawImage(0, 0, 32, 64, logo_moduleair);
-			logo_index++;
-			logos[logo_index] = i;
-			delay(5000);
-		}
-		if (i == cfg_logo_aircarto)
-		{
-			display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
-			drawImage(0, 0, 32, 64, logo_aircarto);
-			logo_index++;
-			logos[logo_index] = i;
-			delay(5000);
-		}
+	if (cfg_logo_moduleair == 1){
+		
 	}
 
-	if (logo_index != -1)
-	{
-		has_logo = true;
-		logo_index = -1;
+	if (cfg_logo_moduleair == 2){
+		logos[0] = 0;
 	}
-	else
-	{
-		has_logo = false;
+
+	if (cfg_logo_moduleair == 0){
+		logos[0] = 0;
 	}
+
+switch(cfg_logo_moduleair) {
+  case 1:
+    logos[0] = 1;
+	display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
+	drawImage(0, 0, 32, 64, logo_moduleair);
+	delay(5000);
+    break;
+  case 2:
+    logos[0] = 2;
+    break;
+  case 0:
+    logos[0] = 0;
+  break;
+} 
+
+switch(cfg_logo_aircarto) {
+  case 1:
+    logos[1] = 1;
+	display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
+	drawImage(0, 0, 32, 64, logo_aircarto);
+	delay(5000);
+    break;
+  case 2:
+    logos[1] = 2;
+    break;
+  case 0:
+    logos[1] = 0;
+  break;
+} 
+
+if (logos[0] == 1 || logos[1] == 1){
+	has_logo = true;
+}else{
+	has_logo = false;
+}
+
+	// for (int i = 1; i < 2; i++)
+	// {
+
+	// 	if (i == cfg_logo_moduleair)
+	// 	{
+	// 		display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
+	// 		drawImage(0, 0, 32, 64, logo_moduleair);
+	// 		logo_index++;
+	// 		logos[logo_index] = i;
+	// 		delay(5000);
+	// 	}
+	// 	if (i == cfg_logo_aircarto)
+	// 	{
+	// 		display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
+	// 		drawImage(0, 0, 32, 64, logo_aircarto);
+	// 		logo_index++;
+	// 		logos[logo_index] = i;
+	// 		delay(5000);
+	// 	}
+	// }
+
+	// if (logo_index != -1)
+	// {
+	// 	has_logo = true;
+	// 	logo_index = -1;
+	// }
+	// else
+	// {
+	// 	has_logo = false;
+	// }
 }
 
 /*****************************************************************
@@ -6154,7 +6378,7 @@ void setup()
 
 	if (cfg::display_forecast)
 	{
-		forecast_selector = 0; //initialisation after first LoRaWAN payload
+		forecast_selector = 0; 
 	}
 
 	Debug.printf("End of void setup()\n");
@@ -6439,37 +6663,70 @@ void loop()
 			switch (forecast_selector)
 			{
 			case 0:
-				memcpy(forecast_screen_0,emptyarray,4096);
+				if (forecast_screen_0 != nullptr){
+					free(forecast_screen_0);
+					forecast_screen_0 = nullptr;
+				}
 				break;
 			case 1:
-				memcpy(forecast_screen_1,emptyarray,4096);
+				if (forecast_screen_1 != nullptr){
+					free(forecast_screen_1);
+					forecast_screen_1 = nullptr;
+				}				
 				break;
 			case 2:
-				memcpy(forecast_screen_2,emptyarray,4096);
+				if (forecast_screen_2 != nullptr){
+					free(forecast_screen_2);
+					forecast_screen_2 = nullptr;
+				}				
 				break;
 			case 3:
-				memcpy(forecast_screen_3,emptyarray,4096);
+				if (forecast_screen_3 != nullptr){
+					free(forecast_screen_3);
+					forecast_screen_3 = nullptr;
+				}				
 				break;
 			case 4:
-				memcpy(forecast_screen_4,emptyarray,4096);
+				if (forecast_screen_4 != nullptr){
+					free(forecast_screen_4);
+					forecast_screen_4 = nullptr;
+				}				
 				break;
 			case 5:
-				memcpy(forecast_screen_5,emptyarray,4096);
+				if (forecast_screen_5 != nullptr){
+					free(forecast_screen_5);
+					forecast_screen_5 = nullptr;
+				}				
 				break;
 			case 6:
-				memcpy(forecast_screen_6,emptyarray,4096);
+				if (forecast_screen_6 != nullptr){
+					free(forecast_screen_6);
+					forecast_screen_6 = nullptr;
+				}				
 				break;
 			case 7:
-				memcpy(forecast_screen_7,emptyarray,4096);
+				if (forecast_screen_7 != nullptr){
+					free(forecast_screen_7);
+					forecast_screen_7 = nullptr;
+				}				
 				break;
 			case 8:
-				memcpy(forecast_screen_8,emptyarray,4096);
+				if (forecast_screen_8 != nullptr){
+					free(forecast_screen_6);
+					forecast_screen_8 = nullptr;
+				}				
 				break;
 			case 9:
-				memcpy(forecast_screen_9,emptyarray,4096);
+				if (forecast_screen_9 != nullptr){
+					free(forecast_screen_9);
+					forecast_screen_9 = nullptr;
+				}				
 				break;
 			case 10:
-				memcpy(forecast_screen_10,emptyarray,4096);
+				if (forecast_screen_10 != nullptr){
+					free(forecast_screen_10);
+					forecast_screen_10 = nullptr;
+				}				
 				break;
 			}
 		}
@@ -6480,7 +6737,24 @@ void loop()
 		}
 		else
 		{
-			memcpy(alert_screen,emptyarray,4096);
+			// if (alert_screen != nullptr){ //Si wifi lost danger que nouveau message arrive pas => on enleve le message ?
+
+
+
+			// }
+
+
+			// alert_screen = nullptr;
+
+			//ON FAIT RIEN => LE MESSAGE RESTE ?
+
+			//ECRAN SUP WIFI DISCONNECT?????
+
+				if (alert_screen != nullptr){
+					free(alert_screen);
+					alert_screen = nullptr;
+				}
+
 		}
 
 		//UPDATE DU LOGO ?

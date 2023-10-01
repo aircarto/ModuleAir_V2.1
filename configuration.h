@@ -6,6 +6,7 @@ bool online_acces = false;
 
 const int cfg_logo_moduleair = 1;
 const int cfg_logo_aircarto = 2;
+const int cfg_logo_custom = 3;  
 
 // Select the screens to be displayed
 
