@@ -5022,7 +5022,7 @@ static void display_values_matrix()
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
 	uint8_t screen_count = 0;
-	uint8_t screens[30];
+	uint8_t screens[31];
 	int line_count = 0;
 	//debug_outln_info(F("output values to matrix..."));
 
@@ -5160,9 +5160,10 @@ static void display_values_matrix()
 	if (cfg::display_alert)
 	{
 	screens[screen_count++] = 28; // Alert
+	screens[screen_count++] = 29; // Alert
 	}
 
-	screens[screen_count++] = 29; // Logos
+	screens[screen_count++] = 30; // Logos
 
 	switch (screens[next_display_count % screen_count])
 	{
@@ -5732,6 +5733,16 @@ static void display_values_matrix()
 		}
 		break;
 	case 28:
+		if (cfg::display_alert && alert_screen != nullptr)
+		{
+			drawImage(0, 0, 32, 64, alert_ecran1);
+		}
+		else
+		{
+			act_milli += 5000;
+		}
+		break;
+	case 29:
 		if (alert_screen != nullptr)
 		{
 			drawImage2(0, 0, 32, 64, alert_screen);
@@ -5741,7 +5752,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 29:
+	case 30:
 		if (has_logo  && logo_index < 3)
 		{	
 		if(logos[logo_index] !=0){
