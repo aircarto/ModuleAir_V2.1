@@ -289,18 +289,16 @@ void IRAM_ATTR display_updater()
 
 void display_update_enable(bool is_enable)
 {
-	Debug.print("Call display_update_enable function with:");
 	if (is_enable)
 	{
-		Debug.println("true");
-		//timer = timerBegin(0, 80, true);
+		debug_outln_info(F("Call display_update_enable function with: "), F("true"));
 		timerAttachInterrupt(timer, &display_updater, true);
 		timerAlarmWrite(timer, 4000, true);
 		timerAlarmEnable(timer);
 	}
 	else
 	{
-		Debug.println("false");
+		debug_outln_info(F("Call display_update_enable function with: "), F("false"));
 		timerDetachInterrupt(timer);
 		timerAlarmDisable(timer);
 	}
@@ -340,20 +338,17 @@ bool gamma_correction = true; //Gamma correction
 
 struct RGB interpolateint(float valueSensor, int step1, int step2, int step3, bool correction)
 {
-
 	struct RGB result;
 	uint16_t rgb565;
 
 	if (valueSensor == 0)
 	{
-
 		result.R = 0;
 		result.G = 255; // VERT
 		result.B = 0;
 	}
 	else if (valueSensor > 0 && valueSensor < step1)
 	{
-
 		result.R = 0;
 		result.G = 255; // VERT
 		result.B = 0;
@@ -372,7 +367,6 @@ struct RGB interpolateint(float valueSensor, int step1, int step2, int step3, bo
 	}
 	else if (valueSensor >= step3)
 	{
-
 		result.R = 255;
 		result.G = 0; // ROUGE
 		result.B = 0;
@@ -468,7 +462,6 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 
 	if (valueSensor == 0)
 	{
-
 		result.R = 80;
 		result.G = 240; //blue
 		result.B = 230;
@@ -510,7 +503,6 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 		}
 		else if (valueSensor > step3 && valueSensor <= step4)
 		{
-
 			valueLimitHigh = step4;
 			valueLimitLow = step3;
 			endColorValueR = 136;
@@ -571,14 +563,12 @@ struct RGB interpolateint2(float valueSensor, int step1, int step2, bool correct
 
 	if (valueSensor == 0)
 	{
-
 		result.R = 0;
 		result.G = 255; // Green entre 0 et 800
 		result.B = 0;
 	}
 	else if (valueSensor > 0 && valueSensor < step1)
 	{
-
 		result.R = 0;
 		result.G = 255; // Green entre 0 et 800
 		result.B = 0;
@@ -616,13 +606,11 @@ struct RGB interpolateint2(float valueSensor, int step1, int step2, bool correct
 
 struct RGB interpolateint3(float valueSensor, int step1, int step2, bool correction) // Humi
 {
-
 	struct RGB result;
 	uint16_t rgb565;
 
 	if (valueSensor == 0)
 	{
-
 		result.R = 255;
 		result.G = 0; // red
 		result.B = 0;
@@ -666,7 +654,6 @@ struct RGB interpolateint3(float valueSensor, int step1, int step2, bool correct
 
 struct RGB interpolateint4(float valueSensor, int step1, int step2, bool correction) // temp
 {
-
 	struct RGB result;
 	uint16_t rgb565;
 
@@ -678,7 +665,6 @@ struct RGB interpolateint4(float valueSensor, int step1, int step2, bool correct
 	}
 	else if (valueSensor >= step1 && valueSensor < step2)
 	{
-
 		result.R = 0;
 		result.G = 255; // Green ok
 		result.B = 0;
@@ -717,12 +703,12 @@ void drawgradient(int x, int y, float valueSensor, int step1, int step2, int ste
 	int pixelvalue[64];
 	RGB pixelcolors[64];
 
-	Debug.println("Pixel values");
+	debug_outln_info(F("Pixel values"));
 	for (uint8_t i = 0; i < gradientWidth; i++)
 	{
 		pixelvalue[i] = (int)((i * step5) / (gradientWidth - 1));
-		Debug.print(" ");
-		Debug.print(pixelvalue[i]);
+		Debug.print(F(" "));
+		Debug.print(F(pixelvalue[i]));
 		if (i == 63)
 		{
 			Debug.printf("\n");
@@ -784,7 +770,6 @@ void messager1(float valueSensor, int step1, int step2, int step3)
 
 void messager2(float valueSensor, int step1, int step2)
 {
-
 	display.setFont(NULL);
 	display.setTextSize(1);
 
@@ -900,60 +885,17 @@ void messager5(int value) // Indice Atmo
 /*****************************************************************
  * Forecast                                               *
  *****************************************************************/
-
-	// uint8_t forecast_screen_0[4096] = {};
-	// uint8_t forecast_screen_1[4096] = {};
-	// uint8_t forecast_screen_2[4096] = {};
-	// uint8_t forecast_screen_3[4096] = {};
-	// uint8_t forecast_screen_4[4096] = {};
-	// uint8_t forecast_screen_5[4096] = {};
-	// uint8_t forecast_screen_6[4096] = {};
-	// uint8_t forecast_screen_7[4096] = {};
-	// uint8_t forecast_screen_8[4096] = {};
-	// uint8_t forecast_screen_9[4096] = {};
-	// uint8_t forecast_screen_10[4096] = {};
-
-	// uint8_t *forecast_screen_0 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_1 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_2 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_3 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_4 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_5 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_6 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_7 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_8 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_9 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-	// uint8_t *forecast_screen_10 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-
-	// uint8_t *forecast_screen_0 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_1 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_2 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_3 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_4 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_5 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_6 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_7 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_8 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_9 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-	// uint8_t *forecast_screen_10 = (uint8_t *) calloc(4096,sizeof(uint8_t));
-
-	uint8_t *forecast_screen_0 = nullptr;
-	uint8_t *forecast_screen_1 = nullptr;
-	uint8_t *forecast_screen_2 = nullptr;
-	uint8_t *forecast_screen_3 = nullptr;
-	uint8_t *forecast_screen_4 = nullptr;
-	uint8_t *forecast_screen_5 = nullptr;
-	uint8_t *forecast_screen_6 = nullptr;
-	uint8_t *forecast_screen_7 = nullptr;
-	uint8_t *forecast_screen_8 = nullptr;
-	uint8_t *forecast_screen_9 = nullptr;
-	uint8_t *forecast_screen_10 = nullptr;
-
-// malloc
-// free
-//realloc
-// ON CHERCHE LE DERNIER ECRAN => FREE
-//ON APPEL ECRAN ET SI QC REALLOC ET AU PROCHAIN TOUR CHARGE
+uint8_t *forecast_screen_0 = nullptr;
+uint8_t *forecast_screen_1 = nullptr;
+uint8_t *forecast_screen_2 = nullptr;
+uint8_t *forecast_screen_3 = nullptr;
+uint8_t *forecast_screen_4 = nullptr;
+uint8_t *forecast_screen_5 = nullptr;
+uint8_t *forecast_screen_6 = nullptr;
+uint8_t *forecast_screen_7 = nullptr;
+uint8_t *forecast_screen_8 = nullptr;
+uint8_t *forecast_screen_9 = nullptr;
+uint8_t *forecast_screen_10 = nullptr;
 
 uint8_t forecast_selector;
 uint8_t last_selector = 10;
@@ -961,22 +903,16 @@ uint8_t last_selector = 10;
 /*****************************************************************
  * Logo                                               *
  *****************************************************************/
-
-//uint8_t *logo_screen = (uint8_t *) calloc(4096,sizeof(uint8_t));
 uint8_t *logo_screen = nullptr;
-//uint8_t logo_screen[4096] = {};
 
 /*****************************************************************
  * Alert                                               *
  *****************************************************************/
-
-//uint8_t alert_screen[4096] = {};
 uint8_t *alert_screen = nullptr;
 
 /*****************************************************************
  * Serial declarations                                           *
  *****************************************************************/
-
 #define serialSDS (Serial1)
 #define serialNPM (Serial1)
 #define serialMHZ (Serial2)
@@ -1218,7 +1154,6 @@ static void display_debug(const String &text1, const String &text2)
  *****************************************************************/
 static String SDS_version_date()
 {
-
 	if (cfg::sds_read && !last_value_SDS_version.length())
 	{
 		debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(DBG_TXT_SDS011_VERSION_DATE));
@@ -1251,7 +1186,6 @@ static String SDS_version_date()
 /*****************************************************************
  * NPM functions     *
  *****************************************************************/
-
 static int8_t NPM_get_state()
 {
 	int8_t result = -1;
@@ -1553,8 +1487,7 @@ static String NPM_temp_humi()
 static bool writeConfig()
 {
 
-	Debug.print("cfg::has_matrix: ");
-	Debug.println(cfg::has_matrix);
+	debug_outln_info(F("cfg::has_matrix: "), String(cfg::has_matrix));
 
 	if (cfg::has_matrix && spiffs_matrix)
 	{
@@ -3351,25 +3284,22 @@ static void waitForWifiToConnect(int maxRetries)
 	}
 }
 
-
 /*****************************************************************
  * get screens                                         *
  *****************************************************************/
 
-
 void getScreenAircarto(unsigned int screen, String type, String id)
 {
-	Debug.println(String(ESP.getFreeHeap()));
-
+	debug_outln_info(String(ESP.getFreeHeap()));
 	String reponseAPI;
 	DynamicJsonDocument screenarray(65536);
-	Debug.println(screenarray.capacity());
+	debug_outln_info(String(screenarray.capacity()));
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
 	String urlAirCarto1 = "http://data.moduleair.fr/imageCreate/index?screen=";
 	String urlAirCarto2 = "&type=";
-	String urlAirCarto3 ="&device=";
+	String urlAirCarto3 = "&device=";
 	String serverPath = urlAirCarto1 + String(screen) + urlAirCarto2 + type + urlAirCarto3 + id;
 
 	//String serverPath = "http://data.moduleair.fr/imageCreate/index?screen=0&type=logo&device=50349E9EF0C8";
@@ -3387,411 +3317,488 @@ void getScreenAircarto(unsigned int screen, String type, String id)
 		//debug_outln_info(F("Response: "), reponseAPI);
 		if (reponseAPI == "null")
 		{
-			Debug.println("Response = null");
-			if(type == "mod"){
-			switch (screen)
+			debug_outln_info(F("Response = null"));
+			if (type == "mod")
 			{
-			case 0:
-				if (forecast_screen_0 != nullptr){
-					free(forecast_screen_0);
-					forecast_screen_0 = nullptr;
+				switch (screen)
+				{
+				case 0:
+					if (forecast_screen_0 != nullptr)
+					{
+						free(forecast_screen_0);
+						forecast_screen_0 = nullptr;
+					}
+					break;
+				case 1:
+					if (forecast_screen_1 != nullptr)
+					{
+						free(forecast_screen_1);
+						forecast_screen_1 = nullptr;
+					}
+					break;
+				case 2:
+					if (forecast_screen_2 != nullptr)
+					{
+						free(forecast_screen_2);
+						forecast_screen_2 = nullptr;
+					}
+					break;
+				case 3:
+					if (forecast_screen_3 != nullptr)
+					{
+						free(forecast_screen_3);
+						forecast_screen_3 = nullptr;
+					}
+					break;
+				case 4:
+					if (forecast_screen_4 != nullptr)
+					{
+						free(forecast_screen_4);
+						forecast_screen_4 = nullptr;
+					}
+					break;
+				case 5:
+					if (forecast_screen_5 != nullptr)
+					{
+						free(forecast_screen_5);
+						forecast_screen_5 = nullptr;
+					}
+					break;
+				case 6:
+					if (forecast_screen_6 != nullptr)
+					{
+						free(forecast_screen_6);
+						forecast_screen_6 = nullptr;
+					}
+					break;
+				case 7:
+					if (forecast_screen_7 != nullptr)
+					{
+						free(forecast_screen_7);
+						forecast_screen_7 = nullptr;
+					}
+					break;
+				case 8:
+					if (forecast_screen_8 != nullptr)
+					{
+						free(forecast_screen_6);
+						forecast_screen_8 = nullptr;
+					}
+					break;
+				case 9:
+					if (forecast_screen_9 != nullptr)
+					{
+						free(forecast_screen_9);
+						forecast_screen_9 = nullptr;
+					}
+					break;
+				case 10:
+					if (forecast_screen_10 != nullptr)
+					{
+						free(forecast_screen_10);
+						forecast_screen_10 = nullptr;
+					}
+					break;
 				}
-				break;
-			case 1:
-				if (forecast_screen_1 != nullptr){
-					free(forecast_screen_1);
-					forecast_screen_1 = nullptr;
-				}				
-				break;
-			case 2:
-				if (forecast_screen_2 != nullptr){
-					free(forecast_screen_2);
-					forecast_screen_2 = nullptr;
-				}				
-				break;
-			case 3:
-				if (forecast_screen_3 != nullptr){
-					free(forecast_screen_3);
-					forecast_screen_3 = nullptr;
-				}				
-				break;
-			case 4:
-				if (forecast_screen_4 != nullptr){
-					free(forecast_screen_4);
-					forecast_screen_4 = nullptr;
-				}				
-				break;
-			case 5:
-				if (forecast_screen_5 != nullptr){
-					free(forecast_screen_5);
-					forecast_screen_5 = nullptr;
-				}				
-				break;
-			case 6:
-				if (forecast_screen_6 != nullptr){
-					free(forecast_screen_6);
-					forecast_screen_6 = nullptr;
-				}				
-				break;
-			case 7:
-				if (forecast_screen_7 != nullptr){
-					free(forecast_screen_7);
-					forecast_screen_7 = nullptr;
-				}				
-				break;
-			case 8:
-				if (forecast_screen_8 != nullptr){
-					free(forecast_screen_6);
-					forecast_screen_8 = nullptr;
-				}				
-				break;
-			case 9:
-				if (forecast_screen_9 != nullptr){
-					free(forecast_screen_9);
-					forecast_screen_9 = nullptr;
-				}				
-				break;
-			case 10:
-				if (forecast_screen_10 != nullptr){
-					free(forecast_screen_10);
-					forecast_screen_10 = nullptr;
-				}				
-				break;
 			}
-			}
-			if(type == "logo"){
+			if (type == "logo")
+			{
 				logos[2] = 0;
 			}
-			if(type == "alert"){
-				if (alert_screen != nullptr){
-					free(alert_screen);
-					alert_screen = nullptr;
-				}
-			}				
-		}else{
-
-		Debug.println(String(ESP.getFreeHeap()));
-		DeserializationError error = deserializeJson(screenarray, reponseAPI.c_str());
-
-		if (strcmp(error.c_str(), "Ok") == 0)
-		{
-			JsonArray screenarraybyte = screenarray.as<JsonArray>();
-
-			if(type == "mod"){
-			switch (screen)
+			if (type == "alert")
 			{
-			case 0:
-				if (forecast_screen_0 != nullptr){
-					free(forecast_screen_0);
-					forecast_screen_0 = nullptr;
-				}
-				forecast_screen_0 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_0[i] = screenarraybyte[i];
-				}
-				break;
-			case 1:
-				if (forecast_screen_1 != nullptr){
-					free(forecast_screen_1);
-					forecast_screen_1 = nullptr;
-				}
-				forecast_screen_1 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_1[i] = screenarraybyte[i];
-				}
-				break;
-			case 2:
-				if (forecast_screen_2 != nullptr){
-					free(forecast_screen_2);
-					forecast_screen_2 = nullptr;
-				}
-				forecast_screen_2 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_2[i] = screenarraybyte[i];
-				}
-				break;
-			case 3:
-				if (forecast_screen_3 != nullptr){
-					free(forecast_screen_3);
-					forecast_screen_3 = nullptr;
-				}
-				forecast_screen_3 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_3[i] = screenarraybyte[i];
-				}
-				break;
-			case 4:
-				if (forecast_screen_4 != nullptr){
-					free(forecast_screen_4);
-					forecast_screen_4 = nullptr;
-				}
-				forecast_screen_4 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_4[i] = screenarraybyte[i];
-				}
-				break;
-			case 5:
-				if (forecast_screen_5 != nullptr){
-					free(forecast_screen_5);
-					forecast_screen_5 = nullptr;
-				}
-				forecast_screen_5 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_5[i] = screenarraybyte[i];
-				}
-				break;
-			case 6:
-				if (forecast_screen_6 != nullptr){
-					free(forecast_screen_6);
-					forecast_screen_6 = nullptr;
-				}
-				forecast_screen_6 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_6[i] = screenarraybyte[i];
-				}
-				break;
-			case 7:
-				if (forecast_screen_7 != nullptr){
-					free(forecast_screen_7);
-					forecast_screen_7 = nullptr;
-				}
-				forecast_screen_7 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_7[i] = screenarraybyte[i];
-				}
-				break;
-			case 8:
-				if (forecast_screen_8 != nullptr){
-					free(forecast_screen_8);
-					forecast_screen_8 = nullptr;
-				}
-				forecast_screen_8 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_8[i] = screenarraybyte[i];
-				}
-				break;
-			case 9:
-				if (forecast_screen_9 != nullptr){
-					free(forecast_screen_9);
-					forecast_screen_9 = nullptr;
-				}
-				forecast_screen_9 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_9[i] = screenarraybyte[i];
-				}
-				break;
-			case 10:
-				if (forecast_screen_10 != nullptr){
-					free(forecast_screen_10);
-					forecast_screen_10 = nullptr;
-				}
-				forecast_screen_10 = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				forecast_screen_10[i] = screenarraybyte[i];
-				}
-				break;
-			}
-			}
-			if(type == "logo"){
-				logo_screen = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				logo_screen[i] = screenarraybyte[i];
-				}
-				logos[2] = cfg_logo_custom;
-				if(has_logo == false){
-					has_logo = true;
-				}
-			}
-			if(type == "alert"){
-				if (alert_screen != nullptr){
+				if (alert_screen != nullptr)
+				{
 					free(alert_screen);
 					alert_screen = nullptr;
-				}
-				alert_screen = (uint8_t *) malloc(4096*sizeof(uint8_t));
-				for (int i = 0; i < 4096; i++) {
-				alert_screen[i] = screenarraybyte[i];
 				}
 			}
 		}
 		else
 		{
-			Debug.print(F("deserializeJson() failed: "));
-			Debug.println(error.c_str());
-			if(type == "mod"){
-			switch (screen)
+
+			debug_outln_info(String(ESP.getFreeHeap()));
+			DeserializationError error = deserializeJson(screenarray, reponseAPI.c_str());
+
+			if (strcmp(error.c_str(), "Ok") == 0)
 			{
-			case 0:
-				if (forecast_screen_0 != nullptr){
-					free(forecast_screen_0);
-					forecast_screen_0 = nullptr;
+				JsonArray screenarraybyte = screenarray.as<JsonArray>();
+
+				if (type == "mod")
+				{
+					switch (screen)
+					{
+					case 0:
+						if (forecast_screen_0 != nullptr)
+						{
+							free(forecast_screen_0);
+							forecast_screen_0 = nullptr;
+						}
+						forecast_screen_0 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_0[i] = screenarraybyte[i];
+						}
+						break;
+					case 1:
+						if (forecast_screen_1 != nullptr)
+						{
+							free(forecast_screen_1);
+							forecast_screen_1 = nullptr;
+						}
+						forecast_screen_1 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_1[i] = screenarraybyte[i];
+						}
+						break;
+					case 2:
+						if (forecast_screen_2 != nullptr)
+						{
+							free(forecast_screen_2);
+							forecast_screen_2 = nullptr;
+						}
+						forecast_screen_2 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_2[i] = screenarraybyte[i];
+						}
+						break;
+					case 3:
+						if (forecast_screen_3 != nullptr)
+						{
+							free(forecast_screen_3);
+							forecast_screen_3 = nullptr;
+						}
+						forecast_screen_3 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_3[i] = screenarraybyte[i];
+						}
+						break;
+					case 4:
+						if (forecast_screen_4 != nullptr)
+						{
+							free(forecast_screen_4);
+							forecast_screen_4 = nullptr;
+						}
+						forecast_screen_4 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_4[i] = screenarraybyte[i];
+						}
+						break;
+					case 5:
+						if (forecast_screen_5 != nullptr)
+						{
+							free(forecast_screen_5);
+							forecast_screen_5 = nullptr;
+						}
+						forecast_screen_5 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_5[i] = screenarraybyte[i];
+						}
+						break;
+					case 6:
+						if (forecast_screen_6 != nullptr)
+						{
+							free(forecast_screen_6);
+							forecast_screen_6 = nullptr;
+						}
+						forecast_screen_6 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_6[i] = screenarraybyte[i];
+						}
+						break;
+					case 7:
+						if (forecast_screen_7 != nullptr)
+						{
+							free(forecast_screen_7);
+							forecast_screen_7 = nullptr;
+						}
+						forecast_screen_7 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_7[i] = screenarraybyte[i];
+						}
+						break;
+					case 8:
+						if (forecast_screen_8 != nullptr)
+						{
+							free(forecast_screen_8);
+							forecast_screen_8 = nullptr;
+						}
+						forecast_screen_8 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_8[i] = screenarraybyte[i];
+						}
+						break;
+					case 9:
+						if (forecast_screen_9 != nullptr)
+						{
+							free(forecast_screen_9);
+							forecast_screen_9 = nullptr;
+						}
+						forecast_screen_9 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_9[i] = screenarraybyte[i];
+						}
+						break;
+					case 10:
+						if (forecast_screen_10 != nullptr)
+						{
+							free(forecast_screen_10);
+							forecast_screen_10 = nullptr;
+						}
+						forecast_screen_10 = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+						for (int i = 0; i < 4096; i++)
+						{
+							forecast_screen_10[i] = screenarraybyte[i];
+						}
+						break;
+					}
 				}
-				break;
-			case 1:
-				if (forecast_screen_1 != nullptr){
-					free(forecast_screen_1);
-					forecast_screen_1 = nullptr;
-				}				
-				break;
-			case 2:
-				if (forecast_screen_2 != nullptr){
-					free(forecast_screen_2);
-					forecast_screen_2 = nullptr;
-				}				
-				break;
-			case 3:
-				if (forecast_screen_3 != nullptr){
-					free(forecast_screen_3);
-					forecast_screen_3 = nullptr;
-				}				
-				break;
-			case 4:
-				if (forecast_screen_4 != nullptr){
-					free(forecast_screen_4);
-					forecast_screen_4 = nullptr;
-				}				
-				break;
-			case 5:
-				if (forecast_screen_5 != nullptr){
-					free(forecast_screen_5);
-					forecast_screen_5 = nullptr;
-				}				
-				break;
-			case 6:
-				if (forecast_screen_6 != nullptr){
-					free(forecast_screen_6);
-					forecast_screen_6 = nullptr;
-				}				
-				break;
-			case 7:
-				if (forecast_screen_7 != nullptr){
-					free(forecast_screen_7);
-					forecast_screen_7 = nullptr;
-				}				
-				break;
-			case 8:
-				if (forecast_screen_8 != nullptr){
-					free(forecast_screen_6);
-					forecast_screen_8 = nullptr;
-				}				
-				break;
-			case 9:
-				if (forecast_screen_9 != nullptr){
-					free(forecast_screen_9);
-					forecast_screen_9 = nullptr;
-				}				
-				break;
-			case 10:
-				if (forecast_screen_10 != nullptr){
-					free(forecast_screen_10);
-					forecast_screen_10 = nullptr;
-				}				
-				break;
-			}
-			}
-			if(type == "logo"){
-			logos[2] = 0;
-			}
-			if(type == "alert"){
-			// alert_screen = nullptr;
-			// ON NE FAIT RIEN ON GARDE l'ECRAN
-				if (alert_screen != nullptr){
-					free(alert_screen);
-					alert_screen = nullptr;
+				if (type == "logo")
+				{
+					logo_screen = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+					for (int i = 0; i < 4096; i++)
+					{
+						logo_screen[i] = screenarraybyte[i];
+					}
+					logos[2] = cfg_logo_custom;
+					if (has_logo == false)
+					{
+						has_logo = true;
+					}
+				}
+				if (type == "alert")
+				{
+					if (alert_screen != nullptr)
+					{
+						free(alert_screen);
+						alert_screen = nullptr;
+					}
+					alert_screen = (uint8_t *)malloc(4096 * sizeof(uint8_t));
+					for (int i = 0; i < 4096; i++)
+					{
+						alert_screen[i] = screenarraybyte[i];
+					}
 				}
 			}
-		}
+			else
+			{
+				// Debug.print(F("deserializeJson() failed: "));
+				// Debug.println(error.c_str());
+				debug_outln_info(F("deserializeJson() failed: "), error.c_str());
+				if (type == "mod")
+				{
+					switch (screen)
+					{
+					case 0:
+						if (forecast_screen_0 != nullptr)
+						{
+							free(forecast_screen_0);
+							forecast_screen_0 = nullptr;
+						}
+						break;
+					case 1:
+						if (forecast_screen_1 != nullptr)
+						{
+							free(forecast_screen_1);
+							forecast_screen_1 = nullptr;
+						}
+						break;
+					case 2:
+						if (forecast_screen_2 != nullptr)
+						{
+							free(forecast_screen_2);
+							forecast_screen_2 = nullptr;
+						}
+						break;
+					case 3:
+						if (forecast_screen_3 != nullptr)
+						{
+							free(forecast_screen_3);
+							forecast_screen_3 = nullptr;
+						}
+						break;
+					case 4:
+						if (forecast_screen_4 != nullptr)
+						{
+							free(forecast_screen_4);
+							forecast_screen_4 = nullptr;
+						}
+						break;
+					case 5:
+						if (forecast_screen_5 != nullptr)
+						{
+							free(forecast_screen_5);
+							forecast_screen_5 = nullptr;
+						}
+						break;
+					case 6:
+						if (forecast_screen_6 != nullptr)
+						{
+							free(forecast_screen_6);
+							forecast_screen_6 = nullptr;
+						}
+						break;
+					case 7:
+						if (forecast_screen_7 != nullptr)
+						{
+							free(forecast_screen_7);
+							forecast_screen_7 = nullptr;
+						}
+						break;
+					case 8:
+						if (forecast_screen_8 != nullptr)
+						{
+							free(forecast_screen_6);
+							forecast_screen_8 = nullptr;
+						}
+						break;
+					case 9:
+						if (forecast_screen_9 != nullptr)
+						{
+							free(forecast_screen_9);
+							forecast_screen_9 = nullptr;
+						}
+						break;
+					case 10:
+						if (forecast_screen_10 != nullptr)
+						{
+							free(forecast_screen_10);
+							forecast_screen_10 = nullptr;
+						}
+						break;
+					}
+				}
+				if (type == "logo")
+				{
+					logos[2] = 0;
+				}
+				if (type == "alert")
+				{
+					// alert_screen = nullptr;
+					// ON NE FAIT RIEN ON GARDE l'ECRAN
+					if (alert_screen != nullptr)
+					{
+						free(alert_screen);
+						alert_screen = nullptr;
+					}
+				}
+			}
 		}
 	}
 	else
 	{
 		debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
-			if(type == "mod"){
+		if (type == "mod")
+		{
 			switch (screen)
 			{
 			case 0:
-				if (forecast_screen_0 != nullptr){
+				if (forecast_screen_0 != nullptr)
+				{
 					free(forecast_screen_0);
 					forecast_screen_0 = nullptr;
 				}
 				break;
 			case 1:
-				if (forecast_screen_1 != nullptr){
+				if (forecast_screen_1 != nullptr)
+				{
 					free(forecast_screen_1);
 					forecast_screen_1 = nullptr;
-				}				
+				}
 				break;
 			case 2:
-				if (forecast_screen_2 != nullptr){
+				if (forecast_screen_2 != nullptr)
+				{
 					free(forecast_screen_2);
 					forecast_screen_2 = nullptr;
-				}				
+				}
 				break;
 			case 3:
-				if (forecast_screen_3 != nullptr){
+				if (forecast_screen_3 != nullptr)
+				{
 					free(forecast_screen_3);
 					forecast_screen_3 = nullptr;
-				}				
+				}
 				break;
 			case 4:
-				if (forecast_screen_4 != nullptr){
+				if (forecast_screen_4 != nullptr)
+				{
 					free(forecast_screen_4);
 					forecast_screen_4 = nullptr;
-				}				
+				}
 				break;
 			case 5:
-				if (forecast_screen_5 != nullptr){
+				if (forecast_screen_5 != nullptr)
+				{
 					free(forecast_screen_5);
 					forecast_screen_5 = nullptr;
-				}				
+				}
 				break;
 			case 6:
-				if (forecast_screen_6 != nullptr){
+				if (forecast_screen_6 != nullptr)
+				{
 					free(forecast_screen_6);
 					forecast_screen_6 = nullptr;
-				}				
+				}
 				break;
 			case 7:
-				if (forecast_screen_7 != nullptr){
+				if (forecast_screen_7 != nullptr)
+				{
 					free(forecast_screen_7);
 					forecast_screen_7 = nullptr;
-				}				
+				}
 				break;
 			case 8:
-				if (forecast_screen_8 != nullptr){
+				if (forecast_screen_8 != nullptr)
+				{
 					free(forecast_screen_6);
 					forecast_screen_8 = nullptr;
-				}				
+				}
 				break;
 			case 9:
-				if (forecast_screen_9 != nullptr){
+				if (forecast_screen_9 != nullptr)
+				{
 					free(forecast_screen_9);
 					forecast_screen_9 = nullptr;
-				}				
+				}
 				break;
 			case 10:
-				if (forecast_screen_10 != nullptr){
+				if (forecast_screen_10 != nullptr)
+				{
 					free(forecast_screen_10);
 					forecast_screen_10 = nullptr;
-				}				
+				}
 				break;
 			}
+		}
+		if (type == "logo")
+		{
+			logos[2] = 0;
+		}
+		if (type == "alert")
+		{
+			//alert_screen = nullptr;
+			// ON NE FAIT RIEN ON GARDE l'ECRAN
+			if (alert_screen != nullptr)
+			{
+				free(alert_screen);
+				alert_screen = nullptr;
 			}
-			if(type == "logo"){
-				logos[2] = 0;
-			}
-			if(type == "alert"){
-				//alert_screen = nullptr;
-				// ON NE FAIT RIEN ON GARDE l'ECRAN
-					if (alert_screen != nullptr){
-					free(alert_screen);
-					alert_screen = nullptr;
-				}
-			}
+		}
 	}
+	//screenarray.~BasicJsonDocument();
 	http.end();
 	return;
 }
-
 
 /*****************************************************************
  * WiFi auto connecting script                                   *
@@ -3842,7 +3849,7 @@ static void connectWifi()
 										  {
 											  if (!wifi_connection_lost)
 											  {
-												  Debug.println("Event disconnect");
+												  debug_outln_info(F("Event disconnect"));
 												  wifi_connection_lost = true;
 											  }
 										  },
@@ -3852,18 +3859,18 @@ static void connectWifi()
 									   {
 										   if (wifi_connection_lost)
 										   {
-											   Debug.println("Event connect");
+											   debug_outln_info(F("Event connect"));
 											   wifi_connection_lost = false;
 										   }
 									   },
 									   WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
 
 	STAstartEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-										{ Debug.println("STA start"); },
+										{ debug_outln_info(F("STA start")); },
 										WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_START);
 
 	STAstopEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-									   { Debug.println("STA stop"); },
+									   { debug_outln_info(F("STA stop")); },
 									   WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_STOP);
 
 	if (WiFi.getAutoConnect())
@@ -3892,7 +3899,7 @@ static void connectWifi()
 	//if (WiFi.status() != WL_CONNECTED) //Waitforwifistatus ?
 	if (WiFi.waitForConnectResult(10000) != WL_CONNECTED) //Waitforwifistatus ?
 	{
-		Debug.println("Force change WiFi config");
+		debug_outln_info(F("Force change WiFi config"));
 		wifi_connection_lost = true;
 		cfg::has_wifi = false;
 
@@ -3905,9 +3912,10 @@ static void connectWifi()
 	else
 	{
 		wifi_connection_lost = false;
-		if(cfg::display_logo){
-		Debug.println("Get custom logo..."); //only once!
-		getScreenAircarto(0,"logo",esp_chipid);
+		if (cfg::display_logo)
+		{
+			debug_outln_info(F("Get custom logo...")); //only once!
+			getScreenAircarto(0, "logo", esp_chipid);
 		}
 	}
 
@@ -4011,7 +4019,7 @@ static void connectWifi()
 // 	disconnectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 // 										  {
 // 											  if (!wifi_connection_lost){
-// 												Debug.println("Event disconnect");
+// 												Debug.println(F("Event disconnect"));
 // 											  wifi_connection_lost = true;
 // 											  }
 // 										  },
@@ -4020,7 +4028,7 @@ static void connectWifi()
 // 	connectEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 // 										  {
 // 											if (wifi_connection_lost){
-// 												Debug.println("Event connect");
+// 												Debug.println(F("Event connect"));
 // 											 wifi_connection_lost = false;
 // 											}
 // 										  },
@@ -4028,13 +4036,13 @@ static void connectWifi()
 
 // 	STAstartEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 // 										  {
-// 											Debug.println("STA start");
+// 											Debug.println(F("STA start"));
 // 										  },
 // 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_START);
 
 // 	STAstopEventHandler = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
 // 										  {
-// 											Debug.println("STA stop");
+// 											Debug.println(F("STA stop"));
 // 										  },
 // 										  WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_STOP);
 
@@ -4063,7 +4071,7 @@ static void connectWifi()
 
 // 	if (WiFi.waitForConnectResult(10000) != WL_CONNECTED)
 // 	{
-// 		Debug.println("Can't restart!");
+// 		Debug.println(F("Can't restart!"));
 // 		// sensor_restart();
 // 		wifi_connection_lost = true;
 // 	}
@@ -4116,23 +4124,19 @@ static unsigned long sendData(const LoggerEntry logger, const String &data, cons
 	switch (logger)
 	{
 	case LoggerSensorCommunity:
-		Debug.print("LoggerSensorCommunity https: ");
-		Debug.println(ssl);
+		debug_outln_info(F("LoggerSensorCommunity https: "), String(ssl));
 		contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
 		break;
 	case LoggerMadavi:
-		Debug.print("LoggerMadavi https: ");
-		Debug.println(ssl);
+		debug_outln_info(F("LoggerMadavi https: "), String(ssl));
 		contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
 		break;
 	case LoggerCustom:
-		Debug.print("LoggerAirCarto https: ");
-		Debug.println(ssl);
+		debug_outln_info(F("LoggerAirCarto https: "), String(ssl));
 		contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
 		break;
 	case LoggerCustom2:
-		Debug.print("LoggerAtmoSud https: ");
-		Debug.println(ssl);
+		debug_outln_info(F("LoggerAtmoSud https: "), String(ssl));
 		contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
 		break;
 	default:
@@ -4284,7 +4288,7 @@ static unsigned long sendSensorCommunity(const String &data, const int pin, cons
 		data_sensorcommunity.remove(data_sensorcommunity.length() - 1);
 		data_sensorcommunity.replace(replace_str, emptyString);
 		data_sensorcommunity += "]}";
-		Debug.println(data_sensorcommunity);
+		debug_outln_info(data_sensorcommunity);
 		sum_send_time = sendData(LoggerSensorCommunity, data_sensorcommunity, pin, HOST_SENSORCOMMUNITY, URL_SENSORCOMMUNITY, cfg::ssl_dusti);
 	}
 
@@ -4318,14 +4322,14 @@ static void send_csv(const String &data)
 			{
 				headline.remove(headline.length() - 1);
 			}
-			Debug.println(headline);
+			debug_outln_info(headline);
 			first_csv_line = false;
 		}
 		if (valueline.length() > 0)
 		{
 			valueline.remove(valueline.length() - 1);
 		}
-		Debug.println(valueline);
+		debug_outln_info(valueline);
 	}
 	else
 	{
@@ -4484,18 +4488,18 @@ static void fetchSensorCCS811(String &s)
 	}
 	else if (errstat == CCS811_ERRSTAT_OK_NODATA)
 	{
-		Debug.println("CCS811: waiting for (new) data");
+		debug_outln_info(F("CCS811: waiting for (new) data"));
 	}
 	else if (errstat & CCS811_ERRSTAT_I2CFAIL)
 	{
-		Debug.println("CCS811: I2C error");
+		debug_outln_info(F("CCS811: I2C error"));
 	}
 	else
 	{
-		Debug.print("CCS811: errstat=");
-		Debug.print("errstat,HEX");
-		Debug.print("=");
-		Debug.println(ccs811.errstat_str(errstat));
+		Debug.print(F("CCS811: errstat="));
+		Debug.print(F("errstat,HEX"));
+		Debug.print(F("="));
+		debug_outln_info(ccs811.errstat_str(errstat));
 	}
 
 	if (send_now && cfg::sending_intervall_ms == 120000)
@@ -5024,7 +5028,6 @@ static void display_values_matrix()
 	uint8_t screen_count = 0;
 	uint8_t screens[31];
 	int line_count = 0;
-	//debug_outln_info(F("output values to matrix..."));
 
 	if (cfg::npm_read)
 	{
@@ -5130,17 +5133,17 @@ static void display_values_matrix()
 	if (cfg::display_forecast)
 	{
 		screens[screen_count++] = 12; // Air exterieur
-		screens[screen_count++] = 13; 
-		screens[screen_count++] = 14; 
-		screens[screen_count++] = 15; 
-		screens[screen_count++] = 16; 
-		screens[screen_count++] = 17; 
-		screens[screen_count++] = 18; 
-		screens[screen_count++] = 19; 
-		screens[screen_count++] = 20; 
-		screens[screen_count++] = 21; 
-		screens[screen_count++] = 22; 
-		screens[screen_count++] = 23; 
+		screens[screen_count++] = 13;
+		screens[screen_count++] = 14;
+		screens[screen_count++] = 15;
+		screens[screen_count++] = 16;
+		screens[screen_count++] = 17;
+		screens[screen_count++] = 18;
+		screens[screen_count++] = 19;
+		screens[screen_count++] = 20;
+		screens[screen_count++] = 21;
+		screens[screen_count++] = 22;
+		screens[screen_count++] = 23;
 	}
 
 	if (cfg::display_wifi_info && cfg::has_wifi)
@@ -5159,8 +5162,8 @@ static void display_values_matrix()
 
 	if (cfg::display_alert)
 	{
-	screens[screen_count++] = 28; // Alert
-	screens[screen_count++] = 29; // Alert
+		screens[screen_count++] = 28; // Alert
+		screens[screen_count++] = 29; // Alert
 	}
 
 	screens[screen_count++] = 30; // Logos
@@ -5552,7 +5555,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 12:
-		if (forecast_screen_0 != nullptr || forecast_screen_1 != nullptr ||  forecast_screen_2 != nullptr || forecast_screen_3 != nullptr || forecast_screen_4 != nullptr || forecast_screen_5 != nullptr || forecast_screen_6 != nullptr || forecast_screen_7 != nullptr || forecast_screen_8 != nullptr || forecast_screen_9 != nullptr || forecast_screen_10 != nullptr)
+		if (forecast_screen_0 != nullptr || forecast_screen_1 != nullptr || forecast_screen_2 != nullptr || forecast_screen_3 != nullptr || forecast_screen_4 != nullptr || forecast_screen_5 != nullptr || forecast_screen_6 != nullptr || forecast_screen_7 != nullptr || forecast_screen_8 != nullptr || forecast_screen_9 != nullptr || forecast_screen_10 != nullptr)
 		{
 			drawImage(0, 0, 32, 64, exterieur);
 		}
@@ -5753,25 +5756,31 @@ static void display_values_matrix()
 		}
 		break;
 	case 30:
-		if (has_logo  && logo_index < 3)
-		{	
-		if(logos[logo_index] !=0){
-		switch(logos[logo_index]) {
-		case cfg_logo_moduleair:
-			drawImage(0, 0, 32, 64, logo_moduleair);
-			break;
-		case cfg_logo_aircarto:
-			drawImage(0, 0, 32, 64, logo_aircarto);
-			break;
-		case cfg_logo_custom:
-			drawImage2(0, 0, 32, 64, logo_screen);
-			break;
+		if (has_logo && logo_index < 3)
+		{
+			if (logos[logo_index] != 0)
+			{
+				switch (logos[logo_index])
+				{
+				case cfg_logo_moduleair:
+					drawImage(0, 0, 32, 64, logo_moduleair);
+					break;
+				case cfg_logo_aircarto:
+					drawImage(0, 0, 32, 64, logo_aircarto);
+					break;
+				case cfg_logo_custom:
+					drawImage2(0, 0, 32, 64, logo_screen);
+					break;
+				}
+			}
+			else
+			{
+				act_milli += 5000;
+			}
+			logo_index++;
 		}
-		}else{
-			act_milli += 5000;
-		}
-		logo_index++;
-		}else {
+		else
+		{
 			logo_index = 0;
 			act_milli += 5000;
 		}
@@ -5785,7 +5794,6 @@ static void display_values_matrix()
 /*****************************************************************
  * Init matrix                                         *
  *****************************************************************/
-
 static void init_matrix()
 {
 	timer = timerBegin(0, 80, true); //init timer once only
@@ -5795,53 +5803,60 @@ static void init_matrix()
 	display_update_enable(true);
 	display.setFont(NULL); //Default font
 
-	if (cfg_logo_moduleair == 1){
-		
+	if (cfg_logo_moduleair == 1)
+	{
 	}
 
-	if (cfg_logo_moduleair == 2){
+	if (cfg_logo_moduleair == 2)
+	{
 		logos[0] = 0;
 	}
 
-	if (cfg_logo_moduleair == 0){
+	if (cfg_logo_moduleair == 0)
+	{
 		logos[0] = 0;
 	}
 
-switch(cfg_logo_moduleair) {
-  case 1:
-    logos[0] = 1;
-	display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
-	drawImage(0, 0, 32, 64, logo_moduleair);
-	delay(5000);
-    break;
-  case 2:
-    logos[0] = 2;
-    break;
-  case 0:
-    logos[0] = 0;
-  break;
-} 
+	switch (cfg_logo_moduleair)
+	{
+	case 1:
+		logos[0] = 1;
+		display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
+		drawImage(0, 0, 32, 64, logo_moduleair);
+		delay(5000);
+		break;
+	case 2:
+		logos[0] = 2;
+		break;
+	case 0:
+		logos[0] = 0;
+		break;
+	}
 
-switch(cfg_logo_aircarto) {
-  case 1:
-    logos[1] = 1;
-	display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
-	drawImage(0, 0, 32, 64, logo_aircarto);
-	delay(5000);
-    break;
-  case 2:
-    logos[1] = 2;
-    break;
-  case 0:
-    logos[1] = 0;
-  break;
-} 
+	switch (cfg_logo_aircarto)
+	{
+	case 1:
+		logos[1] = 1;
+		display.fillScreen(myBLACK); //display.clearDisplay(); produces a flash
+		drawImage(0, 0, 32, 64, logo_aircarto);
+		delay(5000);
+		break;
+	case 2:
+		logos[1] = 2;
+		break;
+	case 0:
+		logos[1] = 0;
+		break;
+	}
 
-if (logos[0] == 1 || logos[1] == 1){
-	has_logo = true;
-}else{
-	has_logo = false;
-}
+	if (logos[0] == 1 || logos[1] == 1)
+	{
+		has_logo = true;
+	}
+	else
+	{
+		has_logo = false;
+	}
 
 	// for (int i = 1; i < 2; i++)
 	// {
@@ -5907,6 +5922,7 @@ static void init_display()
 		// Wire.setClockStretchLimit(150000);
 	}
 }
+
 /*****************************************************************
  * Init BMP280/BME280                                            *
  *****************************************************************/
@@ -5968,7 +5984,6 @@ static bool initCCS811()
 /*****************************************************************
    Functions
  *****************************************************************/
-
 static void powerOnTestSensors()
 {
 
@@ -6176,7 +6191,7 @@ static unsigned long sendDataToOptionalApis(const String &data)
 {
 	unsigned long sum_send_time = 0;
 
-	Debug.println(data);
+	debug_outln_info(data);
 
 	if (cfg::send2madavi)
 	{
@@ -6227,7 +6242,6 @@ UBaseType_t watermarkStart;
 /*****************************************************************
  * The Setup                                                     *
  *****************************************************************/
-
 void setup()
 {
 	void *SpStart = NULL;
@@ -6236,7 +6250,7 @@ void setup()
 	StackPtrEnd = StackPtrAtStart - watermarkStart;
 
 	Debug.begin(115200); // Output to Serial at 115200 baud
-	Debug.println(F("Starting"));
+	debug_outln_info(F("Starting"));
 
 	Debug.printf("\r\n\r\nAddress of Stackpointer near start is:  %p \r\n", (void *)StackPtrAtStart);
 	Debug.printf("End of Stack is near: %p \r\n", (void *)StackPtrEnd);
@@ -6253,9 +6267,7 @@ void setup()
 	init_config();
 
 	spiffs_matrix = cfg::has_matrix; //save the spiffs state on start
-
-	Debug.println("spiffs_matrix: ");
-	Debug.println(spiffs_matrix);
+	debug_outln_info(F("spiffs_matrix: "), String(spiffs_matrix));
 
 	if (cfg::has_matrix)
 	{
@@ -6267,21 +6279,21 @@ void setup()
 	if (cfg::npm_read)
 	{
 		serialNPM.begin(115200, SERIAL_8E1, PM_SERIAL_RX, PM_SERIAL_TX);
-		Debug.println("Read Next PM... serialNPM 115200 8E1");
+		debug_outln_info(F("Read Next PM... serialNPM 115200 8E1"));
 		serialNPM.setTimeout(400);
 	}
 
 	if (cfg::sds_read)
 	{
 		serialSDS.begin(9600, SERIAL_8N1, PM_SERIAL_RX, PM_SERIAL_TX);
-		Debug.println("No Next PM... serialSDS 9600 8N1");
+		debug_outln_info(F("No Next PM... serialSDS 9600 8N1"));
 		serialSDS.setTimeout((4 * 12 * 1000) / 9600);
 	}
 
 	if (cfg::mhz16_read || cfg::mhz19_read)
 	{
 		//serialMHZ.begin(9600, SERIAL_8N1, CO2_SERIAL_RX, CO2_SERIAL_TX);
-		Debug.println("serialMHZ 9600 8N1");
+		debug_outln_info(F("serialMHZ 9600 8N1"));
 		//serialMHZ.setTimeout((4 * 12 * 1000) / 9600); //VOIR ICI LE TIMEOUT
 
 		if (cfg::mhz16_read)
@@ -6389,13 +6401,16 @@ void setup()
 
 	if (cfg::display_forecast)
 	{
-		forecast_selector = 0; 
+		forecast_selector = 0;
 	}
 
 	Debug.printf("End of void setup()\n");
 	time_end_setup = millis();
 }
 
+/*****************************************************************
+ * The Loop                                                     *
+ *****************************************************************/
 void loop()
 {
 	String result_SDS, result_NPM, result_MHZ16, result_MHZ19, result_CCS811;
@@ -6623,7 +6638,7 @@ void loop()
 					display_update_enable(false);
 				}
 
-				Debug.println("Reconnect failed after WiFi.reconnect()");
+				debug_outln_info(F("Reconnect failed after WiFi.reconnect()"));
 
 				WiFi.disconnect(true, true);
 				// wifi_country_t wifi;
@@ -6665,95 +6680,103 @@ void loop()
 		max_micro = 0;
 		sum_send_time = 0;
 
-		if (cfg::display_forecast && cfg::has_wifi && !wifi_connection_lost) 
+		if (cfg::display_forecast && cfg::has_wifi && !wifi_connection_lost)
 		{
-			getScreenAircarto(forecast_selector,"mod",esp_chipid);
+			getScreenAircarto(forecast_selector, "mod", esp_chipid);
 		}
 		else
 		{
 			switch (forecast_selector)
 			{
 			case 0:
-				if (forecast_screen_0 != nullptr){
+				if (forecast_screen_0 != nullptr)
+				{
 					free(forecast_screen_0);
 					forecast_screen_0 = nullptr;
 				}
 				break;
 			case 1:
-				if (forecast_screen_1 != nullptr){
+				if (forecast_screen_1 != nullptr)
+				{
 					free(forecast_screen_1);
 					forecast_screen_1 = nullptr;
-				}				
+				}
 				break;
 			case 2:
-				if (forecast_screen_2 != nullptr){
+				if (forecast_screen_2 != nullptr)
+				{
 					free(forecast_screen_2);
 					forecast_screen_2 = nullptr;
-				}				
+				}
 				break;
 			case 3:
-				if (forecast_screen_3 != nullptr){
+				if (forecast_screen_3 != nullptr)
+				{
 					free(forecast_screen_3);
 					forecast_screen_3 = nullptr;
-				}				
+				}
 				break;
 			case 4:
-				if (forecast_screen_4 != nullptr){
+				if (forecast_screen_4 != nullptr)
+				{
 					free(forecast_screen_4);
 					forecast_screen_4 = nullptr;
-				}				
+				}
 				break;
 			case 5:
-				if (forecast_screen_5 != nullptr){
+				if (forecast_screen_5 != nullptr)
+				{
 					free(forecast_screen_5);
 					forecast_screen_5 = nullptr;
-				}				
+				}
 				break;
 			case 6:
-				if (forecast_screen_6 != nullptr){
+				if (forecast_screen_6 != nullptr)
+				{
 					free(forecast_screen_6);
 					forecast_screen_6 = nullptr;
-				}				
+				}
 				break;
 			case 7:
-				if (forecast_screen_7 != nullptr){
+				if (forecast_screen_7 != nullptr)
+				{
 					free(forecast_screen_7);
 					forecast_screen_7 = nullptr;
-				}				
+				}
 				break;
 			case 8:
-				if (forecast_screen_8 != nullptr){
+				if (forecast_screen_8 != nullptr)
+				{
 					free(forecast_screen_6);
 					forecast_screen_8 = nullptr;
-				}				
+				}
 				break;
 			case 9:
-				if (forecast_screen_9 != nullptr){
+				if (forecast_screen_9 != nullptr)
+				{
 					free(forecast_screen_9);
 					forecast_screen_9 = nullptr;
-				}				
+				}
 				break;
 			case 10:
-				if (forecast_screen_10 != nullptr){
+				if (forecast_screen_10 != nullptr)
+				{
 					free(forecast_screen_10);
 					forecast_screen_10 = nullptr;
-				}				
+				}
 				break;
 			}
 		}
 
-		if (cfg::display_alert && cfg::has_wifi && !wifi_connection_lost) 
+		if (cfg::display_alert && cfg::has_wifi && !wifi_connection_lost)
 		{
-			getScreenAircarto(0,"alert",esp_chipid);
+			getScreenAircarto(0, "alert", esp_chipid);
 		}
 		else
 		{
 			// if (alert_screen != nullptr){ //Si wifi lost danger que nouveau message arrive pas => on enleve le message ?
 
-
-
 			// }
-
 
 			// alert_screen = nullptr;
 
@@ -6761,11 +6784,11 @@ void loop()
 
 			//ECRAN SUP WIFI DISCONNECT?????
 
-				if (alert_screen != nullptr){
-					free(alert_screen);
-					alert_screen = nullptr;
-				}
-
+			if (alert_screen != nullptr)
+			{
+				free(alert_screen);
+				alert_screen = nullptr;
+			}
 		}
 
 		//UPDATE DU LOGO ?
@@ -6794,6 +6817,9 @@ void loop()
 	}
 }
 
+/*****************************************************************
+ * Gamma correction                                              *
+ *****************************************************************/
 const uint8_t PROGMEM gamma8[] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
