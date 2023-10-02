@@ -2,7 +2,7 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "XXXXXXXXXX";
+const char WLANSSID[] PROGMEM = "XXXXXXXX";
 const char WLANPWD[] PROGMEM = "XXXXXXXXXX";
 
 
