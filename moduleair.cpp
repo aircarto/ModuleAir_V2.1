@@ -160,8 +160,6 @@ namespace cfg
 	bool display_alert = DISPLAY_ALERT;
 	bool display_wifi_info = DISPLAY_WIFI_INFO;
 	bool display_device_info = DISPLAY_DEVICE_INFO;
-	bool display_nebuleair = DISPLAY_NEBULEAIR;
-	char nebuleair[LEN_NEBULEAIR];
 
 	// API settings
 	bool ssl_madavi = SSL_MADAVI;
@@ -195,7 +193,6 @@ namespace cfg
 		strcpy_P(url_custom, URL_CUSTOM);
 		strcpy_P(host_custom2, HOST_CUSTOM2);
 		strcpy_P(url_custom2, URL_CUSTOM2);
-		strcpy_P(nebuleair, NEBULEAIR);
 
 		if (!*fs_ssid)
 		{
@@ -2091,10 +2088,6 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_checkbox(Config_has_matrix, FPSTR(INTL_MATRIX));
 	add_form_checkbox(Config_display_measure, FPSTR(INTL_DISPLAY_MEASURES));
 	add_form_checkbox(Config_display_forecast, FPSTR(INTL_DISPLAY_FORECAST));
-	add_form_checkbox(Config_display_nebuleair, FPSTR(INTL_DISPLAY_NEBULEAIR));
-	page_content += FPSTR(TABLE_TAG_OPEN);
-	add_form_input(page_content, Config_nebuleair, FPSTR(INTL_NEBULEAIR), LEN_NEBULEAIR - 1);
-	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 	add_form_checkbox(Config_display_logo, FPSTR(INTL_DISPLAY_LOGO));
 	add_form_checkbox(Config_display_alert, FPSTR(INTL_DISPLAY_ALERT));
 	add_form_checkbox(Config_display_wifi_info, FPSTR(INTL_DISPLAY_WIFI_INFO));

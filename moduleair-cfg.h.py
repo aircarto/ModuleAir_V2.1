@@ -30,8 +30,6 @@ Bool		display_forecast
 Bool		display_alert
 Bool		display_wifi_info
 Bool		display_device_info
-Bool		display_nebuleair
-String		nebuleair
 UInt		debug
 Time		sending_intervall_ms
 Time		screen_intervall_ms
