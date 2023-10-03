@@ -38,6 +38,7 @@ const char INTL_DISPLAY_MEASURES[] PROGMEM = "Afficher les mesures des capteurs"
 const char INTL_DISPLAY_FORECAST[] PROGMEM = "Afficher le stream de modélisations";
 const char INTL_DISPLAY_NEBULEAIR[] PROGMEM = "Lier un NebuleAir";
 const char INTL_NEBULEAIR[] PROGMEM = "ID NebuleAir";
+const char INTL_TYPE_ID[] PROGMEM = "nebuleair-...";
 const char INTL_DISPLAY_LOGO[] PROGMEM = "Afficher le logo custom";
 const char INTL_DISPLAY_ALERT[] PROGMEM = "Activer les alertes";
 const char INTL_DISPLAY_WIFI_INFO[] PROGMEM = "Afficher les informations wifi";

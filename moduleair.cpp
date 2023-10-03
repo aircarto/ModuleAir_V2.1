@@ -1835,20 +1835,20 @@ static void add_form_input(String &page_content, const ConfigShapeId cfgid, cons
 }
 
 
-static void form_input(String &page_content, const ConfigShapeId cfgid, const __FlashStringHelper *info, const int length)
-{
-	RESERVE_STRING(s, MED_STR);
-	s = F("<input type='{t}' name='{n}' id='{n}' placeholder='{i}' value='{v}' maxlength='{l}'/><br/>");
-	String t_value;
-	ConfigShapeEntry c;
-	memcpy_P(&c, &configShape[cfgid], sizeof(ConfigShapeEntry));
-	s.replace("{t}", F("text"));
-	s.replace("{i}", info);
-	s.replace("{n}", String(c.cfg_key()));
-	s.replace("{v}", t_value);
-	s.replace("{l}", String(length));
-	page_content += s;
-}
+// static void form_input(String &page_content, const ConfigShapeId cfgid, const __FlashStringHelper *info, const int length)
+// {
+// 	RESERVE_STRING(s, MED_STR);
+// 	s = F("<input type='{t}' name='{n}' id='{n}' placeholder='{i}' value='{v}' maxlength='{l}'/><br/>");
+// 	String t_value;
+// 	ConfigShapeEntry c;
+// 	memcpy_P(&c, &configShape[cfgid], sizeof(ConfigShapeEntry));
+// 	s.replace("{t}", F("text"));
+// 	s.replace("{i}", info);
+// 	s.replace("{n}", String(c.cfg_key()));
+// 	s.replace("{v}", t_value);
+// 	s.replace("{l}", String(length));
+// 	page_content += s;
+// }
 
 
 static String form_checkbox(const ConfigShapeId cfgid, const String &info, const bool linebreak)
@@ -2091,8 +2091,10 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_checkbox(Config_has_matrix, FPSTR(INTL_MATRIX));
 	add_form_checkbox(Config_display_measure, FPSTR(INTL_DISPLAY_MEASURES));
 	add_form_checkbox(Config_display_forecast, FPSTR(INTL_DISPLAY_FORECAST));
-	form_checkbox(Config_display_nebuleair, FPSTR(INTL_DISPLAY_NEBULEAIR),false);
-	form_input(page_content, Config_nebuleair, FPSTR(INTL_NEBULEAIR), LEN_NEBULEAIR - 1);
+	add_form_checkbox(Config_display_nebuleair, FPSTR(INTL_DISPLAY_NEBULEAIR));
+	page_content += FPSTR(TABLE_TAG_OPEN);
+	add_form_input(page_content, Config_nebuleair, FPSTR(INTL_NEBULEAIR), LEN_NEBULEAIR - 1);
+	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 	add_form_checkbox(Config_display_logo, FPSTR(INTL_DISPLAY_LOGO));
 	add_form_checkbox(Config_display_alert, FPSTR(INTL_DISPLAY_ALERT));
 	add_form_checkbox(Config_display_wifi_info, FPSTR(INTL_DISPLAY_WIFI_INFO));
