@@ -160,6 +160,8 @@ namespace cfg
 	bool display_alert = DISPLAY_ALERT;
 	bool display_wifi_info = DISPLAY_WIFI_INFO;
 	bool display_device_info = DISPLAY_DEVICE_INFO;
+	bool display_nebuleair = DISPLAY_NEBULEAIR;
+	char nebuleair[LEN_NEBULEAIR];
 
 	// API settings
 	bool ssl_madavi = SSL_MADAVI;
@@ -193,6 +195,7 @@ namespace cfg
 		strcpy_P(url_custom, URL_CUSTOM);
 		strcpy_P(host_custom2, HOST_CUSTOM2);
 		strcpy_P(url_custom2, URL_CUSTOM2);
+		strcpy_P(nebuleair, NEBULEAIR);
 
 		if (!*fs_ssid)
 		{
@@ -945,8 +948,10 @@ CCS811 ccs811(-1);
 // time management varialbles
 bool send_now = false;
 bool screen_now = false;
+bool reconnect_now = false;
 unsigned long starttime;
 unsigned long screentime;
+unsigned long reconnecttime;
 unsigned long time_end_setup;
 unsigned long time_before_config;
 int prec;
@@ -1829,6 +1834,23 @@ static void add_form_input(String &page_content, const ConfigShapeId cfgid, cons
 	page_content += s;
 }
 
+
+static void form_input(String &page_content, const ConfigShapeId cfgid, const __FlashStringHelper *info, const int length)
+{
+	RESERVE_STRING(s, MED_STR);
+	s = F("<input type='{t}' name='{n}' id='{n}' placeholder='{i}' value='{v}' maxlength='{l}'/><br/>");
+	String t_value;
+	ConfigShapeEntry c;
+	memcpy_P(&c, &configShape[cfgid], sizeof(ConfigShapeEntry));
+	s.replace("{t}", F("text"));
+	s.replace("{i}", info);
+	s.replace("{n}", String(c.cfg_key()));
+	s.replace("{v}", t_value);
+	s.replace("{l}", String(length));
+	page_content += s;
+}
+
+
 static String form_checkbox(const ConfigShapeId cfgid, const String &info, const bool linebreak)
 {
 	RESERVE_STRING(s, MED_STR);
@@ -2069,6 +2091,8 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_checkbox(Config_has_matrix, FPSTR(INTL_MATRIX));
 	add_form_checkbox(Config_display_measure, FPSTR(INTL_DISPLAY_MEASURES));
 	add_form_checkbox(Config_display_forecast, FPSTR(INTL_DISPLAY_FORECAST));
+	form_checkbox(Config_display_nebuleair, FPSTR(INTL_DISPLAY_NEBULEAIR),false);
+	form_input(page_content, Config_nebuleair, FPSTR(INTL_NEBULEAIR), LEN_NEBULEAIR - 1);
 	add_form_checkbox(Config_display_logo, FPSTR(INTL_DISPLAY_LOGO));
 	add_form_checkbox(Config_display_alert, FPSTR(INTL_DISPLAY_ALERT));
 	add_form_checkbox(Config_display_wifi_info, FPSTR(INTL_DISPLAY_WIFI_INFO));
@@ -3904,7 +3928,7 @@ static void connectWifi()
 	{
 		debug_outln_info(F("Force change WiFi config"));
 		wifi_connection_lost = true;
-		cfg::has_wifi = false;
+		//cfg::has_wifi = false;  // on ne change pas ici.
 
 		if (cfg::has_matrix)
 		{
@@ -6370,7 +6394,7 @@ void setup()
 
 	delay(50);
 
-	starttime = screentime = millis(); // store the start time
+	starttime = screentime = reconnecttime = millis(); // store the start time
 	time_point_device_start_ms = starttime;
 
 	if (cfg::npm_read)
@@ -6424,6 +6448,7 @@ void loop()
 	act_milli = millis();
 	send_now = msSince(starttime) > cfg::sending_intervall_ms;
 	screen_now = msSince(screentime) > cfg::screen_intervall_ms;
+	reconnect_now = msSince(reconnecttime) > 600000; // 10 minutes
 
 	// Wait at least 30s for each NTP server to sync
 
@@ -6433,7 +6458,7 @@ void loop()
 		{
 			debug_outln_info(F("NTP sync not finished yet, skipping send"));
 			send_now = false;
-			starttime = screentime = act_milli;
+			starttime = screentime = reconnecttime = act_milli;
 		}
 	}
 
@@ -6687,7 +6712,7 @@ void loop()
 		count_sends++;
 	}
 
-	if (screen_now) // && cfg::screen_intervall_ms >= 300000) // LIMITE DE SECURITE?
+	if (screen_now) // && cfg::screen_intervall_ms >= 60000) // LIMITE DE SECURITE?
 	{
 		if (cfg::display_forecast && cfg::has_wifi && !wifi_connection_lost)
 		{
@@ -6789,6 +6814,53 @@ void loop()
 				alert_screen = nullptr;
 			}
 		}
+	
+	screentime = millis(); 
+	}
+
+	if (reconnect_now)
+	{
+		if(cfg::has_wifi && wifi_connection_lost)
+		{
+			debug_outln_info(F("Reconnect try"));	
+			WiFi.reconnect();
+			waitForWifiToConnect(20);
+
+			if (wifi_connection_lost && WiFi.waitForConnectResult(10000) != WL_CONNECTED)
+			{
+				if (cfg::has_matrix)
+				{
+					display_update_enable(false);
+				}
+
+				debug_outln_info(F("Reconnect failed after WiFi.reconnect()"));
+
+				WiFi.disconnect(true, true);
+				// wifi_country_t wifi;
+				// wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
+				// strcpy(wifi.cc, INTL_LANG);
+				// wifi.nchan = 13;
+				// wifi.schan = 1;
+				WiFi.mode(WIFI_STA);
+				WiFi.setHostname(cfg::fs_ssid);
+				WiFi.begin(cfg::wlanssid, cfg::wlanpwd); // Start WiFI again
+
+				// if (MDNS.begin(cfg::fs_ssid))
+				// {
+				// 	MDNS.addService("http", "tcp", 80);
+				// 	MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+				// }
+
+				//reConnectWifi();
+
+				if (cfg::has_matrix)
+				{
+					display_update_enable(true);
+				}
+			}
+			debug_outln_info(emptyString);		
+		}
+	reconnecttime = millis(); 
 	}
 
 	if (sample_count % 500 == 0)

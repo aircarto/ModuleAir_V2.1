@@ -55,6 +55,8 @@ enum ConfigShapeId {
 	Config_display_alert,
 	Config_display_wifi_info,
 	Config_display_device_info,
+	Config_display_nebuleair,
+	Config_nebuleair,
 	Config_debug,
 	Config_sending_intervall_ms,
 	Config_screen_intervall_ms,
@@ -103,6 +105,8 @@ static constexpr char CFG_KEY_DISPLAY_FORECAST[] PROGMEM = "display_forecast";
 static constexpr char CFG_KEY_DISPLAY_ALERT[] PROGMEM = "display_alert";
 static constexpr char CFG_KEY_DISPLAY_WIFI_INFO[] PROGMEM = "display_wifi_info";
 static constexpr char CFG_KEY_DISPLAY_DEVICE_INFO[] PROGMEM = "display_device_info";
+static constexpr char CFG_KEY_DISPLAY_NEBULEAIR[] PROGMEM = "display_nebuleair";
+static constexpr char CFG_KEY_NEBULEAIR[] PROGMEM = "nebuleair";
 static constexpr char CFG_KEY_DEBUG[] PROGMEM = "debug";
 static constexpr char CFG_KEY_SENDING_INTERVALL_MS[] PROGMEM = "sending_intervall_ms";
 static constexpr char CFG_KEY_SCREEN_INTERVALL_MS[] PROGMEM = "screen_intervall_ms";
@@ -151,6 +155,8 @@ static constexpr ConfigShapeEntry configShape[] PROGMEM = {
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_ALERT, &cfg::display_alert },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_WIFI_INFO, &cfg::display_wifi_info },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_DEVICE_INFO, &cfg::display_device_info },
+	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_NEBULEAIR, &cfg::display_nebuleair },
+	{ Config_Type_String, sizeof(cfg::nebuleair)-1, CFG_KEY_NEBULEAIR, cfg::nebuleair },
 	{ Config_Type_UInt, 0, CFG_KEY_DEBUG, &cfg::debug },
 	{ Config_Type_Time, 0, CFG_KEY_SENDING_INTERVALL_MS, &cfg::sending_intervall_ms },
 	{ Config_Type_Time, 0, CFG_KEY_SCREEN_INTERVALL_MS, &cfg::screen_intervall_ms },

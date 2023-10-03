@@ -186,3 +186,5 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #define DISPLAY_FORECAST 0
 #define DISPLAY_LOGO 0
 #define DISPLAY_ALERT 0
+
+const char NEBULEAIR[] PROGMEM = "XXXXXXXXX";

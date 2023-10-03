@@ -15,6 +15,7 @@
 #define LEN_FS_SSID 33				// credentials for sensor access point mode
 
 #define LEN_HEIGHT_ABOVE_SEALEVEL 8
+#define LEN_NEBULEAIR 13
 
 #define LEN_GEOCOORDINATES 9
 
