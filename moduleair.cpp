@@ -110,6 +110,7 @@ namespace cfg
 
 	unsigned time_for_wifi_config = TIME_FOR_WIFI_CONFIG;
 	unsigned sending_intervall_ms = SENDING_INTERVALL_MS;
+	unsigned screen_intervall_ms = SCREEN_INTERVALL_MS;
 
 	char current_lang[3];
 
@@ -943,7 +944,9 @@ CCS811 ccs811(-1);
 
 // time management varialbles
 bool send_now = false;
+bool screen_now = false;
 unsigned long starttime;
+unsigned long screentime;
 unsigned long time_end_setup;
 unsigned long time_before_config;
 int prec;
@@ -961,8 +964,6 @@ unsigned long min_micro = 1000000000;
 unsigned long max_micro = 0;
 
 unsigned long sending_time = 0;
-unsigned long last_update_attempt;
-// int last_update_returncode;
 int last_sendData_returncode;
 
 bool wifi_connection_lost;
@@ -2090,6 +2091,7 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += FPSTR(TABLE_TAG_OPEN);
 	add_form_input(page_content, Config_debug, FPSTR(INTL_DEBUG_LEVEL), 1);
 	add_form_input(page_content, Config_sending_intervall_ms, FPSTR(INTL_MEASUREMENT_INTERVAL), 5);
+	add_form_input(page_content, Config_screen_intervall_ms, FPSTR(INTL_SCREEN_INTERVAL), 5);
 	add_form_input(page_content, Config_time_for_wifi_config, FPSTR(INTL_DURATION_ROUTER_MODE), 5);
 	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 
@@ -3400,6 +3402,7 @@ void getScreenAircarto(unsigned int screen, String type, String id)
 					}
 					break;
 				}
+			forecast_selector = 0;
 			}
 			if (type == "logo")
 			{
@@ -3416,7 +3419,6 @@ void getScreenAircarto(unsigned int screen, String type, String id)
 		}
 		else
 		{
-
 			debug_outln_info(String(ESP.getFreeHeap()));
 			DeserializationError error = deserializeJson(screenarray, reponseAPI.c_str());
 
@@ -3561,6 +3563,7 @@ void getScreenAircarto(unsigned int screen, String type, String id)
 						}
 						break;
 					}
+					forecast_selector++;
 				}
 				if (type == "logo")
 				{
@@ -6367,8 +6370,8 @@ void setup()
 
 	delay(50);
 
-	starttime = millis(); // store the start time
-	last_update_attempt = time_point_device_start_ms = starttime;
+	starttime = screentime = millis(); // store the start time
+	time_point_device_start_ms = starttime;
 
 	if (cfg::npm_read)
 	{
@@ -6420,6 +6423,7 @@ void loop()
 	act_micro = micros();
 	act_milli = millis();
 	send_now = msSince(starttime) > cfg::sending_intervall_ms;
+	screen_now = msSince(screentime) > cfg::screen_intervall_ms;
 
 	// Wait at least 30s for each NTP server to sync
 
@@ -6429,7 +6433,7 @@ void loop()
 		{
 			debug_outln_info(F("NTP sync not finished yet, skipping send"));
 			send_now = false;
-			starttime = act_milli;
+			starttime = screentime = act_milli;
 		}
 	}
 
@@ -6679,7 +6683,12 @@ void loop()
 		min_micro = 1000000000;
 		max_micro = 0;
 		sum_send_time = 0;
+		starttime = millis(); // store the start time
+		count_sends++;
+	}
 
+	if (screen_now) // && cfg::screen_intervall_ms >= 300000) // LIMITE DE SECURITE?
+	{
 		if (cfg::display_forecast && cfg::has_wifi && !wifi_connection_lost)
 		{
 			getScreenAircarto(forecast_selector, "mod", esp_chipid);
@@ -6774,39 +6783,10 @@ void loop()
 		}
 		else
 		{
-			// if (alert_screen != nullptr){ //Si wifi lost danger que nouveau message arrive pas => on enleve le message ?
-
-			// }
-
-			// alert_screen = nullptr;
-
-			//ON FAIT RIEN => LE MESSAGE RESTE ?
-
-			//ECRAN SUP WIFI DISCONNECT?????
-
 			if (alert_screen != nullptr)
 			{
 				free(alert_screen);
 				alert_screen = nullptr;
-			}
-		}
-
-		//UPDATE DU LOGO ?
-
-		starttime = millis(); // store the start time
-		count_sends++;
-
-		// Update Forecast selector
-		if (cfg::display_forecast)
-		{
-			//if (forecast_selector < last_selector) // ESSAYER ? MAIS REBOOT NECESSAIRE SI ECRAN SUP.
-			if (forecast_selector < 10)
-			{
-				forecast_selector++;
-			}
-			else
-			{
-				forecast_selector = 0;
 			}
 		}
 	}

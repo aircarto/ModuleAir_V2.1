@@ -43,6 +43,7 @@ const char INTL_DISPLAY_LORA_INFO[] PROGMEM = "Afficher les informations LoRaWAN
 const char INTL_DISPLAY_DEVICE_INFO[] PROGMEM = "Afficher les informations de l'appareil";
 const char INTL_DEBUG_LEVEL[] PROGMEM = "Niveau&nbsp;de&nbsp;débogage";
 const char INTL_MEASUREMENT_INTERVAL[] PROGMEM = "Intervalle de mesure";
+const char INTL_SCREEN_INTERVAL[] PROGMEM = "Intervalle écrans";
 const char INTL_DURATION_ROUTER_MODE[] PROGMEM = "Durée mode routeur";
 const char INTL_MORE_APIS[] PROGMEM = "Autres API";
 const char INTL_SEND_TO_OWN_API[] PROGMEM = "Envoyer les données vers l'API AirCarto";

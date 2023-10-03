@@ -32,6 +32,7 @@ Bool		display_wifi_info
 Bool		display_device_info
 UInt		debug
 Time		sending_intervall_ms
+Time		screen_intervall_ms
 Time		time_for_wifi_config
 Bool		send2custom
 String		host_custom
