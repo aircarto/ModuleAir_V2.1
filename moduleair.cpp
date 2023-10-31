@@ -2586,7 +2586,7 @@ static void webserver_values()
 	{
 		const char *const sensor_name = (bmx280.sensorID() == BME280_SENSOR_ID) ? SENSORS_BME280 : SENSORS_BMP280;
 		add_table_t_value(FPSTR(sensor_name), FPSTR(INTL_TEMPERATURE), last_value_BMX280_T);
-		add_table_value(FPSTR(sensor_name), FPSTR(INTL_TEMPERATURE_CORRECTED), last_value_BMX280_T != -1.0f ? String(temperature_correction(last_value_BMX280_T, atof(cfg::temp_offset)), 2) : "-", unit_P);
+		add_table_value(FPSTR(sensor_name), FPSTR(INTL_TEMPERATURE_CORRECTED), last_value_BMX280_T != -1.0f ? String(temperature_correction(last_value_BMX280_T, atof(cfg::temp_offset)), 2) : "-", unit_T);
 		add_table_value(FPSTR(sensor_name), FPSTR(INTL_PRESSURE), check_display_value(last_value_BMX280_P / 100.0f, (-1 / 100.0f), 2, 0), unit_P);
 		add_table_value(FPSTR(sensor_name), FPSTR(INTL_PRESSURE_AT_SEALEVEL), last_value_BMX280_P != -1.0f ? String(pressure_at_sealevel(last_value_BMX280_T, last_value_BMX280_P / 100.0f), 2) : "-", unit_P);
 		if (bmx280.sensorID() == BME280_SENSOR_ID)
@@ -5949,7 +5949,7 @@ static void init_matrix()
 	timer = timerBegin(0, 80, true); //init timer once only
 	display.begin(16);
 	display.setDriverChip(SHIFT);  // SHIFT ou FM6124 ou FM6126A
-	display.setColorOrder(RRGGBB); // ATTENTION à changer en fonction de l'écran !!!! Small Matrix (160x80mm) is RRBBGG and Big Matrix (192x96mm) is RRGGBB
+	display.setColorOrder(RRBBGG); // ATTENTION à changer en fonction de l'écran !!!! Small Matrix (160x80mm) is RRBBGG and Big Matrix (192x96mm) is RRGGBB
 	display_update_enable(true);
 	display.setFont(NULL); //Default font
 
@@ -7253,6 +7253,7 @@ void loop()
 		add_Value2Json(data, F("signal"), String(last_signal_strength));
 		add_Value2Json(data, F("latitude"), String(cfg::latitude));
 		add_Value2Json(data, F("longitude"), String(cfg::longitude));
+		add_Value2Json(data, F("local_IP"), WiFi.localIP().toString());
 
 		if ((unsigned)(data.lastIndexOf(',') + 1) == data.length())
 		{
