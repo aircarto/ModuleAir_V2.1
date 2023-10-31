@@ -6910,7 +6910,7 @@ void setup()
 		if (cfg::mhz16_read)
 		{
 			mhz16.begin(CO2_SERIAL_RX, CO2_SERIAL_TX, 2);
-			mhz16.autoCalibration(true);
+			//mhz16.autoCalibration(true);
 		}
 
 		if (cfg::mhz19_read)
