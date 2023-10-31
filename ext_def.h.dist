@@ -2,7 +2,7 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "XXXXXXXX";
+const char WLANSSID[] PROGMEM = "XXXXXXXXXX";
 const char WLANPWD[] PROGMEM = "XXXXXXXXXX";
 
 
@@ -186,3 +186,5 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #define DISPLAY_FORECAST 0
 #define DISPLAY_LOGO 0
 #define DISPLAY_ALERT 0
+
+#define TEMP_OFFSET "0.0"

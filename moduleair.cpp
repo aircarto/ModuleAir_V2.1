@@ -143,6 +143,7 @@ namespace cfg
 	// Location
 
 	char height_above_sealevel[8] = "0";
+	char temp_offset[LEN_TEMP_OFFSET];
 
 	// send to "APIs"
 	bool send2dusti = SEND2SENSORCOMMUNITY;
@@ -193,6 +194,7 @@ namespace cfg
 		strcpy_P(url_custom, URL_CUSTOM);
 		strcpy_P(host_custom2, HOST_CUSTOM2);
 		strcpy_P(url_custom2, URL_CUSTOM2);
+		strcpy_P(temp_offset, TEMP_OFFSET);
 
 		if (!*fs_ssid)
 		{
@@ -1754,6 +1756,18 @@ static float pressure_at_sealevel(const float temperature, const float pressure)
 }
 
 /*****************************************************************
+ * Temperature correction                                    *
+ *****************************************************************/
+static float temperature_correction(const float temperature, const float offset)
+{
+	float corrected;
+
+	corrected = temperature + offset;
+
+	return corrected;
+}
+
+/*****************************************************************
  * html helper functions                                         *
  *****************************************************************/
 static void start_html_page(String &page_content, const String &title)
@@ -2074,6 +2088,7 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += F("<b>" INTL_LOCATION "</b>&nbsp;");
 	page_content += FPSTR(TABLE_TAG_OPEN);
 	add_form_input(page_content, Config_height_above_sealevel, FPSTR(INTL_HEIGHT_ABOVE_SEALEVEL), LEN_HEIGHT_ABOVE_SEALEVEL - 1);
+	add_form_input(page_content, Config_temp_offset, FPSTR(INTL_TEMP_OFFSET), LEN_TEMP_OFFSET - 1);
 	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 
 	// Paginate page after ~ 1500 Bytes
@@ -2538,6 +2553,7 @@ static void webserver_values()
 	{
 		const char *const sensor_name = (bmx280.sensorID() == BME280_SENSOR_ID) ? SENSORS_BME280 : SENSORS_BMP280;
 		add_table_t_value(FPSTR(sensor_name), FPSTR(INTL_TEMPERATURE), last_value_BMX280_T);
+		add_table_value(FPSTR(sensor_name), FPSTR(INTL_TEMPERATURE_CORRECTED), last_value_BMX280_T != -1.0f ? String(temperature_correction(last_value_BMX280_T, atof(cfg::temp_offset)), 2) : "-", unit_T);
 		add_table_value(FPSTR(sensor_name), FPSTR(INTL_PRESSURE), check_display_value(last_value_BMX280_P / 100.0f, (-1 / 100.0f), 2, 0), unit_P);
 		add_table_value(FPSTR(sensor_name), FPSTR(INTL_PRESSURE_AT_SEALEVEL), last_value_BMX280_P != -1.0f ? String(pressure_at_sealevel(last_value_BMX280_T, last_value_BMX280_P / 100.0f), 2) : "-", unit_P);
 		if (bmx280.sensorID() == BME280_SENSOR_ID)
@@ -4848,7 +4864,7 @@ static void display_values_oled() //COMPLETER LES ECRANS
 	if (cfg::bmx280_read)
 	{
 		t_sensor = p_sensor = FPSTR(SENSORS_BMP280);
-		t_value = last_value_BMX280_T;
+		t_value = temperature_correction(last_value_BMX280_T,atof(cfg::temp_offset));
 		p_value = last_value_BMX280_P;
 		if (bmx280.sensorID() == BME280_SENSOR_ID)
 		{
@@ -5075,7 +5091,7 @@ static void display_values_matrix()
 	if (cfg::bmx280_read)
 	{
 		t_sensor = p_sensor = FPSTR(SENSORS_BMP280);
-		t_value = last_value_BMX280_T;
+		t_value = temperature_correction(last_value_BMX280_T,atof(cfg::temp_offset));
 		p_value = last_value_BMX280_P;
 		if (bmx280.sensorID() == BME280_SENSOR_ID)
 		{
@@ -5193,7 +5209,7 @@ static void display_values_matrix()
 	switch (screens[next_display_count % screen_count])
 	{
 	case 0:
-		if (pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0 || t_value != -128.0 || h_value != -1.0 || p_value != -1.0 || co2_value != -1.0 || cov_value != -1.0)
+		if (pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0 || t_value != temperature_correction(-128.0,atof(cfg::temp_offset)) || h_value != -1.0 || p_value != -1.0 || co2_value != -1.0 || cov_value != -1.0)
 		{
 			if (!cfg::has_wifi || (cfg::has_wifi && wifi_connection_lost))
 			{
@@ -5491,7 +5507,7 @@ static void display_values_matrix()
 		}
 		break;
 	case 9:
-		if (t_value != -128.0)
+		if (t_value != temperature_correction(-128.0,atof(cfg::temp_offset)))
 		{
 			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
@@ -5821,7 +5837,7 @@ static void init_matrix()
 	timer = timerBegin(0, 80, true); //init timer once only
 	display.begin(16);
 	display.setDriverChip(SHIFT);  // SHIFT ou FM6124 ou FM6126A
-	display.setColorOrder(RRGGBB); // ATTENTION à changer en fonction de l'écran !!!! Small Matrix (160x80mm) is RRBBGG and Big Matrix (192x96mm) is RRGGBB
+	display.setColorOrder(RRBBGG); // ATTENTION à changer en fonction de l'écran !!!! Small Matrix (160x80mm) is RRBBGG and Big Matrix (192x96mm) is RRGGBB
 	display_update_enable(true);
 	display.setFont(NULL); //Default font
 
@@ -6600,6 +6616,7 @@ void loop()
 			data += result_CCS811;
 		}
 
+		add_Value2Json(data, F("temp_offset"), String(cfg::temp_offset));
 		add_Value2Json(data, F("samples"), String(sample_count));
 		add_Value2Json(data, F("min_micro"), String(min_micro));
 		add_Value2Json(data, F("max_micro"), String(max_micro));
