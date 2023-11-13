@@ -95,7 +95,7 @@ const char WEB_PAGE_FOOTER[] PROGMEM = "<br/><br/>"
 
 const char WEB_ROOT_PAGE_CONTENT[] PROGMEM = "<a class='b' href='/values'>{t}</a><br/>\
 <a class='b' href='/status'>{s}</a><br/>\
-<a class='b' href='https://www.aircarto.fr/' target='_blank' rel='noreferrer'>" INTL_ACTIVE_SENSORS_MAP "</a><br/>\
+<a class='b' href='https://openairmap.fr/' target='_blank' rel='noreferrer'>" INTL_ACTIVE_SENSORS_MAP "</a><br/>\
 <a class='b' href='/config'>{conf}</a><br/>\
 <a class='b' href='/removeConfig'>" INTL_CONFIGURATION_DELETE "</a><br/>\
 <a class='b' href='/reset'>{restart}</a><br/>\
