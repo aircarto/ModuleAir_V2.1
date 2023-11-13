@@ -5456,7 +5456,7 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(1, 0);
 			display.setTextSize(1);
-			display.print("C0");
+			display.print("CO");
 			display.write(250);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX() + 2, 7);
