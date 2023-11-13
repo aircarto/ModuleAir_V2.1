@@ -138,9 +138,7 @@ namespace cfg
 	char appkey[LEN_APPKEY];
 
 	// (in)active sensors
-	bool sds_read = SDS_READ;
 	bool npm_read = NPM_READ;
-	// bool npm_fulltime = NPM_FULLTIME;
 	bool bmx280_read = BMX280_READ;
 	bool mhz16_read = MHZ16_READ;
 	bool mhz19_read = MHZ19_READ;
@@ -223,7 +221,7 @@ bool spiffs_matrix;
 
 bool configlorawan[8] = {false, false, false, false, false, false, false, false};
 
-// configlorawan[0] = cfg::sds_read;
+// configlorawan[0] = 0;
 // configlorawan[1] = cfg::npm_read ;
 // configlorawan[2] = cfg::bmx280_read;
 // configlorawan[3] = cfg::mhz16_read;
@@ -946,7 +944,6 @@ uint8_t forecast_selector;
  * Serial declarations                                           *
  *****************************************************************/
 
-#define serialSDS (Serial1)
 #define serialNPM (Serial1)
 #define serialMHZ (Serial2)
 
@@ -981,7 +978,6 @@ unsigned long time_end_setup;
 unsigned long time_before_config;
 int prec;
 unsigned long time_point_device_start_ms;
-unsigned long starttime_SDS;
 unsigned long starttime_NPM;
 unsigned long starttime_MHZ16;
 unsigned long starttime_MHZ19;
@@ -1000,20 +996,6 @@ int last_sendData_returncode;
 
 bool wifi_connection_lost;
 bool lora_connection_lost;
-
-/*****************************************************************
- * SDS variables and enums                                      *
- *****************************************************************/
-
-bool is_SDS_running;
-
-// To read SDS responses
-
-enum
-{
-	SDS_REPLY_HDR = 10,
-	SDS_REPLY_BODY = 8
-} SDS_waiting_for;
 
 /*****************************************************************
  * NPM variables and enums                                       *
@@ -1072,14 +1054,6 @@ float last_value_BMX280_T = -128.0;
 float last_value_BMX280_P = -1.0;
 float last_value_BME280_H = -1.0;
 
-uint32_t sds_pm10_sum = 0;
-uint32_t sds_pm25_sum = 0;
-uint32_t sds_val_count = 0;
-uint32_t sds_pm10_max = 0;
-uint32_t sds_pm10_min = 20000;
-uint32_t sds_pm25_max = 0;
-uint32_t sds_pm25_min = 20000;
-
 uint32_t npm_pm1_sum = 0;
 uint32_t npm_pm10_sum = 0;
 uint32_t npm_pm25_sum = 0;
@@ -1088,8 +1062,6 @@ uint32_t npm_pm10_sum_pcs = 0;
 uint32_t npm_pm25_sum_pcs = 0;
 uint16_t npm_val_count = 0;
 
-float last_value_SDS_P1 = -1.0;
-float last_value_SDS_P2 = -1.0;
 float last_value_NPM_P0 = -1.0;
 float last_value_NPM_P1 = -1.0;
 float last_value_NPM_P2 = -1.0;
@@ -1116,10 +1088,8 @@ int last_disconnect_reason;
 
 String esp_chipid;
 
-String last_value_SDS_version;
 String last_value_NPM_version;
 
-unsigned long SDS_error_count;
 unsigned long NPM_error_count;
 unsigned long MHZ16_error_count;
 unsigned long MHZ19_error_count;
@@ -1181,41 +1151,6 @@ static void display_debug(const String &text1, const String &text2)
 			oled_ssd1306->display();
 		}
 	}
-}
-
-/*****************************************************************
- * read SDS011 sensor serial and firmware date                   *
- *****************************************************************/
-static String SDS_version_date()
-{
-
-	if (cfg::sds_read && !last_value_SDS_version.length())
-	{
-		debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(DBG_TXT_SDS011_VERSION_DATE));
-		is_SDS_running = SDS_cmd(PmSensorCmd::Start);
-		delay(250);
-		serialSDS.flush();
-		// Query Version/Date
-		SDS_rawcmd(0x07, 0x00, 0x00);
-		delay(400);
-		const constexpr uint8_t header_cmd_response[2] = {0xAA, 0xC5};
-		while (serialSDS.find(header_cmd_response, sizeof(header_cmd_response)))
-		{
-			uint8_t data[8];
-			unsigned r = serialSDS.readBytes(data, sizeof(data));
-			if (r == sizeof(data) && data[0] == 0x07 && SDS_checksum_valid(data))
-			{
-				char tmp[20];
-				snprintf_P(tmp, sizeof(tmp), PSTR("%02d-%02d-%02d(%02x%02x)"),
-						   data[1], data[2], data[3], data[4], data[5]);
-				last_value_SDS_version = tmp;
-				break;
-			}
-		}
-		debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(DBG_TXT_SDS011_VERSION_DATE));
-	}
-
-	return last_value_SDS_version;
 }
 
 /*****************************************************************
@@ -1686,10 +1621,7 @@ static void readConfig(bool oldconfig = false)
 			// SPIFFS.format();
 			rewriteConfig = true;
 		}
-		if (cfg::sending_intervall_ms < READINGTIME_SDS_MS)
-		{
-			cfg::sending_intervall_ms = READINGTIME_SDS_MS;
-		}
+
 		if (boolFromJSON(json, F("bmp280_read")) || boolFromJSON(json, F("bme280_read")))
 		{
 			cfg::bmx280_read = true;
@@ -2171,7 +2103,6 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += FPSTR("<b>");
 	page_content += FPSTR(INTL_PM_SENSORS);
 	page_content += FPSTR(WEB_B_BR);
-	add_form_checkbox_sensor(Config_sds_read, FPSTR(INTL_SDS011));
 	add_form_checkbox_sensor(Config_npm_read, FPSTR(INTL_NPM));
 	// add_form_checkbox_sensor(Config_npm_fulltime, FPSTR(INTL_NPM_FULLTIME));
 
@@ -2347,10 +2278,12 @@ static void sensor_restart()
 	{
 		serialNPM.end();
 	}
-	else
+
+	if (cfg::mhz16_read || cfg::mhz19_read)
 	{
-		serialSDS.end();
+		serialMHZ.end();
 	}
+
 	debug_outln_info(F("Restart."));
 	delay(500);
 	ESP.restart();
@@ -2565,12 +2498,6 @@ static void webserver_values()
 	page_content = F("<table cellspacing='0' cellpadding='5' class='v'>\n"
 					 "<thead><tr><th>" INTL_SENSOR "</th><th> " INTL_PARAMETER "</th><th>" INTL_VALUE "</th></tr></thead>");
 
-	if (cfg::sds_read)
-	{
-		add_table_pm_value(FPSTR(SENSORS_SDS011), FPSTR(WEB_PM25), last_value_SDS_P2);
-		add_table_pm_value(FPSTR(SENSORS_SDS011), FPSTR(WEB_PM10), last_value_SDS_P1);
-		page_content += FPSTR(EMPTY_ROW);
-	}
 	if (cfg::npm_read)
 	{
 		add_table_pm_value(FPSTR(SENSORS_NPM), FPSTR(WEB_PM1), last_value_NPM_P0);
@@ -2658,11 +2585,7 @@ static void webserver_status()
 	time_t now = time(nullptr);
 	add_table_row_from_value(page_content, FPSTR(INTL_TIME_UTC), ctime(&now));
 	add_table_row_from_value(page_content, F("Uptime"), delayToString(millis() - time_point_device_start_ms));
-	if (cfg::sds_read)
-	{
-		page_content += FPSTR(EMPTY_ROW);
-		add_table_row_from_value(page_content, FPSTR(SENSORS_SDS011), last_value_SDS_version);
-	}
+
 	if (cfg::npm_read)
 	{
 		page_content += FPSTR(EMPTY_ROW);
@@ -2699,10 +2622,7 @@ static void webserver_status()
 		add_table_row_from_value(page_content, F("Data Send Return"),
 								 last_sendData_returncode > 0 ? String(last_sendData_returncode) : HTTPClient::errorToString(last_sendData_returncode));
 	}
-	if (cfg::sds_read)
-	{
-		add_table_row_from_value(page_content, FPSTR(SENSORS_SDS011), String(SDS_error_count));
-	}
+
 	if (cfg::npm_read)
 	{
 		add_table_row_from_value(page_content, FPSTR(SENSORS_NPM), String(NPM_error_count));
@@ -3322,7 +3242,6 @@ static void wifiConfig()
 	debug_outln_info(F("APPKEY: "), cfg::appkey);
 	debug_outln_info(F("WLANSSID: "), cfg::wlanssid);
 	debug_outln_info(FPSTR(DBG_TXT_SEP));
-	debug_outln_info_bool(F("SDS: "), cfg::sds_read);
 	debug_outln_info_bool(F("NPM: "), cfg::npm_read);
 	debug_outln_info_bool(F("BMX: "), cfg::bmx280_read);
 	debug_outln_info_bool(F("MHZ16: "), cfg::mhz16_read);
@@ -4526,106 +4445,6 @@ static void fetchSensorCCS811(String &s)
 }
 
 /*****************************************************************
- * read SDS011 sensor values                                     *
- *****************************************************************/
-static void fetchSensorSDS(String &s)
-{
-	if (cfg::sending_intervall_ms > (WARMUPTIME_SDS_MS + READINGTIME_SDS_MS) &&
-		msSince(starttime) < (cfg::sending_intervall_ms - (WARMUPTIME_SDS_MS + READINGTIME_SDS_MS)))
-	{
-		if (is_SDS_running)
-		{
-			is_SDS_running = SDS_cmd(PmSensorCmd::Stop);
-		}
-	}
-	else
-	{
-		if (!is_SDS_running)
-		{
-			is_SDS_running = SDS_cmd(PmSensorCmd::Start);
-			SDS_waiting_for = SDS_REPLY_HDR;
-		}
-
-		while (serialSDS.available() >= SDS_waiting_for)
-		{
-			const uint8_t constexpr hdr_measurement[2] = {0xAA, 0xC0};
-			uint8_t data[8];
-
-			switch (SDS_waiting_for)
-			{
-			case SDS_REPLY_HDR:
-				if (serialSDS.find(hdr_measurement, sizeof(hdr_measurement)))
-					SDS_waiting_for = SDS_REPLY_BODY;
-				break;
-			case SDS_REPLY_BODY:
-				debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(SENSORS_SDS011));
-				if (serialSDS.readBytes(data, sizeof(data)) == sizeof(data) && SDS_checksum_valid(data))
-				{
-					uint32_t pm25_serial = data[0] | (data[1] << 8);
-					uint32_t pm10_serial = data[2] | (data[3] << 8);
-
-					if (msSince(starttime) > (cfg::sending_intervall_ms - READINGTIME_SDS_MS))
-					{
-						sds_pm10_sum += pm10_serial;
-						sds_pm25_sum += pm25_serial;
-						UPDATE_MIN_MAX(sds_pm10_min, sds_pm10_max, pm10_serial);
-						UPDATE_MIN_MAX(sds_pm25_min, sds_pm25_max, pm25_serial);
-						debug_outln_verbose(F("PM10 (sec.) : "), String(pm10_serial / 10.0f));
-						debug_outln_verbose(F("PM2.5 (sec.): "), String(pm25_serial / 10.0f));
-						sds_val_count++;
-					}
-				}
-				debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(SENSORS_SDS011));
-				SDS_waiting_for = SDS_REPLY_HDR;
-				break;
-			}
-		}
-	}
-	if (send_now && cfg::sending_intervall_ms >= 120000)
-	{
-		last_value_SDS_P1 = -1;
-		last_value_SDS_P2 = -1;
-		if (sds_val_count > 2)
-		{
-			sds_pm10_sum = sds_pm10_sum - sds_pm10_min - sds_pm10_max;
-			sds_pm25_sum = sds_pm25_sum - sds_pm25_min - sds_pm25_max;
-			sds_val_count = sds_val_count - 2;
-		}
-		if (sds_val_count > 0)
-		{
-			last_value_SDS_P1 = float(sds_pm10_sum) / (sds_val_count * 10.0f);
-			last_value_SDS_P2 = float(sds_pm25_sum) / (sds_val_count * 10.0f);
-			add_Value2Json(s, F("SDS_P1"), F("PM10:  "), last_value_SDS_P1);
-			add_Value2Json(s, F("SDS_P2"), F("PM2.5: "), last_value_SDS_P2);
-			debug_outln_info(FPSTR(DBG_TXT_SEP));
-			if (sds_val_count < 3)
-			{
-				SDS_error_count++;
-			}
-		}
-		else
-		{
-			SDS_error_count++;
-		}
-		sds_pm10_sum = 0;
-		sds_pm25_sum = 0;
-		sds_val_count = 0;
-		sds_pm10_max = 0;
-		sds_pm10_min = 20000;
-		sds_pm25_max = 0;
-		sds_pm25_min = 20000;
-		if ((cfg::sending_intervall_ms > (WARMUPTIME_SDS_MS + READINGTIME_SDS_MS)))
-		{
-
-			if (is_SDS_running)
-			{
-				is_SDS_running = SDS_cmd(PmSensorCmd::Stop);
-			}
-		}
-	}
-}
-
-/*****************************************************************
  * read Tera Sensor Next PM sensor sensor values                 *
  *****************************************************************/
 static void fetchSensorNPM(String &s)
@@ -4798,7 +4617,7 @@ static void display_values_oled() //COMPLETER LES ECRANS
 	String display_header;
 	String display_lines[3] = {"", "", ""};
 	uint8_t screen_count = 0;
-	uint8_t screens[12];
+	uint8_t screens[11];
 	int line_count = 0;
 	debug_outln_info(F("output values to display..."));
 
@@ -4813,14 +4632,6 @@ static void display_values_oled() //COMPLETER LES ECRANS
 		nc010_value = last_value_NPM_N1;
 		nc100_value = last_value_NPM_N10;
 		nc025_value = last_value_NPM_N25;
-	}
-
-	if (cfg::sds_read)
-	{
-		pm10_sensor = FPSTR(SENSORS_SDS011);
-		pm25_sensor = FPSTR(SENSORS_SDS011);
-		pm10_value = last_value_SDS_P1;
-		pm25_value = last_value_SDS_P2;
 	}
 
 	if (cfg::bmx280_read)
@@ -4853,68 +4664,58 @@ static void display_values_oled() //COMPLETER LES ECRANS
 		cov_sensor = FPSTR(SENSORS_CCS811);
 	}
 
-	if (cfg::sds_read && cfg::display_measure)
+	if (cfg::npm_read && cfg::display_measure)
 	{
 		screens[screen_count++] = 0;
 	}
-	if (cfg::npm_read && cfg::display_measure)
-	{
-		screens[screen_count++] = 1;
-	}
 	if (cfg::bmx280_read && cfg::display_measure)
 	{
-		screens[screen_count++] = 2;
+		screens[screen_count++] = 1;
 	}
 
 	if (cfg::mhz16_read && cfg::display_measure)
 	{
-		screens[screen_count++] = 3;
+		screens[screen_count++] = 2;
 	}
 	if (cfg::mhz19_read && cfg::display_measure)
 	{
-		screens[screen_count++] = 4;
+		screens[screen_count++] = 3;
 	}
 	if (cfg::ccs811_read && cfg::display_measure)
 	{
-		screens[screen_count++] = 5;
+		screens[screen_count++] = 4;
 	}
 	if (cfg::display_forecast)
 	{
-		screens[screen_count++] = 6; // Atmo Sud forecast
+		screens[screen_count++] = 5; // Atmo Sud forecast
 	}
 	if (cfg::display_wifi_info && cfg::has_wifi)
 	{
-		screens[screen_count++] = 7; // Wifi info
+		screens[screen_count++] = 6; // Wifi info
 	}
 	if (cfg::display_device_info)
 	{
-		screens[screen_count++] = 8; // chipID, firmware and count of measurements
-		screens[screen_count++] = 9; // Coordinates
+		screens[screen_count++] = 7; // chipID, firmware and count of measurements
+		screens[screen_count++] = 8; // Coordinates
 		if (cfg::npm_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 10; // info NPM
+			screens[screen_count++] = 9; // info NPM
 		}
 	}
 	if (cfg::display_lora_info && cfg::has_lora)
 	{
-		screens[screen_count++] = 11; // Lora info
+		screens[screen_count++] = 10; // Lora info
 	}
 
 	switch (screens[next_display_count % screen_count])
 	{
 	case 0:
-		display_header = FPSTR(SENSORS_SDS011);
-		display_lines[0] = std::move(tmpl(F("PM2.5: {v} µg/m³"), check_display_value(pm25_value, -1, 1, 6)));
-		display_lines[1] = std::move(tmpl(F("PM10: {v} µg/m³"), check_display_value(pm10_value, -1, 1, 6)));
-		display_lines[2] = emptyString;
-		break;
-	case 1:
 		display_header = FPSTR(SENSORS_NPM);
 		display_lines[0] = std::move(tmpl(F("PM1: {v} µg/m³"), check_display_value(pm01_value, -1, 1, 6)));
 		display_lines[1] = std::move(tmpl(F("PM2.5: {v} µg/m³"), check_display_value(pm25_value, -1, 1, 6)));
 		display_lines[2] = std::move(tmpl(F("PM10: {v} µg/m³"), check_display_value(pm10_value, -1, 1, 6)));
 		break;
-	case 2:
+	case 1:
 		display_header = t_sensor;
 		if (t_sensor != "")
 		{
@@ -4939,22 +4740,22 @@ static void display_values_oled() //COMPLETER LES ECRANS
 			display_lines[line_count++] = emptyString;
 		}
 		break;
-	case 3:
+	case 2:
 		display_header = FPSTR(SENSORS_MHZ16);
 		display_lines[0] = std::move(tmpl(F("CO2: {v} ppm"), check_display_value(co2_value, -1, 1, 6)));
 		break;
-	case 4:
+	case 3:
 		display_header = FPSTR(SENSORS_MHZ19);
 		display_lines[0] = std::move(tmpl(F("CO2: {v} ppm"), check_display_value(co2_value, -1, 1, 6)));
 		break;
-	case 5:
+	case 4:
 		display_header = FPSTR(SENSORS_CCS811);
 		display_lines[0] = std::move(tmpl(F("COV: {v} ppb"), check_display_value(cov_value, -1, 1, 6)));
 		break;
-	case 6:
+	case 5:
 		display_header = F("Forecast AtmoSud");
 		break;
-	case 7:
+	case 6:
 		display_header = F("Wifi info");
 		display_lines[0] = "IP: ";
 		display_lines[0] += WiFi.localIP().toString();
@@ -4962,7 +4763,7 @@ static void display_values_oled() //COMPLETER LES ECRANS
 		display_lines[1] += WiFi.SSID();
 		display_lines[2] = std::move(tmpl(F("Signal: {v} %"), String(calcWiFiSignalQuality(last_signal_strength))));
 		break;
-	case 8:
+	case 7:
 		display_header = F("Device Info");
 		display_lines[0] = "ID: ";
 		display_lines[0] += esp_chipid;
@@ -4971,7 +4772,7 @@ static void display_values_oled() //COMPLETER LES ECRANS
 		display_lines[2] = F("Measurements: ");
 		display_lines[2] += String(count_sends);
 		break;
-	case 9:
+	case 8:
 		display_header = F("Coordinates");
 		display_lines[0] = "ID: ";
 		display_lines[0] += esp_chipid;
@@ -4980,13 +4781,13 @@ static void display_values_oled() //COMPLETER LES ECRANS
 		display_lines[2] = F("Measurements: ");
 		display_lines[2] += String(count_sends);
 		break;
-	case 10:
+	case 9:
 		display_header = FPSTR(SENSORS_NPM);
 		display_lines[0] = current_state_npm;
 		display_lines[1] = F("T_NPM / RH_NPM");
 		display_lines[2] = current_th_npm;
 		break;
-	case 11:
+	case 10:
 		display_header = F("LoRaWAN Info");
 		display_lines[0] = "APPEUI: ";
 		display_lines[0] += cfg::appeui;
@@ -5039,7 +4840,7 @@ static void display_values_matrix()
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
 	uint8_t screen_count = 0;
-	uint8_t screens[25];
+	uint8_t screens[23];
 	int line_count = 0;
 	//debug_outln_info(F("output values to matrix..."));
 
@@ -5054,14 +4855,6 @@ static void display_values_matrix()
 		nc010_value = last_value_NPM_N1;
 		nc100_value = last_value_NPM_N10;
 		nc025_value = last_value_NPM_N25;
-	}
-
-	if (cfg::sds_read)
-	{
-		pm10_sensor = FPSTR(SENSORS_SDS011);
-		pm25_sensor = FPSTR(SENSORS_SDS011);
-		pm10_value = last_value_SDS_P1;
-		pm25_value = last_value_SDS_P2;
 	}
 
 	if (cfg::bmx280_read)
@@ -5094,7 +4887,7 @@ static void display_values_matrix()
 		cov_sensor = FPSTR(SENSORS_CCS811);
 	}
 
-	if ((cfg::sds_read || cfg::npm_read || cfg::bmx280_read || cfg::mhz16_read || cfg::mhz19_read || cfg::ccs811_read) && cfg::display_measure)
+	if ((cfg::npm_read || cfg::bmx280_read || cfg::mhz16_read || cfg::mhz19_read || cfg::ccs811_read) && cfg::display_measure)
 	{
 		screens[screen_count++] = 0; //Air intérieur
 	}
@@ -5110,76 +4903,68 @@ static void display_values_matrix()
 			screens[screen_count++] = 2;
 	}
 
-	if (cfg::sds_read && cfg::display_measure)
+	if (cfg::npm_read && cfg::display_measure)
 	{
-
 		if (cfg_screen_pm10)
 			screens[screen_count++] = 3; //PM10
 		if (cfg_screen_pm25)
 			screens[screen_count++] = 4; //PM2.5
-	}
-	if (cfg::npm_read && cfg::display_measure)
-	{
-		if (cfg_screen_pm10)
-			screens[screen_count++] = 5; //PM10
-		if (cfg_screen_pm25)
-			screens[screen_count++] = 6; //PM2.5
 		if (cfg_screen_pm01)
-			screens[screen_count++] = 7; //PM1
+			screens[screen_count++] = 5; //PM1
 	}
 
 	if (cfg::ccs811_read && cfg::display_measure)
 	{
 		if (cfg_screen_cov)
-			screens[screen_count++] = 8;
+			screens[screen_count++] = 6;
 	}
 
 	if (cfg::bmx280_read && cfg::display_measure)
 	{
 		if (cfg_screen_temp)
-			screens[screen_count++] = 9; //T
+			screens[screen_count++] = 7; //T
 		if (cfg_screen_humi)
-			screens[screen_count++] = 10; //H
+			screens[screen_count++] = 8; //H
 		if (cfg_screen_press)
-			screens[screen_count++] = 11; //P
+			screens[screen_count++] = 9; //P
 	}
 
 	if (cfg::display_forecast)
 	{
-		screens[screen_count++] = 12; // Air exterieur
+		screens[screen_count++] = 10; // Air exterieur
 		if (cfg_screen_atmo_index)
-			screens[screen_count++] = 13; // Atmo Sud forecast Indice
+			screens[screen_count++] = 11; // Atmo Sud forecast Indice
 		if (cfg_screen_atmo_no2)
-			screens[screen_count++] = 14; // Atmo Sud forecast NO2
+			screens[screen_count++] = 12; // Atmo Sud forecast NO2
 		if (cfg_screen_atmo_o3)
-			screens[screen_count++] = 15; // Atmo Sud forecast O3
+			screens[screen_count++] = 13; // Atmo Sud forecast O3
 		if (cfg_screen_atmo_pm10)
-			screens[screen_count++] = 16; // Atmo Sud forecast PM10
+			screens[screen_count++] = 14; // Atmo Sud forecast PM10
 		if (cfg_screen_atmo_pm25)
-			screens[screen_count++] = 17; // Atmo Sud forecast PM2.5
+			screens[screen_count++] = 15; // Atmo Sud forecast PM2.5
 		if (cfg_screen_atmo_so2)
-			screens[screen_count++] = 18; // Atmo Sud forecast PM2.5
+			screens[screen_count++] = 16; // Atmo Sud forecast PM2.5
 	}
 
 	if (cfg::display_wifi_info && cfg::has_wifi)
 	{
-		screens[screen_count++] = 19; // Wifi info
+		screens[screen_count++] = 17; // Wifi info
 	}
 	if (cfg::display_device_info)
 	{
-		screens[screen_count++] = 20; // chipID, firmware and count of measurements
-		screens[screen_count++] = 21; // Latitude, longitude, altitude
+		screens[screen_count++] = 18; // chipID, firmware and count of measurements
+		screens[screen_count++] = 19; // Latitude, longitude, altitude
 		if (cfg::npm_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 22; // info NPM
+			screens[screen_count++] = 20; // info NPM
 		}
 	}
 	if (cfg::display_lora_info && cfg::has_lora)
 	{
-		screens[screen_count++] = 23; // Lora info
+		screens[screen_count++] = 21; // Lora info
 	}
 
-	screens[screen_count++] = 24; // Logos
+	screens[screen_count++] = 22; // Logos
 
 	switch (screens[next_display_count % screen_count])
 	{
@@ -5269,7 +5054,7 @@ static void display_values_matrix()
 		// 	act_milli += 5000;
 		// }
 		break;
-	case 3: //SDS
+	case 3: //NPM
 		if (pm10_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5279,7 +5064,7 @@ static void display_values_matrix()
 			display.setTextSize(1);
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX() + 2, 7); //Decaler vers le bas?
+			display.setCursor(display.getCursorX() + 2, 7);
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
@@ -5329,67 +5114,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 5: //NPM
-		if (pm10_value != -1.0)
-		{
-			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("PM10");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX() + 2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, maison);
-			displayColor = interpolateint(pm10_value, 15, 30, 75, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextSize(2);
-			display.setTextColor(myWHITE);
-			drawCentreString(String(pm10_value, 0), 0, 9, 14);
-			display.setTextColor(myCUSTOM);
-			messager1(pm10_value, 15, 30, 75);
-		}
-		else
-		{
-			act_milli += 5000;
-		}
-		break;
-	case 6:
-		if (pm25_value != -1.0)
-		{
-			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("PM2.5");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX() + 2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, maison);
-			displayColor = interpolateint(pm25_value, 10, 20, 50, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextSize(2);
-			display.setTextColor(myWHITE);
-			drawCentreString(String(pm25_value, 0), 0, 9, 14);
-			display.setTextColor(myCUSTOM);
-			messager1(pm25_value, 10, 20, 50);
-		}
-		else
-		{
-			act_milli += 5000;
-		}
-		break;
-	case 7:
+	case 5:
 		if (pm01_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5477,7 +5202,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 8:
+	case 6:
 		if (cov_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5500,7 +5225,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 9:
+	case 7:
 		if (t_value != temperature_correction(-128.0,atof(cfg::temp_offset)))
 		{
 			display.fillScreen(myBLACK);
@@ -5529,7 +5254,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 10:
+	case 8:
 		if (h_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5563,7 +5288,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 11:
+	case 9:
 		if (p_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5586,7 +5311,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 12:
+	case 10:
 		if (atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0 || atmoSud.so2 != -1.0)
 		{
 			drawImage(0, 0, 32, 64, exterieur);
@@ -5596,7 +5321,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 13:
+	case 11:
 		if (atmoSud.multi != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5627,7 +5352,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 14:
+	case 12:
 		if (atmoSud.no2 != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5668,7 +5393,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 15:
+	case 13:
 		if (atmoSud.o3 != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5709,7 +5434,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 16:
+	case 14:
 		if (atmoSud.pm10 != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5749,7 +5474,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 17:
+	case 15:
 		if (atmoSud.pm2_5 != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5789,7 +5514,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 18:
+	case 16:
 		if (atmoSud.so2 != -1.0)
 		{
 			display.fillScreen(myBLACK);
@@ -5830,7 +5555,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 19:
+	case 17:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5847,7 +5572,7 @@ static void display_values_matrix()
 		display.print("Signal:");
 		display.print(String(calcWiFiSignalQuality(last_signal_strength)));
 		break;
-	case 20:
+	case 18:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5863,7 +5588,7 @@ static void display_values_matrix()
 		display.print("Meas.:");
 		display.print(String(count_sends));
 		break;
-	case 21:
+	case 19:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5879,7 +5604,7 @@ static void display_values_matrix()
 		display.print("Altitude:");
 		display.print(cfg::height_above_sealevel);
 		break;
-	case 22:
+	case 20:
 		if ((pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0))
 		{
 			display.fillScreen(myBLACK);
@@ -5897,7 +5622,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 		}
 		break;
-	case 23:
+	case 21:
 		display.fillScreen(myBLACK);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x5Fixed);
@@ -5910,7 +5635,7 @@ static void display_values_matrix()
 		display.setCursor(0, 22);
 		display.print(cfg::appkey);
 		break;
-	case 24:
+	case 22:
 		if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 5))
 		{
 			logo_index++;
@@ -6127,14 +5852,6 @@ static void powerOnTestSensors()
 		display.print(INTL_PROBES);
 	}
 
-	if (cfg::sds_read)
-	{
-		debug_outln_info(F("Read SDS...: "), SDS_version_date());
-		SDS_cmd(PmSensorCmd::ContinuousMode);
-		delay(100);
-		debug_outln_info(F("Stopping SDS011..."));
-		is_SDS_running = SDS_cmd(PmSensorCmd::Stop);
-	}
 
 	if (cfg::npm_read)
 	{
@@ -6376,11 +6093,6 @@ void os_getDevEui(u1_t *buf) { memcpy_P(buf, deveui_hex, 8); }
 void os_getDevKey(u1_t *buf) { memcpy_P(buf, appkey_hex, 16); }
 
 //Initialiser avec les valeurs -1.0,-128.0 = valeurs par défaut qui doivent être filtrées
-
-//uint8_t datalora[31] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
-
-// uint8_t datalora[37] = {0x00, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
-// 			//			conf       sds		 sds         npm 		 npm		npm		    npm			npm			npm			co2			co2			 cov     temp  humi	   press
 
 uint8_t datalora[38] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
 //		                conf|   sds	    |	 sds    |    npm   | 	 npm   | 	npm	   |   npm	   |	npm	   |	npm	   |	co2	   |	 co2   |	cov    |    temp  | humi|   press   |       lat             |       lon             | sel
@@ -6700,23 +6412,7 @@ static void prepareTxFrame()
 		datalora[0] = booltobyte(configlorawan); //wifi OK et lora connecté => priorité wifi
 	}
 
-	//x10 to get 1 decimal for PM
-
-	if (last_value_SDS_P1 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_SDS_P1 * 10);
-	else
-		u1.temp_int = (int16_t)round(last_value_SDS_P1);
-
-	datalora[1] = u1.temp_byte[1];
-	datalora[2] = u1.temp_byte[0];
-
-	if (last_value_SDS_P2 != -1.0)
-		u1.temp_int = (int16_t)round(last_value_SDS_P2 * 10);
-	else
-		u1.temp_int = (int16_t)round(last_value_SDS_P2);
-
-	datalora[3] = u1.temp_byte[1];
-	datalora[4] = u1.temp_byte[0];
+	// Reste à 0xff, 0xff, 0xff, 0xff pour 1-4
 
 	if (last_value_NPM_P0 != -1.0)
 		u1.temp_int = (int16_t)round(last_value_NPM_P0 * 10);
@@ -6894,13 +6590,6 @@ void setup()
 		serialNPM.setTimeout(400);
 	}
 
-	if (cfg::sds_read)
-	{
-		serialSDS.begin(9600, SERIAL_8N1, PM_SERIAL_RX, PM_SERIAL_TX);
-		Debug.println("No Next PM... serialSDS 9600 8N1");
-		serialSDS.setTimeout((4 * 12 * 1000) / 9600);
-	}
-
 	if (cfg::mhz16_read || cfg::mhz19_read)
 	{
 		//serialMHZ.begin(9600, SERIAL_8N1, CO2_SERIAL_RX, CO2_SERIAL_TX);
@@ -6987,12 +6676,6 @@ void setup()
 		last_display_millis_matrix = starttime_NPM = starttime;
 	}
 
-	if (cfg::sds_read)
-	{
-		last_display_millis_oled = starttime_SDS = starttime;
-		last_display_millis_matrix = starttime_SDS = starttime;
-	}
-
 	if (cfg::mhz16_read)
 	{
 		last_display_millis_oled = starttime_MHZ16 = starttime;
@@ -7061,7 +6744,7 @@ void setup()
 
 	// Prepare the configuration summary for the following messages (the first is 00000000)
 
-	configlorawan[0] = cfg::sds_read;
+	configlorawan[0] = false;   //config libre  pour ENVEA
 	configlorawan[1] = cfg::npm_read;
 	configlorawan[2] = cfg::bmx280_read;
 	configlorawan[3] = cfg::mhz16_read;
@@ -7082,7 +6765,7 @@ void setup()
 
 void loop()
 {
-	String result_SDS, result_NPM, result_MHZ16, result_MHZ19, result_CCS811;
+	String result_NPM, result_MHZ16, result_MHZ19, result_CCS811;
 
 	unsigned sum_send_time = 0;
 
@@ -7117,15 +6800,6 @@ void loop()
 		{
 			starttime_NPM = act_milli;
 			fetchSensorNPM(result_NPM);
-		}
-	}
-
-	if (cfg::sds_read)
-	{
-		if ((msSince(starttime_SDS) > SAMPLETIME_SDS_MS) || send_now)
-		{
-			starttime_SDS = act_milli;
-			fetchSensorSDS(result_SDS);
 		}
 	}
 
@@ -7190,14 +6864,7 @@ void loop()
 		data = FPSTR(data_first_part);
 		RESERVE_STRING(result, MED_STR);
 
-		if (cfg::sds_read)
-		{
-			data += result_SDS;
-			if (cfg::has_wifi && !wifi_connection_lost)
-			{
-				sum_send_time += sendSensorCommunity(result_SDS, SDS_API_PIN, FPSTR(SENSORS_SDS011), "SDS_");
-			}
-		}
+
 		if (cfg::npm_read)
 		{
 			data += result_NPM;

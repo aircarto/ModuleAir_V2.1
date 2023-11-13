@@ -39,7 +39,6 @@ enum ConfigShapeId {
 	Config_fs_ssid,
 	Config_fs_pwd,
 	Config_www_basicauth_enabled,
-	Config_sds_read,
 	Config_npm_read,
 	Config_bmx280_read,
 	Config_height_above_sealevel,
@@ -92,7 +91,6 @@ static constexpr char CFG_KEY_WWW_PASSWORD[] PROGMEM = "www_password";
 static constexpr char CFG_KEY_FS_SSID[] PROGMEM = "fs_ssid";
 static constexpr char CFG_KEY_FS_PWD[] PROGMEM = "fs_pwd";
 static constexpr char CFG_KEY_WWW_BASICAUTH_ENABLED[] PROGMEM = "www_basicauth_enabled";
-static constexpr char CFG_KEY_SDS_READ[] PROGMEM = "sds_read";
 static constexpr char CFG_KEY_NPM_READ[] PROGMEM = "npm_read";
 static constexpr char CFG_KEY_BMX280_READ[] PROGMEM = "bmx280_read";
 static constexpr char CFG_KEY_HEIGHT_ABOVE_SEALEVEL[] PROGMEM = "height_above_sealevel";
@@ -145,7 +143,6 @@ static constexpr ConfigShapeEntry configShape[] PROGMEM = {
 	{ Config_Type_String, sizeof(cfg::fs_ssid)-1, CFG_KEY_FS_SSID, cfg::fs_ssid },
 	{ Config_Type_Password, sizeof(cfg::fs_pwd)-1, CFG_KEY_FS_PWD, cfg::fs_pwd },
 	{ Config_Type_Bool, 0, CFG_KEY_WWW_BASICAUTH_ENABLED, &cfg::www_basicauth_enabled },
-	{ Config_Type_Bool, 0, CFG_KEY_SDS_READ, &cfg::sds_read },
 	{ Config_Type_Bool, 0, CFG_KEY_NPM_READ, &cfg::npm_read },
 	{ Config_Type_Bool, 0, CFG_KEY_BMX280_READ, &cfg::bmx280_read },
 	{ Config_Type_String, sizeof(cfg::height_above_sealevel)-1, CFG_KEY_HEIGHT_ABOVE_SEALEVEL, cfg::height_above_sealevel },

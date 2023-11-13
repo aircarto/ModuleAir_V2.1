@@ -14,7 +14,6 @@ Password	www_password
 String		fs_ssid
 Password	fs_pwd
 Bool		www_basicauth_enabled
-Bool		sds_read
 Bool		npm_read
 Bool		bmx280_read
 String		height_above_sealevel

@@ -51,7 +51,6 @@ namespace cfg {
 }
 
 
-#define serialSDS (Serial1)
 #define serialNPM (Serial1) 
 #define serialMHZ (Serial2)
 
@@ -102,10 +101,6 @@ extern void debug_outln_verbose(const __FlashStringHelper* text, const String& o
 extern void debug_outln_info_bool(const __FlashStringHelper* text, const bool option);
 
 
-extern bool SDS_checksum_valid(const uint8_t (&data)[8]);
-extern void SDS_rawcmd(const uint8_t cmd_head1, const uint8_t cmd_head2, const uint8_t cmd_head3);
-extern bool SDS_cmd(PmSensorCmd cmd);
-extern bool PMS_cmd(PmSensorCmd cmd);
 extern bool HPM_cmd(PmSensorCmd cmd);
 extern void NPM_cmd(PmSensorCmd2 cmd);
 extern bool NPM_checksum_valid_4(const uint8_t (&data)[4]);
