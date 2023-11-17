@@ -1,3 +1,8 @@
+/*
+ * Provide ISRG Root X1 as certificate authority for the trust chain.
+ * Expect all HTTPS endpoints to authentice with a Let's Encrypt certificate.
+ * See https://letsencrypt.org/certificates/
+ */
 static const char isrg_root_x1[] PROGMEM = R"EOF(
 -----BEGIN CERTIFICATE-----
 MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw
@@ -31,4 +36,3 @@ mRGunUHBcnWEvgJBQl9nJEiU0Zsnvgc/ubhPgXRR4Xq37Z0j4r7g1SgEEzwxA57d
 emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 -----END CERTIFICATE-----
 )EOF";
-
