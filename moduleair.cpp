@@ -3804,16 +3804,16 @@ static unsigned long sendData(const LoggerEntry logger, const String &data, cons
 		switch (logger)
 		{
 		case LoggerSensorCommunity:
-			clientSecure->setCACert(dst_root_ca_x3);
+			clientSecure->setCACert(isrg_root_x1);
 			break;
 		case LoggerMadavi:
-			clientSecure->setCACert(dst_root_ca_x3);
+			clientSecure->setCACert(isrg_root_x1);
 			break;
 		case LoggerCustom:
-			clientSecure->setCACert(ca_aircarto);
+			clientSecure->setCACert(isrg_root_x1);
 			break;
 		case LoggerCustom2:
-			clientSecure->setCACert(ca_atmo);
+			clientSecure->setCACert(isrg_root_x1);
 			break;
 		}
 
