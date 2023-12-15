@@ -264,59 +264,9 @@ void debug_outln_info_bool(const __FlashStringHelper* text, const bool option) {
 #undef debug_level_check
 
 
-/*****************************************************************
- * send SDS011 command (start, stop, continuous mode, version    *
- *****************************************************************/
-
 template<typename T, std::size_t N> constexpr std::size_t array_num_elements(const T(&)[N]) {
 	return N;
 }
-
-bool SDS_checksum_valid(const uint8_t (&data)[8]) {
-    uint8_t checksum_is = 0;
-    for (unsigned i = 0; i < 6; ++i) {
-        checksum_is += data[i];
-    }
-    return (data[7] == 0xAB && checksum_is == data[6]);
-}
-
-void SDS_rawcmd(const uint8_t cmd_head1, const uint8_t cmd_head2, const uint8_t cmd_head3) {
-	constexpr uint8_t cmd_len = 19;
-
-	uint8_t buf[cmd_len];
-	buf[0] = 0xAA;
-	buf[1] = 0xB4;
-	buf[2] = cmd_head1;
-	buf[3] = cmd_head2;
-	buf[4] = cmd_head3;
-	for (unsigned i = 5; i < 15; ++i) {
-		buf[i] = 0x00;
-	}
-	buf[15] = 0xFF;
-	buf[16] = 0xFF;
-	buf[17] = cmd_head1 + cmd_head2 + cmd_head3 - 2;
-	buf[18] = 0xAB;
-	serialSDS.write(buf, cmd_len);
-}
-
-bool SDS_cmd(PmSensorCmd cmd) {
-	switch (cmd) {
-	case PmSensorCmd::Start:
-		SDS_rawcmd(0x06, 0x01, 0x01);
-		break;
-	case PmSensorCmd::Stop:
-		SDS_rawcmd(0x06, 0x01, 0x00);
-		break;
-	case PmSensorCmd::ContinuousMode:
-		// TODO: Check mode first before (re-)setting it
-		SDS_rawcmd(0x08, 0x01, 0x00);
-		SDS_rawcmd(0x02, 0x01, 0x00);
-		break;
-	}
-
-	return cmd != PmSensorCmd::Stop;
-}
-
 
 /*********************************************************************************
  * send Tera Sensor Next PM sensor command state, change, concentration, version *

@@ -20,6 +20,7 @@ const char INTL_NPM[] PROGMEM = "Tera Sensor Next PM";
 const char INTL_NPM_FULLTIME[] PROGMEM = "Next PM permanent";
 const char INTL_BMX280[] PROGMEM = "BME280 ({t}, {h}, {p}), BMP280 ({t}, {p})";
 const char INTL_HEIGHT_ABOVE_SEALEVEL[] PROGMEM = "Altitude (m)";
+const char INTL_TEMP_OFFSET[] PROGMEM = "Correction température (°, 1 déc. séparée par .)";
 const char INTL_PRESSURE_AT_SEALEVEL[] PROGMEM = "Pression au niveau de la mer (hPa)";
 const char INTL_NEO6M[] PROGMEM = "GPS (NEO 6M)";
 const char INTL_MHZ16[] PROGMEM = "Sonde MH-Z16";
@@ -94,6 +95,7 @@ const char INTL_TIME_SINCE_LAST_MEASUREMENT[] PROGMEM = " secondes écoulées de
 const char INTL_PARTICLES_PER_LITER[] PROGMEM = "particules/litre";
 const char INTL_PARTICULATE_MATTER[] PROGMEM = "particules fines";
 const char INTL_TEMPERATURE[] PROGMEM = "Température";
+const char INTL_TEMPERATURE_CORRECTED[] PROGMEM = "Température corrigée";
 const char INTL_HUMIDITY[] PROGMEM = "Humidité relative";
 const char INTL_PRESSURE[] PROGMEM = "Pression atmosphérique";
 const char INTL_DEW_POINT[] PROGMEM = "Point de rosée";
@@ -114,5 +116,45 @@ const char INTL_LORA_EXPLANATION[] = "Copier/Coller les valeurs depuis la consol
 const char INTL_LORA_ACTIVATION[] = "Activer la communication LoRaWAN";
 const char INTL_WIFI_ACTIVATION[] = "Activer la communication WiFi";
 
+const char INTL_GOOD[] = "BON";
+const char INTL_MEDIUM[] = "MOYEN";
+const char INTL_DEGRADED[] = "DEGRADE";
+const char INTL_BAD[] = "MAUVAIS";
+const char INTL_VERY_BAD[] = "TRES MAUVAIS";
+const char INTL_EXT_BAD[] = "EXT. MAUVAIS";
+
+const char INTL_ERR[] = "ERREUR";
+
+const char INTL_WELL[] = "BIEN";
+const char INTL_AERATE_PLS[] = "AERER SVP";
+const char INTL_AERATE_FAST[] = "AERER VITE";
+
+const char INTL_DRY[] = "TROP SEC";
+const char INTL_IDEAL[] = "IDEAL";
+const char INTL_WET[] = "TROP HUMIDE";
+
+const char INTL_COLD[] = "TROP FROID";
+const char INTL_TOK[] = "CONFORT";
+const char INTL_WARM[] = "TROP CHAUD";
+
+const char INTL_CONFIGURE[] = "Configurer";
+const char INTL_THE_WIFI[] = "le WiFi";
+
+const char INTL_CONNECTION[] = "Connexion";
+const char INTL_DONE[] = "établie";
+const char INTL_TRY[] = "";
+
+const char INTL_FIRST[] = "Premières";
+const char INTL_MEASURES[] = "mesures";
+
+const char INTL_COV[] = "COV";
+const char INTL_TEMP[] = "Temp.";
+const char INTL_HUMI[] = "Humidité";
+const char INTL_PRESS[] = "Press.";
+
+const char INTL_ACTIVATION[] = "Activation";
+const char INTL_PROBES[] = "des sondes";
+
 #include "./aircarto-logo-common.h"
 #include "./logos-custom.h"
+
