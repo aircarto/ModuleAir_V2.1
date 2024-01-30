@@ -59,41 +59,6 @@ The code is developped on a ESP32 DevC with 38 pins (equiped with a ESP-WROOM-32
 Please use [Platformio for VS Code](https://platformio.org/) to flash the board.
 The `platformio.ini` installs all needed boards, platforms and libraries.
 
-## Library changes
-
-To force the use of both the SPIs on the ESP32, the SPI library and the PXMatrix library has to be corrected a bit.
-
-**SPI.cpp**
-
-Modify as this:
-```
-#if CONFIG_IDF_TARGET_ESP32
-SPIClass SPI(VSPI);
-SPIClass SPI_H(HSPI);
-#else
-SPIClass SPI(FSPI);
-#endif
-```
-
-**SPI.h**
-
-Add this line at the bottom:
-`extern SPIClass SPI_H;`
-
-**PxMatrix.h**
-
-Replace all `SPI` with `SPI_H` except for `#include <SPI.h>`.
-
-Verify that those pins are defined:
-
-```
-// HW SPI PINS
-#define SPI_BUS_CLK 14
-#define SPI_BUS_MOSI 13
-#define SPI_BUS_MISO 12
-#define SPI_BUS_SS 4
-```
-
 ## Font changes
 
 The default glcdfont.c of the Adafruit GFX library was modified to add new characters.
