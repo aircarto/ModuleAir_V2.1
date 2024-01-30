@@ -77,9 +77,41 @@ Copy `ext_def.h.dist` to `ext_def.h`.
 
 Run with **/General/Build**.
 
-### Flashing
+### Flashing (Uploading)
 
-Upload with **/General/Upload and Monitor**.
+Press and hold the `BOOT1` button. Press once the `RST1` button. 
+
+Release both. The device will now wait for an upload:
+
+```
+rst:0x1 (POWERON_RESET),boot:0x1 (DOWNLOAD_BOOT(UART0/UART1/SDIO_FEI_REO_V2))
+waiting for download
+```
+
+Make sure no monitor is still running, else you will soon encounter:
+
+```
+serial.serialutil.SerialException: could not open port 'COM3': PermissionError(13, 'Access is denied.', None, 5)
+*** [upload] Error 1
+```
+
+Flash with **/General/Upload and Monitor**.
+
+Once flashing (`Writing`…) is done, i.e.:
+
+```
+Leaving...
+Hard resetting via RTS pin...
+```
+
+Manually restart the device pressing once the `RST1` button.
+
+The monitor log should shortly start logging, e.g.:
+
+```
+Starting
+Address of Stackpointer near start is:  0x3ffb27e8
+```
 
 ## Font changes
 
