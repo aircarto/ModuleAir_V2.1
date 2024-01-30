@@ -56,8 +56,8 @@ The code is developped on a ESP32 DevC with 38 pins (equiped with a ESP-WROOM-32
 
 ## Flashing
 
-Please use Platformio to flash the board.
-The .ini file should be able to get all the needed boards, platforms and libraries from the internet
+Please use [Platformio for VS Code](https://platformio.org/) to flash the board.
+The `platformio.ini` installs all needed boards, platforms and libraries.
 
 ## Library changes
 
