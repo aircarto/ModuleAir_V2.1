@@ -54,10 +54,32 @@ And the ESP32 platform librairies:
 ## Boards
 The code is developped on a ESP32 DevC with 38 pins (equiped with a ESP-WROOM-32 module). More information about this board on the official [Espressif website](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/hw-reference/esp32/get-started-devkitc.html).
 
-## Flashing
+## Development environment
 
-Please use [Platformio for VS Code](https://platformio.org/) to flash the board.
+### PlatformIO
+
+Please use [PlatformIO for VS Code](https://platformio.org/) to flash the board.
 The `platformio.ini` installs all needed boards, platforms and libraries.
+
+In the PlatformIO activity, open a project with "Pick a folder". 
+
+Use project task `esp32doit-devkit-v1-debug`. Give it some time to parse the project tasks.
+
+Check connection to the device using **/General/Monitor**.
+
+### Building
+
+Copy `configuration.h.dist` to `configuration.h`.
+
+Copy `logos-custom.h.dist` to `logos-custom.h`.
+
+Copy `ext_def.h.dist` to `ext_def.h`.
+
+Run with **/General/Build**.
+
+### Flashing
+
+Upload with **/General/Upload and Monitor**.
 
 ## Font changes
 
@@ -110,7 +132,7 @@ The value are initialised for the first uplink at the end of the void setup() wh
 0xff, 0xff, npm_nc PM1 = -1
 0xff, 0xff, mhz16 CO2 = -1
 0xff, 0xff, mhz19 CO2 -1
-0xff, 0xff, ccs811 OVC = -1
+# 0xff, 0xff, ccs811 OVC = -1
 0x80, bme temp = -128
 0xff, bme rh = -1
 0xff, 0xff, bme press = -1
