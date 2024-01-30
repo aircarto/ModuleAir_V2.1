@@ -79,7 +79,31 @@ Run with **/General/Build**.
 
 ### Flashing
 
-Upload with **/General/Upload and Monitor**.
+In this section, press without discontinuation the `BOOT1` button.
+
+Restart the device pressing once the `RST1` button (keep pressing `BOOT1`).
+
+Upload with **/General/Upload and Monitor** (keep pressing `BOOT1`).
+
+Wait until compiling & writing is done (keep pressing `BOOT1` until then).
+
+```
+Leaving...
+Hard resetting via RTS pin...
+```
+
+Release `BOOT1` now.
+
+Restart the device pressing once the `RST1` button.
+
+The device restarts and the monitor log should now start logging, e.g.:
+
+```
+Starting
+
+
+Address of Stackpointer near start is:  0x3ffb27e8
+```
 
 ## Font changes
 
