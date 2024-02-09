@@ -88,14 +88,14 @@ const char EMPTY_ROW[] PROGMEM = "<tr><td colspan='3'>&nbsp;</td></tr>";
 const char WEB_PAGE_FOOTER[] PROGMEM = "<br/><br/>"
                 "<a class='b' href='/' style='display:inline;'>" INTL_BACK_TO_HOME "</a><br/><br/><br/>"
 		"</div><footer class='footer'><div style='padding:16px'>"
-		"<a href='https://www.aircarto.fr/ target='_blank' rel='noreferrer' style='color:#438DBF;'>"
+		"<a href='https://www.aircarto.fr/' target='_blank' rel='noreferrer' style='color:#438DBF;'>"
 		"&copy; AirCarto</a>&nbsp;&nbsp("
                 "<a href='https://github.com/aircarto/ModuleAir_V2/labels/bug' target='_blank' rel='noreferrer'>" INTL_REPORT_ISSUE "</a>"
 		")</div></footer></body></html>\r\n";
 
 const char WEB_ROOT_PAGE_CONTENT[] PROGMEM = "<a class='b' href='/values'>{t}</a><br/>\
 <a class='b' href='/status'>{s}</a><br/>\
-<a class='b' href='https://www.aircarto.fr/' target='_blank' rel='noreferrer'>" INTL_ACTIVE_SENSORS_MAP "</a><br/>\
+<a class='b' href='https://openairmap.fr/' target='_blank' rel='noreferrer'>" INTL_ACTIVE_SENSORS_MAP "</a><br/>\
 <a class='b' href='/config'>{conf}</a><br/>\
 <a class='b' href='/removeConfig'>" INTL_CONFIGURATION_DELETE "</a><br/>\
 <a class='b' href='/reset'>{restart}</a><br/>\

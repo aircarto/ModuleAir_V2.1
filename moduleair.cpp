@@ -5838,7 +5838,6 @@ static bool initCCS811()
 
 static void powerOnTestSensors()
 {
-
 	if (cfg::has_matrix)
 	{
 		display.fillScreen(myBLACK);
@@ -5852,7 +5851,6 @@ static void powerOnTestSensors()
 		display.print(INTL_PROBES);
 	}
 
-
 	if (cfg::npm_read)
 	{
 		int8_t test_state;
@@ -5860,7 +5858,10 @@ static void powerOnTestSensors()
 
 		for (size_t i = 0; i < 30; ++i)
 			{
-				display.fillRect(i, 22, 1, 4, myWHITE);
+				if (cfg::has_matrix)
+				{
+					display.fillRect(i, 22, 1, 4, myWHITE);
+				}
 				delay(500);
 			}
 		
@@ -5946,20 +5947,29 @@ static void powerOnTestSensors()
 
 			for (size_t i = 30; i < 54; ++i)
 			{
+				if (cfg::has_matrix)
+				{
 				display.fillRect(i, 22, 1, 4, myWHITE);
+				}
 				delay(500);
 			}
 			NPM_version_date();
 
 			for (size_t i = 54; i < 60; ++i)
 			{
+				if (cfg::has_matrix)
+				{
 				display.fillRect(i, 22, 1, 4, myWHITE);
+				}
 				delay(500);
 			}
 			NPM_temp_humi();
 			for (size_t i = 60; i < 64; ++i)
 			{
+				if (cfg::has_matrix)
+				{
 				display.fillRect(i, 22, 1, 4, myWHITE);
+				}
 				delay(500);
 			}
 		}
