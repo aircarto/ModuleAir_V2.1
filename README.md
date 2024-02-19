@@ -77,9 +77,26 @@ Copy `ext_def.h.dist` to `ext_def.h`.
 
 Run with **/General/Build**.
 
-### Flashing (Uploading)
+### Flashing & Uploading
+
+#### 1) Erase Flash
 
 Press and hold the `BOOT1` button. Press once the `RST1` button. 
+
+Release both. The device will now wait for an upload:
+
+```
+rst:0x1 (POWERON_RESET),boot:0x1 (DOWNLOAD_BOOT(UART0/UART1/SDIO_FEI_REO_V2))
+waiting for download
+```
+
+Erase flash with **/Platform/Erase Flash** or `python -m esptool erase_flash`.
+
+Once erasing is done, manually restart the device pressing once the `RST1` button.
+
+#### 2) Upload
+
+Then, press and hold the `BOOT1` button. Press once the `RST1` button. 
 
 Release both. The device will now wait for an upload:
 
