@@ -226,16 +226,19 @@ Example for transmited data:
 
 ## Picture encoding
 
-Prepare you picture with the format 2:1.
-Execute:
+*Required: ImageMagick 7.1.1 including "legacy utilities (e.g. convert)".*
+
+First, prepare your picture in the format 2:1, black background & no transparency.
+
+Then, run (on Windows, specify full path to convert.exe, e.g. `C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\convert.exe`):
+
 ```
-convert in.png -coalesce -gamma 0.4 -resize 64x32\! -dispose None -interlace None -ordered-dither o4x4,32,64,32 -layers OptimizeFrame out.png
+convert in.png -coalesce -gamma 0.4 -resize 64x32 -dispose None -interlace None -ordered-dither o4x4,32,64,32 -layers OptimizeFrame out.png
 ```
 
-Then go to:
-http://www.rinkydinkelectronics.com/t_imageconverter565.php
+Then use http://www.rinkydinkelectronics.com/t_imageconverter565.php to convert `out.png` to a `.c file`.
 
-Finally copy/paste the 2048 HEX-bytes in logos-custom.h.
+Donwload and copy the 2048 HEX-bytes into `logo_custom1` or `logo_custom2` in `logos-custom.h`.
 
 ## Payload formaters
 
