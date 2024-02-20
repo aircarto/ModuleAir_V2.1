@@ -63,7 +63,7 @@ The `platformio.ini` installs all needed boards, platforms and libraries.
 
 In the PlatformIO activity, open a project with "Pick a folder". 
 
-Use project task `esp32doit-devkit-v1-debug`. Give it some time to parse the project tasks.
+Select project environment **`esp32dev_fr`**. Give it some time to parse the project tasks.
 
 Check connection to the device using **/General/Monitor**.
 
