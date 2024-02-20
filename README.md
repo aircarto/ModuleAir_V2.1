@@ -81,6 +81,8 @@ Run with **/General/Build**.
 
 #### 1) Erase Flash
 
+(You may skip reasing flash before upload in development environments.)
+
 Press and hold the `BOOT1` button. Press once the `RST1` button. 
 
 Release both. The device will now wait for an upload:
