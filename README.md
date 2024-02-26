@@ -54,50 +54,91 @@ And the ESP32 platform librairies:
 ## Boards
 The code is developped on a ESP32 DevC with 38 pins (equiped with a ESP-WROOM-32 module). More information about this board on the official [Espressif website](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/hw-reference/esp32/get-started-devkitc.html).
 
-## Flashing
+## Development environment
 
-Please use Platformio to flash the board.
-The .ini file should be able to get all the needed boards, platforms and libraries from the internet
+### PlatformIO
 
-## Library changes
+Please use [PlatformIO for VS Code](https://platformio.org/) to flash the board.
+The `platformio.ini` installs all needed boards, platforms and libraries.
 
-To force the use of both the SPIs on the ESP32, the SPI library and the PXMatrix library has to be corrected a bit.
+In the PlatformIO activity, open a project with "Pick a folder". 
 
-**SPI.cpp**
+Select project environment **`esp32dev_fr`**. Give it some time to parse the project tasks.
 
-Modify as this:
+Check connection to the device using **/General/Monitor**.
+
+### Required manual fixes
+
+#### Font changes
+
+We modified the default `glcdfont.c` (Adafruit GFX library) to add required characters (e.g. µ, <sup>2</sup>, <sup>3</sup>, <sub>2</sub>, <sub>3</sub>).
+
+Do replace `.pio/libdeps/*/Adafruit GFX Library/glcdfont_mod.c` with our `Fonts/glcdfont_mod.c`.
+
+### Building
+
+Copy `configuration.h.dist` to `configuration.h`.
+
+Copy `logos-custom.h.dist` to `logos-custom.h`.
+
+Copy `ext_def.h.dist` to `ext_def.h`.
+
+Run with **/General/Build**.
+
+### Flashing & Uploading
+
+#### 1 – Erase Flash
+
+*In development environments, you may skip this step and proceed to step 2.*
+
+Press and hold the `BOOT1` button. Press once the `RST1` button. 
+
+Release both. The device will now wait for an upload:
+
 ```
-#if CONFIG_IDF_TARGET_ESP32
-SPIClass SPI(VSPI);
-SPIClass SPI_H(HSPI);
-#else
-SPIClass SPI(FSPI);
-#endif
+rst:0x1 (POWERON_RESET),boot:0x1 (DOWNLOAD_BOOT(UART0/UART1/SDIO_FEI_REO_V2))
+waiting for download
 ```
 
-**SPI.h**
+Erase flash with **/Platform/Erase Flash** or `python -m esptool erase_flash`.
 
-Add this line at the bottom:
-`extern SPIClass SPI_H;`
+Once erasing is done, manually restart the device pressing once the `RST1` button.
 
-**PxMatrix.h**
+#### 2 – Upload
 
-Replace all `SPI` with `SPI_H` except for `#include <SPI.h>`.
+Then, press and hold the `BOOT1` button. Press once the `RST1` button. 
 
-Verify that those pins are defined:
+Release both. The device will now wait for an upload:
 
 ```
-// HW SPI PINS
-#define SPI_BUS_CLK 14
-#define SPI_BUS_MOSI 13
-#define SPI_BUS_MISO 12
-#define SPI_BUS_SS 4
+rst:0x1 (POWERON_RESET),boot:0x1 (DOWNLOAD_BOOT(UART0/UART1/SDIO_FEI_REO_V2))
+waiting for download
 ```
 
-## Font changes
+Make sure no monitor is still running, else you will soon encounter:
 
-The default glcdfont.c of the Adafruit GFX library was modified to add new characters.
-Copy the content of the glcdfont_mod.c file in the Fonts folder and paste it in the glcdfont.c file in the Adafruit GFX library in the folder of the choosed board in the .pio folder.
+```
+serial.serialutil.SerialException: could not open port 'COM3': PermissionError(13, 'Access is denied.', None, 5)
+*** [upload] Error 1
+```
+
+Flash with **/General/Upload and Monitor**.
+
+Once flashing (`Writing`…) is done, i.e.:
+
+```
+Leaving...
+Hard resetting via RTS pin...
+```
+
+Manually restart the device pressing once the `RST1` button.
+
+The monitor log should shortly start logging, e.g.:
+
+```
+Starting
+Address of Stackpointer near start is:  0x3ffb27e8
+```
 
 ## Pin mapping
 
@@ -190,16 +231,19 @@ Example for transmited data:
 
 ## Picture encoding
 
-Prepare you picture with the format 2:1.
-Execute:
+*Required: ImageMagick 7.1.1 including "legacy utilities (e.g. convert)".*
+
+First, prepare your picture in the format 2:1, black background & no transparency.
+
+Then, run (on Windows, specify full path to convert.exe, e.g. `C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\convert.exe`):
+
 ```
-convert in.png -coalesce -gamma 0.4 -resize 64x32\! -dispose None -interlace None -ordered-dither o4x4,32,64,32 -layers OptimizeFrame out.png
+convert in.png -coalesce -gamma 0.4 -resize 64x32 -dispose None -interlace None -ordered-dither o4x4,32,64,32 -layers OptimizeFrame out.png
 ```
 
-Then go to:
-http://www.rinkydinkelectronics.com/t_imageconverter565.php
+Then use http://www.rinkydinkelectronics.com/t_imageconverter565.php to convert `out.png` to a `.c file`.
 
-Finally copy/paste the 2048 HEX-bytes in logos-custom.h.
+Donwload and copy the 2048 HEX-bytes into `logo_custom1` or `logo_custom2` in `logos-custom.h`.
 
 ## Payload formaters
 
