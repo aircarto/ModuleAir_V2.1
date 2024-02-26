@@ -67,6 +67,14 @@ Select project environment **`esp32dev_fr`**. Give it some time to parse the pro
 
 Check connection to the device using **/General/Monitor**.
 
+### Required manual fixes
+
+#### Font changes
+
+We modified the default `glcdfont.c` (Adafruit GFX library) to add required characters (e.g. µ, <sup>2</sup>, <sup>3</sup>, <sub>2</sub>, <sub>3</sub>).
+
+Do replace `.pio/libdeps/*/Adafruit GFX Library/glcdfont_mod.c` with our `Fonts/glcdfont_mod.c`.
+
 ### Building
 
 Copy `configuration.h.dist` to `configuration.h`.
@@ -131,11 +139,6 @@ The monitor log should shortly start logging, e.g.:
 Starting
 Address of Stackpointer near start is:  0x3ffb27e8
 ```
-
-## Font changes
-
-The default glcdfont.c of the Adafruit GFX library was modified to add new characters.
-Copy the content of the glcdfont_mod.c file in the Fonts folder and paste it in the glcdfont.c file in the Adafruit GFX library in the folder of the choosed board in the .pio folder.
 
 ## Pin mapping
 
