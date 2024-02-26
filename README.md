@@ -87,9 +87,9 @@ Run with **/General/Build**.
 
 ### Flashing & Uploading
 
-#### 1) Erase Flash
+#### 1 – Erase Flash
 
-(You may skip reasing flash before upload in development environments.)
+*In development environments, you may skip this step and proceed to step 2.*
 
 Press and hold the `BOOT1` button. Press once the `RST1` button. 
 
@@ -104,7 +104,7 @@ Erase flash with **/Platform/Erase Flash** or `python -m esptool erase_flash`.
 
 Once erasing is done, manually restart the device pressing once the `RST1` button.
 
-#### 2) Upload
+#### 2 – Upload
 
 Then, press and hold the `BOOT1` button. Press once the `RST1` button. 
 
