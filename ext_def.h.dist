@@ -30,8 +30,8 @@ const char APPKEY[] = "0000";
 #define SEND2MADAVI 0
 #define SSL_MADAVI 0
 #define SEND2CSV 0
-#define SEND2CUSTOM 1
-#define SEND2CUSTOM2 0
+#define SEND2CUSTOM 1       //AirCarto API
+#define SEND2CUSTOM2 0      //AtmoSud API (MicroSpot)
 
 enum LoggerEntry {
     LoggerSensorCommunity,
@@ -61,21 +61,21 @@ static const char URL_SENSORCOMMUNITY[] PROGMEM = "/v1/push-sensor-data/";
 static const char NTP_SERVER_1[] PROGMEM = "ntp-p1.obspm.fr";
 static const char NTP_SERVER_2[] PROGMEM = "ntp.obspm.fr";
 
-// define own API
+// AIRCARTO API
 static const char HOST_CUSTOM[] PROGMEM = "data.moduleair.fr";
 static const char URL_CUSTOM[] PROGMEM = "/wifi.php";
-#define PORT_CUSTOM 80
+#define PORT_CUSTOM 80         // 80 for HTTP and 443 for HTTPS
 #define USER_CUSTOM ""
 #define PWD_CUSTOM ""
-#define SSL_CUSTOM 0
+#define SSL_CUSTOM 0        // -> 1 to activate HTTPS
 
-// define own API
+// AtmoSud API (MicroSpot)
 static const char HOST_CUSTOM2[] PROGMEM = "192.168.234.1";
 static const char URL_CUSTOM2[] PROGMEM = "/data.php";
-#define PORT_CUSTOM2 80
+#define PORT_CUSTOM 80         // 80 for HTTP and 443 for HTTPS
 #define USER_CUSTOM2 ""
 #define PWD_CUSTOM2 ""
-#define SSL_CUSTOM2 0
+#define SSL_CUSTOM 0        // -> 1 to activate HTTPS
 
 #if defined(ARDUINO_ESP32_DEV) and defined(KIT_V1)
 //#define ONEWIRE_PIN D25
@@ -195,4 +195,4 @@ const char LONGITUDE[] PROGMEM = "5.369";
 
 static const char URL_API_SENSORCOMMUNITY[] PROGMEM = "https://data.sensor.community/airrohr/v1/sensor/";
 
-#define TEMP_OFFSET "0.0"
+#define TEMP_OFFSET "-4.0"
