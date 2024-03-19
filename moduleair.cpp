@@ -3810,10 +3810,10 @@ static unsigned long sendData(const LoggerEntry logger, const String &data, cons
 			clientSecure->setCACert(dst_root_ca_x3);
 			break;
 		case LoggerCustom:
-			clientSecure->setCACert(ca_aircarto);
+			clientSecure->setCACert(isrg_root_x1);
 			break;
 		case LoggerCustom2:
-			clientSecure->setCACert(ca_atmo);
+			clientSecure->setCACert(isrg_root_x1);
 			break;
 		}
 
