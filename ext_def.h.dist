@@ -72,10 +72,10 @@ static const char URL_CUSTOM[] PROGMEM = "/wifi.php";
 // AtmoSud API (MicroSpot)
 static const char HOST_CUSTOM2[] PROGMEM = "192.168.234.1";
 static const char URL_CUSTOM2[] PROGMEM = "/data.php";
-#define PORT_CUSTOM 80         // 80 for HTTP and 443 for HTTPS
+#define PORT_CUSTOM2 80         // 80 for HTTP and 443 for HTTPS
 #define USER_CUSTOM2 ""
 #define PWD_CUSTOM2 ""
-#define SSL_CUSTOM 0        // -> 1 to activate HTTPS
+#define SSL_CUSTOM2 0        // -> 1 to activate HTTPS
 
 #if defined(ARDUINO_ESP32_DEV) and defined(KIT_V1)
 //#define ONEWIRE_PIN D25

@@ -4362,6 +4362,8 @@ static void fetchSensorMHZ19(String &s)
 		mhz19_sum += value;
 		mhz19_val_count++;
 		debug_outln(String(mhz19_val_count), DEBUG_MAX_INFO);
+		debug_outln(String(value), DEBUG_MAX_INFO);
+
 	}
 
 	if (send_now && cfg::sending_intervall_ms == 120000)
@@ -4384,7 +4386,7 @@ static void fetchSensorMHZ19(String &s)
 	}
 
 	debug_outln_info(FPSTR(DBG_TXT_SEP));
-	debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
+	//debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
 }
 
 /*****************************************************************
