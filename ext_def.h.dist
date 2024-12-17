@@ -64,10 +64,10 @@ static const char NTP_SERVER_2[] PROGMEM = "ntp.obspm.fr";
 // AIRCARTO API
 static const char HOST_CUSTOM[] PROGMEM = "data.moduleair.fr";
 static const char URL_CUSTOM[] PROGMEM = "/wifi.php";
-#define PORT_CUSTOM 80         // 80 for HTTP and 443 for HTTPS
+#define PORT_CUSTOM 443         // 80 for HTTP and 443 for HTTPS
 #define USER_CUSTOM ""
 #define PWD_CUSTOM ""
-#define SSL_CUSTOM 0        // -> 1 to activate HTTPS
+#define SSL_CUSTOM 1        // -> 1 to activate HTTPS
 
 // AtmoSud API (MicroSpot)
 static const char HOST_CUSTOM2[] PROGMEM = "192.168.234.1";
@@ -151,14 +151,14 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #define BME280_API_PIN 11
 
 // MH-Z16/MH-Z19, CO2 Sensor
-#define MHZ16_READ 1
-#define MHZ19_READ 0
+#define MHZ16_READ 0
+#define MHZ19_READ 1
 // #define MHZ16_API_PIN X
 // #define MHZ19_API_PIN X
 
 // SGP40, COV Sensor
 
-#define CCS811_READ 1
+#define CCS811_READ 0
 // #define CCS811_API_PIN X
 
 //Location
