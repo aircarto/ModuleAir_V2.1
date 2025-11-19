@@ -40,6 +40,23 @@ const char INTL_DISPLAY_FORECAST[] PROGMEM = "Afficher les prévisions Atmosud";
 const char INTL_DISPLAY_WIFI_INFO[] PROGMEM = "Afficher les informations wifi";
 const char INTL_DISPLAY_LORA_INFO[] PROGMEM = "Afficher les informations LoRaWAN";
 const char INTL_DISPLAY_DEVICE_INFO[] PROGMEM = "Afficher les informations de l'appareil";
+
+// Screen selection labels
+const char INTL_SCREEN_PM01[] PROGMEM = "Écran PM1";
+const char INTL_SCREEN_PM25[] PROGMEM = "Écran PM2.5";
+const char INTL_SCREEN_PM10[] PROGMEM = "Écran PM10";
+const char INTL_SCREEN_CO2[] PROGMEM = "Écran CO2";
+const char INTL_SCREEN_COV[] PROGMEM = "Écran COV";
+const char INTL_SCREEN_TEMP[] PROGMEM = "Écran Température";
+const char INTL_SCREEN_HUMI[] PROGMEM = "Écran Humidité";
+const char INTL_SCREEN_PRESS[] PROGMEM = "Écran Pression";
+const char INTL_SCREEN_ATMO_PM10[] PROGMEM = "Prévision PM10 AtmoSud";
+const char INTL_SCREEN_ATMO_PM25[] PROGMEM = "Prévision PM2.5 AtmoSud";
+const char INTL_SCREEN_ATMO_INDEX[] PROGMEM = "Prévision Indice AtmoSud";
+const char INTL_SCREEN_ATMO_O3[] PROGMEM = "Prévision O3 AtmoSud";
+const char INTL_SCREEN_ATMO_NO2[] PROGMEM = "Prévision NO2 AtmoSud";
+const char INTL_SCREEN_ATMO_SO2[] PROGMEM = "Prévision SO2 AtmoSud";
+
 const char INTL_DEBUG_LEVEL[] PROGMEM = "Niveau&nbsp;de&nbsp;débogage";
 const char INTL_MEASUREMENT_INTERVAL[] PROGMEM = "Intervalle de mesure";
 const char INTL_DURATION_ROUTER_MODE[] PROGMEM = "Durée mode routeur";
@@ -88,7 +105,7 @@ const char INTL_DEBUG_SETTING_TO[] PROGMEM = "Paramètres de débogage";
 #define INTL_MED_INFO "mid. info"
 #define INTL_MAX_INFO "max. info"
 #define INTL_CONFIG_DELETED "Le fichier config.json a été effacé."
-#define INTL_CONFIG_CAN_NOT_BE_DELETED "Le fichier config.json n\'a pas pu être effacé."
+#define INTL_CONFIG_CAN_NOT_BE_DELETED "Le fichier config.json n'a pas pu être effacé."
 #define INTL_CONFIG_NOT_FOUND "Le fichier config.json est introuvable."
 const char INTL_TIME_TO_FIRST_MEASUREMENT[] PROGMEM = "Encore {v} secondes avant la première mesure.";
 const char INTL_TIME_SINCE_LAST_MEASUREMENT[] PROGMEM = " secondes écoulées depuis la dernière mesure.";

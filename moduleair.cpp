@@ -193,6 +193,23 @@ namespace cfg
 	char nebuleair_id[LEN_NEBULEAIR_ID] = "";
 	bool display_nebuleair = false;
 
+	// Screen selection for pollutants display
+	bool screen_pm01 = true;
+	bool screen_pm25 = true;
+	bool screen_pm10 = true;
+	bool screen_co2 = true;
+	bool screen_cov = true;
+	bool screen_temp = true;
+	bool screen_humi = true;
+	bool screen_press = false;
+
+	bool screen_atmo_pm10 = true;
+	bool screen_atmo_pm25 = true;
+	bool screen_atmo_index = true;
+	bool screen_atmo_o3 = true;
+	bool screen_atmo_no2 = true;
+	bool screen_atmo_so2 = true;
+
 	// First load
 	void initNonTrivials(const char *id)
 	{
@@ -1121,6 +1138,8 @@ unsigned long count_sends = 0;
 unsigned long last_display_millis_oled = 0;
 unsigned long last_display_millis_matrix = 0;
 uint8_t next_display_count = 0;
+uint8_t oled_screen_count = 0;
+uint8_t matrix_screen_count = 0;
 
 struct struct_wifiInfo
 {
@@ -1146,6 +1165,33 @@ static String displayGenerateFooter(unsigned int screen_count)
 		display_footer += (i != (next_display_count % screen_count)) ? " . " : " o ";
 	}
 	return display_footer;
+}
+
+/*****************************************************************
+ * Calculate dynamic display interval based on screen count      *
+ *****************************************************************/
+static unsigned long getDisplayInterval(unsigned int screen_count)
+{
+	// Base interval is 5 seconds (DISPLAY_UPDATE_INTERVAL_MS)
+	// With fewer screens, we want to stay longer on each screen
+	// Target: maintain roughly 30-60 seconds for a full rotation
+
+	if (screen_count == 0) return DISPLAY_UPDATE_INTERVAL_MS;
+
+	// Aim for ~40 seconds total rotation time
+	const unsigned long TARGET_ROTATION_TIME_MS = 40000;
+	unsigned long calculated_interval = TARGET_ROTATION_TIME_MS / screen_count;
+
+	// Clamp between 3 seconds (minimum) and 15 seconds (maximum)
+	const unsigned long MIN_INTERVAL_MS = 3000;
+	const unsigned long MAX_INTERVAL_MS = 15000;
+
+	if (calculated_interval < MIN_INTERVAL_MS)
+		return MIN_INTERVAL_MS;
+	if (calculated_interval > MAX_INTERVAL_MS)
+		return MAX_INTERVAL_MS;
+
+	return calculated_interval;
 }
 
 /*****************************************************************
@@ -1990,7 +2036,7 @@ static void webserver_config_send_body_get(String &page_content)
 					  "<input class='radio' id='r3' name='group' type='radio'>"
 					  "<input class='radio' id='r4' name='group' type='radio'>"
 					  "<input class='radio' id='r5' name='group' type='radio'>"
-					  //   "<input class='radio' id='r6' name='group' type='radio'>"
+					  "<input class='radio' id='r6' name='group' type='radio'>"
 					  "<div class='tabs'>"
 					  "<label class='tab' id='tab1' for='r1'>" INTL_WIFI_SETTINGS "</label>"
 					  "<label class='tab' id='tab2' for='r2'>");
@@ -2004,9 +2050,9 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += F(
 		"</label>"
 		"<label class='tab' id='tab5' for='r5'>APIs");
-	// page_content += F("</label>"
-	// 				  "<label class='tab' id='tab6' for='r6'>");
-	// page_content += FPSTR(INTL_SCREENS);
+	page_content += F("</label>"
+					  "<label class='tab' id='tab6' for='r6'>");
+	page_content += FPSTR(INTL_SCREENS);
 	page_content += F("</label></div><div class='panels'>"
 					  "<div class='panel' id='panel1'>");
 
@@ -2230,11 +2276,30 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_input(page_content, Config_pwd_custom2, FPSTR(INTL_PASSWORD2), LEN_CFG_PASSWORD2 - 1);
 	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 
-	//server.sendContent(page_content);
-	// page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(6));
-	// page_content += FPSTR("<b>");
-	// page_content += FPSTR(INTL_LOGOS);
-	// page_content += FPSTR(WEB_B_BR);
+	server.sendContent(page_content);
+	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(6));
+
+	page_content += FPSTR(WEB_LF_B);
+	page_content += F("Sélection des écrans de polluants");
+	page_content += FPSTR(WEB_B_BR_BR);
+
+	page_content += F("<h3>Capteurs intérieurs</h3>");
+	add_form_checkbox(Config_screen_pm01, FPSTR(INTL_SCREEN_PM01));
+	add_form_checkbox(Config_screen_pm25, FPSTR(INTL_SCREEN_PM25));
+	add_form_checkbox(Config_screen_pm10, FPSTR(INTL_SCREEN_PM10));
+	add_form_checkbox(Config_screen_co2, FPSTR(INTL_SCREEN_CO2));
+	add_form_checkbox(Config_screen_cov, FPSTR(INTL_SCREEN_COV));
+	add_form_checkbox(Config_screen_temp, FPSTR(INTL_SCREEN_TEMP));
+	add_form_checkbox(Config_screen_humi, FPSTR(INTL_SCREEN_HUMI));
+	add_form_checkbox(Config_screen_press, FPSTR(INTL_SCREEN_PRESS));
+
+	page_content += F("<br/><h3>Prévisions AtmoSud</h3>");
+	add_form_checkbox(Config_screen_atmo_index, FPSTR(INTL_SCREEN_ATMO_INDEX));
+	add_form_checkbox(Config_screen_atmo_pm10, FPSTR(INTL_SCREEN_ATMO_PM10));
+	add_form_checkbox(Config_screen_atmo_pm25, FPSTR(INTL_SCREEN_ATMO_PM25));
+	add_form_checkbox(Config_screen_atmo_o3, FPSTR(INTL_SCREEN_ATMO_O3));
+	add_form_checkbox(Config_screen_atmo_no2, FPSTR(INTL_SCREEN_ATMO_NO2));
+	add_form_checkbox(Config_screen_atmo_so2, FPSTR(INTL_SCREEN_ATMO_SO2));
 
 	page_content += F("</div></div>");
 	page_content += form_submit(FPSTR(INTL_SAVE_AND_RESTART));
@@ -2272,7 +2337,21 @@ static void webserver_config_send_body_post(String &page_content)
 			*(c.cfg_val.as_uint) = server_arg.toInt() * 1000;
 			break;
 		case Config_Type_Bool:
-			*(c.cfg_val.as_bool) = (server_arg == "1");
+			// Handle checkbox with hidden input: if "1" is present anywhere, it's checked
+			// The form sends both "0" (hidden) and "1" (checkbox if checked)
+			{
+				bool is_checked = false;
+				// Check all arguments with this name
+				for (int i = 0; i < server.args(); i++)
+				{
+					if (server.argName(i) == s_param && server.arg(i) == "1")
+					{
+						is_checked = true;
+						break;
+					}
+				}
+				*(c.cfg_val.as_bool) = is_checked;
+			}
 			break;
 		case Config_Type_String:
 			strncpy(c.cfg_val.as_str, server_arg.c_str(), c.cfg_len);
@@ -5072,24 +5151,25 @@ static void display_values_oled() //COMPLETER LES ECRANS
 		cov_sensor = FPSTR(SENSORS_CCS811);
 	}
 
-	if (cfg::npm_read && cfg::display_measure)
+	// Add screens based on sensor availability AND user selection
+	if (cfg::npm_read && cfg::display_measure && (cfg::screen_pm01 || cfg::screen_pm25 || cfg::screen_pm10))
 	{
 		screens[screen_count++] = 0;
 	}
-	if (cfg::bmx280_read && cfg::display_measure)
+	if (cfg::bmx280_read && cfg::display_measure && (cfg::screen_temp || cfg::screen_humi || cfg::screen_press))
 	{
 		screens[screen_count++] = 1;
 	}
 
-	if (cfg::mhz16_read && cfg::display_measure)
+	if (cfg::mhz16_read && cfg::display_measure && cfg::screen_co2)
 	{
 		screens[screen_count++] = 2;
 	}
-	if (cfg::s88_read && cfg::display_measure) // SensAir S88
+	if (cfg::s88_read && cfg::display_measure && cfg::screen_co2) // SensAir S88
 	{
 		screens[screen_count++] = 3;
 	}
-	if (cfg::ccs811_read && cfg::display_measure)
+	if (cfg::ccs811_read && cfg::display_measure && cfg::screen_cov)
 	{
 		screens[screen_count++] = 4;
 	}
@@ -5113,6 +5193,13 @@ static void display_values_oled() //COMPLETER LES ECRANS
 	if (cfg::display_lora_info && cfg::has_lora)
 	{
 		screens[screen_count++] = 10; // Lora info
+	}
+
+	// Safety check: if no screens selected, show at least device info
+	if (screen_count == 0)
+	{
+		debug_outln_info(F("No screens selected for OLED, showing device info"));
+		screens[screen_count++] = 7; // Device info as fallback
 	}
 
 	switch (screens[next_display_count % screen_count])
@@ -5218,6 +5305,9 @@ static void display_values_oled() //COMPLETER LES ECRANS
 	oled_ssd1306->drawString(64, 52, displayGenerateFooter(screen_count));
 	oled_ssd1306->display();
 
+	// Update global screen count for dynamic interval calculation
+	oled_screen_count = screen_count;
+
 	yield();
 	next_display_count++;
 }
@@ -5302,38 +5392,38 @@ static void display_values_matrix()
 
 	if (cfg::mhz16_read && cfg::display_measure)
 	{
-		if (cfg_screen_co2)
+		if (cfg::screen_co2)
 			screens[screen_count++] = 1;
 	}
 	if (cfg::s88_read && cfg::display_measure) // SensAir S88
 	{
-		if (cfg_screen_co2)
+		if (cfg::screen_co2)
 			screens[screen_count++] = 2;
 	}
 
 	if (cfg::npm_read && cfg::display_measure)
 	{
-		if (cfg_screen_pm10)
+		if (cfg::screen_pm10)
 			screens[screen_count++] = 3; //PM10
-		if (cfg_screen_pm25)
+		if (cfg::screen_pm25)
 			screens[screen_count++] = 4; //PM2.5
-		if (cfg_screen_pm01)
+		if (cfg::screen_pm01)
 			screens[screen_count++] = 5; //PM1
 	}
 
 	if (cfg::ccs811_read && cfg::display_measure)
 	{
-		if (cfg_screen_cov)
+		if (cfg::screen_cov)
 			screens[screen_count++] = 6;
 	}
 
 	if (cfg::bmx280_read && cfg::display_measure)
 	{
-		if (cfg_screen_temp)
+		if (cfg::screen_temp)
 			screens[screen_count++] = 7; //T
-		if (cfg_screen_humi)
+		if (cfg::screen_humi)
 			screens[screen_count++] = 8; //H
-		if (cfg_screen_press)
+		if (cfg::screen_press)
 			screens[screen_count++] = 9; //P
 	}
 
@@ -5343,11 +5433,11 @@ static void display_values_matrix()
 		if (last_value_NebuleAir_PM1 > 0 || last_value_NebuleAir_PM25 > 0 || last_value_NebuleAir_PM10 > 0)
 		{
 			screens[screen_count++] = 23; // Air extérieur NébuleAir
-			if (cfg_screen_pm10)
+			if (cfg::screen_pm10)
 				screens[screen_count++] = 24; // PM10 NébuleAir
-			if (cfg_screen_pm25)
+			if (cfg::screen_pm25)
 				screens[screen_count++] = 25; // PM2.5 NébuleAir
-			if (cfg_screen_pm01)
+			if (cfg::screen_pm01)
 				screens[screen_count++] = 26; // PM1 NébuleAir
 		}
 	}
@@ -5355,17 +5445,17 @@ static void display_values_matrix()
 	if (cfg::display_forecast)
 	{
 		screens[screen_count++] = 10; // Air exterieur
-		if (cfg_screen_atmo_index)
+		if (cfg::screen_atmo_index)
 			screens[screen_count++] = 11; // Atmo Sud forecast Indice
-		if (cfg_screen_atmo_no2)
+		if (cfg::screen_atmo_no2)
 			screens[screen_count++] = 12; // Atmo Sud forecast NO2
-		if (cfg_screen_atmo_o3)
+		if (cfg::screen_atmo_o3)
 			screens[screen_count++] = 13; // Atmo Sud forecast O3
-		if (cfg_screen_atmo_pm10)
+		if (cfg::screen_atmo_pm10)
 			screens[screen_count++] = 14; // Atmo Sud forecast PM10
-		if (cfg_screen_atmo_pm25)
+		if (cfg::screen_atmo_pm25)
 			screens[screen_count++] = 15; // Atmo Sud forecast PM2.5
-		if (cfg_screen_atmo_so2)
+		if (cfg::screen_atmo_so2)
 			screens[screen_count++] = 16; // Atmo Sud forecast PM2.5
 	}
 
@@ -5388,6 +5478,13 @@ static void display_values_matrix()
 	}
 
 	screens[screen_count++] = 22; // Logos
+
+	// Safety check: if no screens selected, show at least the indoor air screen
+	if (screen_count == 0)
+	{
+		debug_outln_info(F("No screens selected for Matrix, showing indoor air"));
+		screens[screen_count++] = 0; // Indoor air as fallback
+	}
 
 	switch (screens[next_display_count % screen_count])
 	{
@@ -6183,6 +6280,9 @@ static void display_values_matrix()
 
 		break;
 	}
+
+	// Update global screen count for dynamic interval calculation
+	matrix_screen_count = screen_count;
 
 	yield();
 	next_display_count++;
@@ -7379,13 +7479,13 @@ void loop()
 		}
 	}
 
-	if ((msSince(last_display_millis_oled) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_ssd1306))
+	if ((msSince(last_display_millis_oled) > getDisplayInterval(oled_screen_count)) && (cfg::has_ssd1306))
 	{
 		display_values_oled();
 		last_display_millis_oled = act_milli;
 	}
 
-	if ((msSince(last_display_millis_matrix) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_matrix))
+	if ((msSince(last_display_millis_matrix) > getDisplayInterval(matrix_screen_count)) && (cfg::has_matrix))
 	{
 		display_values_matrix();
 		last_display_millis_matrix = act_milli;

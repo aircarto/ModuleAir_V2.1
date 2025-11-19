@@ -80,6 +80,20 @@ enum ConfigShapeId {
 	Config_nebuleair_read,
 	Config_nebuleair_id,
 	Config_display_nebuleair,
+	Config_screen_pm01,
+	Config_screen_pm25,
+	Config_screen_pm10,
+	Config_screen_co2,
+	Config_screen_cov,
+	Config_screen_temp,
+	Config_screen_humi,
+	Config_screen_press,
+	Config_screen_atmo_pm10,
+	Config_screen_atmo_pm25,
+	Config_screen_atmo_index,
+	Config_screen_atmo_o3,
+	Config_screen_atmo_no2,
+	Config_screen_atmo_so2,
 };
 static constexpr char CFG_KEY_HAS_WIFI[] PROGMEM = "has_wifi";
 static constexpr char CFG_KEY_HAS_LORA[] PROGMEM = "has_lora";
@@ -135,6 +149,20 @@ static constexpr char CFG_KEY_SSL_CUSTOM2[] PROGMEM = "ssl_custom2";
 static constexpr char CFG_KEY_NEBULEAIR_READ[] PROGMEM = "nebuleair_read";
 static constexpr char CFG_KEY_NEBULEAIR_ID[] PROGMEM = "nebuleair_id";
 static constexpr char CFG_KEY_DISPLAY_NEBULEAIR[] PROGMEM = "display_nebuleair";
+static constexpr char CFG_KEY_SCREEN_PM01[] PROGMEM = "screen_pm01";
+static constexpr char CFG_KEY_SCREEN_PM25[] PROGMEM = "screen_pm25";
+static constexpr char CFG_KEY_SCREEN_PM10[] PROGMEM = "screen_pm10";
+static constexpr char CFG_KEY_SCREEN_CO2[] PROGMEM = "screen_co2";
+static constexpr char CFG_KEY_SCREEN_COV[] PROGMEM = "screen_cov";
+static constexpr char CFG_KEY_SCREEN_TEMP[] PROGMEM = "screen_temp";
+static constexpr char CFG_KEY_SCREEN_HUMI[] PROGMEM = "screen_humi";
+static constexpr char CFG_KEY_SCREEN_PRESS[] PROGMEM = "screen_press";
+static constexpr char CFG_KEY_SCREEN_ATMO_PM10[] PROGMEM = "screen_atmo_pm10";
+static constexpr char CFG_KEY_SCREEN_ATMO_PM25[] PROGMEM = "screen_atmo_pm25";
+static constexpr char CFG_KEY_SCREEN_ATMO_INDEX[] PROGMEM = "screen_atmo_index";
+static constexpr char CFG_KEY_SCREEN_ATMO_O3[] PROGMEM = "screen_atmo_o3";
+static constexpr char CFG_KEY_SCREEN_ATMO_NO2[] PROGMEM = "screen_atmo_no2";
+static constexpr char CFG_KEY_SCREEN_ATMO_SO2[] PROGMEM = "screen_atmo_so2";
 static constexpr ConfigShapeEntry configShape[] PROGMEM = {
 	{ Config_Type_Bool, 0, CFG_KEY_HAS_WIFI, &cfg::has_wifi },
 	{ Config_Type_Bool, 0, CFG_KEY_HAS_LORA, &cfg::has_lora },
@@ -190,4 +218,18 @@ static constexpr ConfigShapeEntry configShape[] PROGMEM = {
 	{ Config_Type_Bool, 0, CFG_KEY_NEBULEAIR_READ, &cfg::nebuleair_read },
 	{ Config_Type_String, sizeof(cfg::nebuleair_id)-1, CFG_KEY_NEBULEAIR_ID, cfg::nebuleair_id },
 	{ Config_Type_Bool, 0, CFG_KEY_DISPLAY_NEBULEAIR, &cfg::display_nebuleair },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_PM01, &cfg::screen_pm01 },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_PM25, &cfg::screen_pm25 },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_PM10, &cfg::screen_pm10 },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_CO2, &cfg::screen_co2 },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_COV, &cfg::screen_cov },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_TEMP, &cfg::screen_temp },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_HUMI, &cfg::screen_humi },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_PRESS, &cfg::screen_press },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_ATMO_PM10, &cfg::screen_atmo_pm10 },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_ATMO_PM25, &cfg::screen_atmo_pm25 },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_ATMO_INDEX, &cfg::screen_atmo_index },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_ATMO_O3, &cfg::screen_atmo_o3 },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_ATMO_NO2, &cfg::screen_atmo_no2 },
+	{ Config_Type_Bool, 0, CFG_KEY_SCREEN_ATMO_SO2, &cfg::screen_atmo_so2 },
 };
