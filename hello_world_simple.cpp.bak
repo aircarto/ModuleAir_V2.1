@@ -1,0 +1,106 @@
+/*
+ * SALUT - VERSION FINALE
+ * Copie EXACTE de moduleair.cpp ligne 5486-5489
+ */
+
+#include <Arduino.h>
+#include <Wire.h>
+#include <SSD1306Wire.h>
+#include "PxMatrix.h"
+
+// Pins
+#define I2C_SDA 21
+#define I2C_SCL 22
+#define P_LAT 15
+#define P_OE 33
+#define P_A 16
+#define P_B 17
+#define P_C 25
+#define P_D 27
+#define P_E 32
+
+// Écrans
+SSD1306Wire oled(0x3c, I2C_SDA, I2C_SCL);
+PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
+
+// Timer
+hw_timer_t *timer = NULL;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+uint8_t display_draw_time = 30;  // Comme dans moduleair.cpp.backup
+
+// Couleurs
+uint16_t myWHITE = display.color565(255, 255, 255);
+uint16_t myBLACK = display.color565(0, 0, 0);
+uint16_t myRED = display.color565(255, 0, 0);
+uint16_t myGREEN = display.color565(0, 255, 0);
+uint16_t myBLUE = display.color565(0, 0, 255);
+uint16_t myYELLOW = display.color565(255, 255, 0);
+
+// Interruption timer - COMME MODULEAIR ligne 314-320
+void IRAM_ATTR display_updater() {
+    portENTER_CRITICAL_ISR(&timerMux);
+    display.display(display_draw_time);
+    portEXIT_CRITICAL_ISR(&timerMux);
+}
+
+// Fonction EXACTE de moduleair.cpp lignes 766-773
+void drawCentreString(const String &buf, int x, int y, int offset) {
+    int16_t x1, y1;
+    uint16_t w, h;
+    display.getTextBounds(buf, x, y, &x1, &y1, &w, &h);
+    display.setCursor(((64 - offset) - w) / 2, y);
+    display.print(buf);
+}
+
+void setup() {
+    Serial.begin(115200);
+    Serial.println("=== TEST AFFICHAGE WIFI CONFIG ===");
+    Serial.println("Config: FM6126A + RRGGBB");
+
+    // 1. Init I2C
+    Wire.begin(I2C_SDA, I2C_SCL);
+
+    // 2. Init OLED
+    oled.init();
+    oled.flipScreenVertically();
+    oled.clear();
+    oled.setTextAlignment(TEXT_ALIGN_CENTER);
+    oled.drawString(64, 25, "SALUT");
+    oled.display();
+
+    // 3. Init timer AVANT display.begin() comme dans moduleair.cpp.backup
+    timer = timerBegin(0, 80, true);
+
+    // 4. Init Matrice - Tester avec RRGGBB (meilleures couleurs selon vos tests)
+    display.begin(16);
+    display.setDriverChip(SHIFT);
+    display.setColorOrder(RRGGBB);  // RRGGBB pour votre écran
+
+    // 5. Activer l'interruption du timer
+    timerAttachInterrupt(timer, &display_updater, true);
+    timerAlarmWrite(timer, 4000, true);
+    timerAlarmEnable(timer);
+
+    // 6. D'abord effacer l'écran et laisser le timer tourner
+    display.fillScreen(myBLACK);
+    delay(500);  // Laisser le timer se stabiliser avec un écran noir
+
+    // 7. AFFICHAGE "CONFIGURER LE WIFI 3 MIN" - EXACTEMENT COMME moduleair.cpp ligne 3656-3665
+    display.fillScreen(myBLACK);
+    display.setTextColor(myWHITE);
+    display.setFont(NULL);
+    display.setTextSize(1);
+    display.setCursor(1, 0);
+    display.print("Configurer");
+    display.setCursor(1, 11);
+    display.print("le WiFi");
+    display.setCursor(1, 22);
+    display.print("3 min.");
+
+    Serial.println("Affichage: Configurer le WiFi 3 min.");
+    Serial.println("Le texte restera affiche pendant 3 minutes");
+}
+
+void loop() {
+    delay(1000);
+}

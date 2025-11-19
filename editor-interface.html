@@ -1,0 +1,2352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModuleAir - Interface Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/opentype.js/dist/opentype.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a3a5c 0%, #2c5aa0 50%, #438DBF 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .navbar-logo {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #2c5aa0 0%, #438DBF 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+        }
+
+        .navbar-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c5aa0;
+        }
+
+        .navbar-subtitle {
+            font-size: 13px;
+            color: #6c757d;
+            font-weight: 400;
+        }
+
+        .navbar-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #495057;
+        }
+
+        .nav-btn:hover {
+            background: #f8f9fa;
+            border-color: #438DBF;
+            color: #438DBF;
+        }
+
+        .nav-btn.primary {
+            background: linear-gradient(135deg, #2c5aa0 0%, #438DBF 100%);
+            color: white;
+            border-color: #2c5aa0;
+        }
+
+        .nav-btn.primary:hover {
+            background: linear-gradient(135deg, #234a85 0%, #357ba3 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(67, 141, 191, 0.3);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .welcome-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #2c5aa0 0%, #438DBF 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            margin: 0 auto 30px;
+            box-shadow: 0 10px 30px rgba(67, 141, 191, 0.3);
+        }
+
+        .welcome-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 15px;
+        }
+
+        .welcome-subtitle {
+            font-size: 18px;
+            color: #6c757d;
+            margin-bottom: 50px;
+            line-height: 1.6;
+        }
+
+        .size-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .size-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 3px solid #dee2e6;
+            border-radius: 15px;
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .size-card:hover {
+            border-color: #438DBF;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(67, 141, 191, 0.2);
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        }
+
+        .size-card-icon {
+            font-size: 48px;
+            color: #438DBF;
+            margin-bottom: 20px;
+        }
+
+        .size-card-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 10px;
+        }
+
+        .size-card-desc {
+            font-size: 14px;
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        /* Start Mode Screen */
+        .start-mode-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .screen-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 10px;
+        }
+
+        .screen-subtitle {
+            font-size: 16px;
+            color: #6c757d;
+        }
+
+        .mode-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .mode-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 3px solid #dee2e6;
+            border-radius: 15px;
+            padding: 35px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .mode-card:hover {
+            border-color: #438DBF;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(67, 141, 191, 0.2);
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        }
+
+        .mode-card-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #2c5aa0 0%, #438DBF 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(67, 141, 191, 0.3);
+        }
+
+        .mode-card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 10px;
+        }
+
+        .mode-card-desc {
+            font-size: 13px;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+
+        /* Editor Screen */
+        .editor-screen {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            gap: 25px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .editor-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .panel-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2c5aa0 0%, #438DBF 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c5aa0;
+        }
+
+        .canvas-wrapper {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .canvas-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .history-controls, .zoom-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        #displayCanvas {
+            border: 4px solid #2c5aa0;
+            border-radius: 12px;
+            cursor: crosshair;
+            image-rendering: pixelated;
+            box-shadow: 0 15px 40px rgba(44, 90, 160, 0.2);
+            transition: box-shadow 0.2s ease;
+        }
+
+        #displayCanvas:hover {
+            box-shadow: 0 20px 50px rgba(44, 90, 160, 0.3);
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #dee2e6;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 18px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #495057;
+        }
+
+        .zoom-btn:hover {
+            border-color: #438DBF;
+            background: #f8f9fa;
+            color: #438DBF;
+            transform: scale(1.05);
+        }
+
+        #zoomLevel {
+            font-weight: 700;
+            color: #2c5aa0;
+            min-width: 60px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .tool-section {
+            margin-bottom: 25px;
+        }
+
+        .tool-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .tool-btn {
+            padding: 14px;
+            border: 2px solid #dee2e6;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #495057;
+        }
+
+        .tool-btn:hover {
+            border-color: #438DBF;
+            background: #f0f8ff;
+            color: #438DBF;
+            transform: translateY(-2px);
+        }
+
+        .tool-btn.active {
+            background: linear-gradient(135deg, #2c5aa0 0%, #438DBF 100%);
+            color: white;
+            border-color: #2c5aa0;
+            box-shadow: 0 4px 12px rgba(67, 141, 191, 0.3);
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #colorPicker {
+            width: 55px;
+            height: 50px;
+            border: 3px solid #dee2e6;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #colorPicker:hover {
+            border-color: #438DBF;
+            transform: scale(1.05);
+        }
+
+        #colorHex {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        #colorHex:focus {
+            outline: none;
+            border-color: #438DBF;
+            box-shadow: 0 0 0 4px rgba(67, 141, 191, 0.1);
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .color-swatch {
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid #dee2e6;
+            transition: all 0.2s ease;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+            border-color: #438DBF;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #2c5aa0 0%, #438DBF 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(67, 141, 191, 0.3);
+        }
+
+        .action-btn.primary:hover {
+            background: linear-gradient(135deg, #234a85 0%, #357ba3 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 141, 191, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 2px solid #dee2e6;
+        }
+
+        .action-btn.secondary:hover {
+            background: white;
+            border-color: #438DBF;
+            color: #438DBF;
+        }
+
+        .action-btn.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+
+        .action-btn.danger:hover {
+            background: linear-gradient(135deg, #d43f31 0%, #a93226 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        #codeOutput {
+            width: 100%;
+            min-height: 400px;
+            padding: 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            resize: vertical;
+            background: #f8f9fa;
+            line-height: 1.6;
+            transition: all 0.2s ease;
+        }
+
+        #codeOutput:focus {
+            outline: none;
+            border-color: #438DBF;
+            box-shadow: 0 0 0 4px rgba(67, 141, 191, 0.1);
+        }
+
+        select, input[type="text"], textarea {
+            transition: all 0.2s ease;
+        }
+
+        select:focus, input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #438DBF;
+            box-shadow: 0 0 0 4px rgba(67, 141, 191, 0.1);
+        }
+
+        .projects-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .project-item {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .project-item:hover {
+            border-color: #438DBF;
+            background: white;
+            transform: translateX(5px);
+        }
+
+        .project-info {
+            flex: 1;
+        }
+
+        .project-name {
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .project-meta {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .project-action-btn {
+            width: 35px;
+            height: 35px;
+            border: 2px solid #dee2e6;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            color: #6c757d;
+        }
+
+        .project-action-btn:hover {
+            border-color: #438DBF;
+            color: #438DBF;
+            background: #f0f8ff;
+        }
+
+        .project-action-btn.delete:hover {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            background: #fef5f5;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 100px;
+            left: 40px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 999;
+        }
+
+        .back-btn:hover {
+            border-color: #438DBF;
+            background: #f0f8ff;
+            color: #438DBF;
+            transform: translateX(-3px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: #438DBF;
+            box-shadow: 0 0 0 4px rgba(67, 141, 191, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Auto-save notification */
+        .autosave-notification {
+            position: fixed;
+            top: 90px;
+            right: 40px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 9999;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+            opacity: 0;
+        }
+
+        .autosave-notification.show {
+            opacity: 1;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
+
+        .saved-projects-section {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .section-subtitle {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        @media (max-width: 1200px) {
+            .editor-screen {
+                grid-template-columns: 1fr;
+            }
+
+            .size-options, .mode-options {
+                grid-template-columns: 1fr;
+            }
+
+            .autosave-notification {
+                top: 80px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <div class="navbar-logo">
+                    <i class="fas fa-palette"></i>
+                </div>
+                <div>
+                    <div class="navbar-title">ModuleAir</div>
+                    <div class="navbar-subtitle">Interface Editor</div>
+                </div>
+            </div>
+            <div class="navbar-actions" id="navbarActions">
+                <!-- Actions dynamiques -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Back Button -->
+    <div class="back-btn hidden" id="backBtn" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i>
+    </div>
+
+    <!-- Auto-save Notification -->
+    <div class="autosave-notification" id="autosaveNotification">
+        <i class="fas fa-check-circle"></i>
+        <span>Enregistrement automatique...</span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Welcome Screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <div class="welcome-icon">
+                <i class="fas fa-th"></i>
+            </div>
+            <h1 class="welcome-title">Choisissez votre format</h1>
+            <p class="welcome-subtitle">Sélectionnez la taille de votre interface LED pour commencer</p>
+
+            <div class="size-options">
+                <div class="size-card" onclick="selectSize(64, 32)">
+                    <div class="size-card-icon">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="size-card-title">64 × 32 pixels</div>
+                    <p class="size-card-desc">Format plein écran pour votre module LED. Idéal pour les interfaces complètes et détaillées.</p>
+                </div>
+
+                <div class="size-card" onclick="selectSize(16, 16)">
+                    <div class="size-card-icon">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div class="size-card-title">16 × 16 pixels</div>
+                    <p class="size-card-desc">Format compact pour logos et petites icônes. Parfait pour les éléments graphiques réutilisables.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Mode Screen -->
+        <div class="start-mode-screen hidden" id="startModeScreen">
+            <div class="screen-header">
+                <h1 class="screen-title">Comment voulez-vous commencer ?</h1>
+                <p class="screen-subtitle">Choisissez votre méthode de démarrage</p>
+            </div>
+
+            <div class="mode-options">
+                <div class="mode-card" onclick="selectMode('blank')">
+                    <div class="mode-card-icon">
+                        <i class="fas fa-file"></i>
+                    </div>
+                    <div class="mode-card-title">Canvas Vierge</div>
+                    <p class="mode-card-desc">Démarrez avec un canvas vide et créez votre design de zéro</p>
+                </div>
+
+                <div class="mode-card" onclick="selectMode('image')">
+                    <div class="mode-card-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <div class="mode-card-title">Importer Image</div>
+                    <p class="mode-card-desc">Chargez une image PNG/JPG qui sera redimensionnée automatiquement</p>
+                </div>
+
+                <div class="mode-card" onclick="selectMode('code')">
+                    <div class="mode-card-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="mode-card-title">Importer Code</div>
+                    <p class="mode-card-desc">Importez du code C++ existant ou un tableau RGB565</p>
+                </div>
+            </div>
+
+            <!-- Saved Projects Section -->
+            <div class="saved-projects-section" id="savedProjectsSection" style="display: none;">
+                <h2 class="section-subtitle">
+                    <i class="fas fa-history"></i> Mes Projets Enregistrés
+                </h2>
+                <div class="mode-options" id="savedProjectsList">
+                    <!-- Les projets seront ajoutés ici dynamiquement -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor Screen -->
+        <div class="editor-screen hidden" id="editorScreen">
+            <!-- Left Panel: Tools -->
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <div class="panel-icon">
+                        <i class="fas fa-toolbox"></i>
+                    </div>
+                    <div class="panel-title">Outils</div>
+                </div>
+
+                <div class="tool-section">
+                    <div class="tool-section-title">
+                        <i class="fas fa-palette"></i> Couleur
+                    </div>
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="colorPicker" value="#ff0000">
+                        <input type="text" id="colorHex" value="#FF0000" maxlength="7" placeholder="#RRGGBB">
+                    </div>
+                    <div class="color-palette">
+                        <div class="color-swatch" style="background: #FF0000;" onclick="setColor('#FF0000')"></div>
+                        <div class="color-swatch" style="background: #00FF00;" onclick="setColor('#00FF00')"></div>
+                        <div class="color-swatch" style="background: #0000FF;" onclick="setColor('#0000FF')"></div>
+                        <div class="color-swatch" style="background: #FFFF00;" onclick="setColor('#FFFF00')"></div>
+                        <div class="color-swatch" style="background: #FF00FF;" onclick="setColor('#FF00FF')"></div>
+                        <div class="color-swatch" style="background: #00FFFF;" onclick="setColor('#00FFFF')"></div>
+                        <div class="color-swatch" style="background: #FFFFFF;" onclick="setColor('#FFFFFF')"></div>
+                        <div class="color-swatch" style="background: #FFA500;" onclick="setColor('#FFA500')"></div>
+                        <div class="color-swatch" style="background: #800080;" onclick="setColor('#800080')"></div>
+                        <div class="color-swatch" style="background: #FFC0CB;" onclick="setColor('#FFC0CB')"></div>
+                        <div class="color-swatch" style="background: #808080;" onclick="setColor('#808080')"></div>
+                        <div class="color-swatch" style="background: #000000;" onclick="setColor('#000000')"></div>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <div class="tool-section-title">
+                        <i class="fas fa-pen"></i> Dessiner
+                    </div>
+                    <div class="tool-grid">
+                        <button class="tool-btn active" onclick="setTool('pixel')">
+                            <i class="fas fa-pen"></i> Pixel
+                        </button>
+                        <button class="tool-btn" onclick="setTool('rect')">
+                            <i class="far fa-square"></i> Rectangle
+                        </button>
+                        <button class="tool-btn" onclick="setTool('line')">
+                            <i class="fas fa-slash"></i> Ligne
+                        </button>
+                        <button class="tool-btn" onclick="setTool('fill')">
+                            <i class="fas fa-fill-drip"></i> Remplir
+                        </button>
+                        <button class="tool-btn" onclick="setTool('eraser')">
+                            <i class="fas fa-eraser"></i> Gomme
+                        </button>
+                        <button class="tool-btn" onclick="setTool('eyedropper')">
+                            <i class="fas fa-eye-dropper"></i> Pipette
+                        </button>
+                        <button class="tool-btn" onclick="setTool('text')">
+                            <i class="fas fa-font"></i> Texte
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <div class="tool-section-title">
+                        <i class="fas fa-save"></i> Projet
+                    </div>
+                    <button class="action-btn primary" onclick="saveProject()">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                    <button class="action-btn secondary" onclick="showProjects()">
+                        <i class="fas fa-folder-open"></i> Mes Projets
+                    </button>
+                    <button class="action-btn danger" onclick="clearCanvas()">
+                        <i class="fas fa-trash-alt"></i> Tout Effacer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Center: Canvas -->
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <div class="panel-icon">
+                        <i class="fas fa-paint-brush"></i>
+                    </div>
+                    <div class="panel-title">Canvas</div>
+                </div>
+
+                <div class="canvas-wrapper">
+                    <div class="canvas-controls">
+                        <div class="history-controls">
+                            <button class="zoom-btn" id="undoBtn" onclick="undo()" disabled title="Annuler (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+                            <button class="zoom-btn" id="redoBtn" onclick="redo()" disabled title="Rétablir (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+                        </div>
+                        <div class="zoom-controls">
+                            <button class="zoom-btn" onclick="changeZoom(-1)">−</button>
+                            <div id="zoomLevel">10x</div>
+                            <button class="zoom-btn" onclick="changeZoom(1)">+</button>
+                        </div>
+                    </div>
+                    <canvas id="displayCanvas" width="640" height="320"></canvas>
+                </div>
+            </div>
+
+            <!-- Right Panel: Code Export -->
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <div class="panel-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="panel-title">Code C++</div>
+                </div>
+
+                <textarea id="codeOutput" readonly></textarea>
+
+                <button class="action-btn primary" onclick="copyCode()">
+                    <i class="fas fa-copy"></i> Copier le Code
+                </button>
+                <button class="action-btn secondary" onclick="downloadCode()">
+                    <i class="fas fa-download"></i> Télécharger .cpp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Inputs (Hidden) -->
+    <input type="file" id="importImage" accept="image/*" style="display: none;" onchange="importImageFromFile(event)">
+    <input type="file" id="importCode" accept=".txt,.cpp,.h" style="display: none;" onchange="importCodeFromFile(event)">
+
+    <script>
+        // Global Variables
+        let WIDTH = 64;
+        let HEIGHT = 32;
+        let zoom = 10;
+        let canvas = document.getElementById('displayCanvas');
+        let ctx = canvas.getContext('2d');
+        let pixels = [];
+        let currentColor = '#FF0000';
+        let currentTool = 'pixel';
+        let isDrawing = false;
+        let startX, startY;
+        let currentProject = null;
+        let autosaveInterval = null;
+        let lastPixelsState = null;
+        let textPreview = null;
+
+        // Undo/Redo History
+        let history = [];
+        let historyIndex = -1;
+
+                        // Les polices bitmap sont maintenant remplacées par le chargement dynamique de TTF.
+
+
+        // This will hold the parsed opentype.js font objects
+        let loadedFonts = {};
+
+        // --- History Functions ---
+        function saveState() {
+            // Clear the "redo" future
+            history.splice(historyIndex + 1);
+
+            // Add a deep copy of the new state
+            history.push(JSON.parse(JSON.stringify(pixels)));
+            historyIndex++;
+
+            // Limit history size
+            if (history.length > 50) {
+                history.shift();
+                historyIndex--;
+            }
+
+            updateUndoRedoButtons();
+        }
+
+        function undo() {
+            if (historyIndex <= 0) return;
+            historyIndex--;
+            pixels = JSON.parse(JSON.stringify(history[historyIndex]));
+            drawCanvas();
+            updateUndoRedoButtons();
+        }
+
+        function redo() {
+            if (historyIndex >= history.length - 1) return;
+            historyIndex++;
+            pixels = JSON.parse(JSON.stringify(history[historyIndex]));
+            drawCanvas();
+            updateUndoRedoButtons();
+        }
+
+        function updateUndoRedoButtons() {
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            if (!undoBtn || !redoBtn) return;
+            undoBtn.disabled = historyIndex <= 0;
+            redoBtn.disabled = historyIndex >= history.length - 1;
+        }
+        // -------------------------
+
+        // Initialize
+        function init() {
+            initPixels();
+            setupColorPickers();
+            loadTtfFonts();
+        }
+
+        async function loadTtfFonts() {
+            try {
+                console.log("Chargement de la liste des polices depuis fonts.json...");
+                const response = await fetch('./fonts.json');
+                if (!response.ok) throw new Error('fonts.json introuvable.');
+                
+                const fontManifest = await response.json();
+                console.log("Polices à charger :", fontManifest.fonts);
+
+                for (const fontInfo of fontManifest.fonts) {
+                    console.log(`Chargement de la police : ${fontInfo.name}`);
+                    const fontResponse = await fetch(`./Fonts/${fontInfo.file}`);
+                    if (!fontResponse.ok) throw new Error(`Impossible de charger ${fontInfo.file}`);
+                    
+                    const fontBuffer = await fontResponse.arrayBuffer();
+                    
+                    loadedFonts[fontInfo.name] = {
+                        font: opentype.parse(fontBuffer),
+                        size: fontInfo.size || 16 // Store the size, default to 16
+                    };
+                    console.log(`Police "${fontInfo.name}" chargée et analysée.`);
+                }
+
+                if (Object.keys(loadedFonts).length === 0) {
+                   console.error("Aucune police n'a été chargée. Vérifiez votre fichier fonts.json et le dossier /fonts.");
+                   alert("Aucune police n'a été chargée. Vérifiez votre fichier fonts.json et le dossier /fonts.");
+                }
+            } catch (error) {
+                console.error("Erreur lors du chargement des polices TTF:", error);
+                alert(`Erreur de police: ${error.message}. Assurez-vous que le serveur web est démarré et que fonts.json est correct.`);
+            }
+        }
+
+        function initPixels() {
+            pixels = Array(HEIGHT).fill(0).map(() => Array(WIDTH).fill('#000000'));
+        }
+
+        function setupColorPickers() {
+            document.getElementById('colorPicker').addEventListener('input', (e) => {
+                currentColor = e.target.value.toUpperCase();
+                document.getElementById('colorHex').value = currentColor;
+            });
+
+            document.getElementById('colorHex').addEventListener('input', (e) => {
+                let val = e.target.value.toUpperCase();
+                if (val.match(/^#[0-9A-F]{6}$/)) {
+                    currentColor = val;
+                    document.getElementById('colorPicker').value = val;
+                }
+            });
+        }
+
+        // Navigation
+        function selectSize(w, h) {
+            WIDTH = w;
+            HEIGHT = h;
+            canvas.width = WIDTH * zoom;
+            canvas.height = HEIGHT * zoom;
+            initPixels();
+
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('startModeScreen').classList.remove('hidden');
+            document.getElementById('backBtn').classList.remove('hidden');
+
+            // Charger et afficher les projets enregistrés
+            loadSavedProjectsInStartScreen();
+        }
+
+        function loadSavedProjectsInStartScreen() {
+            const projects = JSON.parse(localStorage.getItem('moduleair_projects') || '[]');
+            const filteredProjects = projects.filter(p => p.width === WIDTH && p.height === HEIGHT);
+
+            const section = document.getElementById('savedProjectsSection');
+            const projectsList = document.getElementById('savedProjectsList');
+
+            if (filteredProjects.length > 0) {
+                section.style.display = 'block';
+                projectsList.innerHTML = '';
+
+                filteredProjects.slice(0, 6).forEach(project => {
+                    const date = new Date(project.date);
+                    const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+
+                    const card = document.createElement('div');
+                    card.className = 'mode-card';
+                    card.onclick = () => loadProjectFromStart(project.name);
+                    card.innerHTML = `
+                        <div class="mode-card-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <div class="mode-card-title">${project.name}</div>
+                        <p class="mode-card-desc">${dateStr} • ${project.width}×${project.height}</p>
+                    `;
+                    projectsList.appendChild(card);
+                });
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        function loadProjectFromStart(name) {
+            const projects = JSON.parse(localStorage.getItem('moduleair_projects') || '[]');
+            const project = projects.find(p => p.name === name);
+
+            if (project) {
+                WIDTH = project.width;
+                HEIGHT = project.height;
+                pixels = project.pixels;
+                currentProject = name;
+                canvas.width = WIDTH * zoom;
+                canvas.height = HEIGHT * zoom;
+
+                document.getElementById('startModeScreen').classList.add('hidden');
+                document.getElementById('editorScreen').classList.remove('hidden');
+                updateNavbar();
+                drawCanvas();
+                startAutosave();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Projet chargé',
+                    text: `Le projet "${name}" a été chargé avec succès !`,
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+        }
+
+        function selectMode(mode) {
+            document.getElementById('startModeScreen').classList.add('hidden');
+            document.getElementById('editorScreen').classList.remove('hidden');
+
+            updateNavbar();
+            drawCanvas();
+            startAutosave();
+
+            if (mode === 'blank') {
+                history = [];
+                historyIndex = -1;
+                saveState();
+            } else if (mode === 'image') {
+                document.getElementById('importImage').click();
+            } else if (mode === 'code') {
+                showCodeImportModal();
+            }
+        }
+
+        // Auto-save functions
+        function startAutosave() {
+            // Arrêter l'autosave précédent s'il existe
+            if (autosaveInterval) {
+                clearInterval(autosaveInterval);
+            }
+
+            // Sauvegarder l'état initial
+            lastPixelsState = JSON.stringify(pixels);
+
+            // Démarrer l'enregistrement automatique toutes les 30 secondes
+            autosaveInterval = setInterval(() => {
+                const currentState = JSON.stringify(pixels);
+
+                // Ne sauvegarder que si quelque chose a changé
+                if (currentState !== lastPixelsState && currentProject) {
+                    autoSaveProject();
+                    lastPixelsState = currentState;
+                }
+            }, 30000); // 30 secondes
+        }
+
+        function stopAutosave() {
+            if (autosaveInterval) {
+                clearInterval(autosaveInterval);
+                autosaveInterval = null;
+            }
+        }
+
+        function showAutosaveNotification() {
+            const notification = document.getElementById('autosaveNotification');
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function autoSaveProject() {
+            if (!currentProject) return;
+
+            const projects = JSON.parse(localStorage.getItem('moduleair_projects') || '[]');
+            const existingIndex = projects.findIndex(p => p.name === currentProject);
+
+            if (existingIndex >= 0) {
+                projects[existingIndex] = {
+                    name: currentProject,
+                    width: WIDTH,
+                    height: HEIGHT,
+                    pixels: pixels,
+                    date: new Date().toISOString()
+                };
+
+                localStorage.setItem('moduleair_projects', JSON.stringify(projects));
+                showAutosaveNotification();
+            }
+        }
+
+        function goBack() {
+            if (!document.getElementById('editorScreen').classList.contains('hidden')) {
+                Swal.fire({
+                    title: 'Quitter l\'éditeur ?',
+                    text: 'Les modifications non sauvegardées seront perdues',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#2c5aa0',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Oui, quitter',
+                    cancelButtonText: 'Annuler'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        stopAutosave();
+                        document.getElementById('editorScreen').classList.add('hidden');
+                        document.getElementById('startModeScreen').classList.remove('hidden');
+                    }
+                });
+            } else if (!document.getElementById('startModeScreen').classList.contains('hidden')) {
+                document.getElementById('startModeScreen').classList.add('hidden');
+                document.getElementById('welcomeScreen').classList.remove('hidden');
+                document.getElementById('backBtn').classList.add('hidden');
+            }
+        }
+
+        function updateNavbar() {
+            const navActions = document.getElementById('navbarActions');
+            navActions.innerHTML = `
+                <div class="nav-btn">
+                    <i class="fas fa-th"></i>
+                    <span>${WIDTH}×${HEIGHT} pixels</span>
+                </div>
+            `;
+        }
+
+        // Drawing Functions
+        function setColor(color) {
+            currentColor = color;
+            document.getElementById('colorPicker').value = color;
+            document.getElementById('colorHex').value = color;
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.tool-btn').classList.add('active');
+
+            canvas.className = '';
+            if (tool === 'eyedropper') canvas.style.cursor = 'cell';
+            else if (tool === 'eraser') canvas.style.cursor = 'not-allowed';
+            else if (tool === 'fill') canvas.style.cursor = 'copy';
+            else if (tool === 'text') {
+                canvas.style.cursor = 'text';
+                showTextInputModal();
+            }
+            else canvas.style.cursor = 'crosshair';
+        }
+
+        // Text Tool Functions
+        function showTextInputModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 500px;">
+                    <h2 class="modal-title"><i class="fas fa-font"></i> Ajouter du Texte</h2>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #495057;">
+                            <i class="fas fa-keyboard"></i> Texte
+                        </label>
+                        <input type="text" class="modal-input" id="textInput"
+                            placeholder="Entrez votre texte..."
+                            style="margin-bottom: 0;">
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #495057;">
+                            <i class="fas fa-font"></i> Police
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <select class="modal-input" id="fontFamilySelect" style="flex: 1; margin-bottom: 0;">
+                                <!-- Les polices chargées seront injectées ici -->
+                            </select>
+                            <canvas id="fontPreviewCanvas" width="120" height="40" style="border: 1px solid #dee2e6; background: #f8f9fa; border-radius: 5px;"></canvas>
+                            <span id="fontPreviewSize" style="font-weight: 600; color: #495057; min-width: 70px;"></span>
+                        </div>
+                    </div>
+
+                    <!-- Le sélecteur de taille est maintenant supprimé, la taille est définie dans fonts.json -->
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #495057;">
+                            <i class="fas fa-palette"></i> Couleur du Texte
+                        </label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="textColorPicker" value="${currentColor}"
+                                style="width: 60px; height: 45px; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer;">
+                            <input type="text" id="textColorHex" value="${currentColor}"
+                                class="modal-input" maxlength="7" placeholder="#RRGGBB"
+                                style="flex: 1; margin-bottom: 0; font-family: 'Courier New', monospace; text-transform: uppercase;">
+                        </div>
+                    </div>
+
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        <p style="margin: 0; color: #6c757d; font-size: 13px; line-height: 1.5;">
+                            <i class="fas fa-info-circle"></i>
+                            Après avoir cliqué sur "Continuer", cliquez sur le canvas pour positionner votre texte.
+                        </p>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button class="action-btn secondary" onclick="cancelTextTool()" style="flex: 1;">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button class="action-btn primary" onclick="prepareTextPlacement()" style="flex: 1;">
+                            <i class="fas fa-check"></i> Continuer
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const fontSelector = document.getElementById('fontFamilySelect');
+            const previewCanvas = document.getElementById('fontPreviewCanvas');
+            const previewSize = document.getElementById('fontPreviewSize');
+            const previewCtx = previewCanvas.getContext('2d');
+
+            function updateFontPreview() {
+                const fontName = fontSelector.value;
+                const fontInfo = loadedFonts[fontName];
+                if (!fontInfo) return;
+
+                // Update size text
+                previewSize.textContent = `Taille: ${fontInfo.size}px`;
+
+                // Draw preview text
+                previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+                const previewText = "Abc";
+                const renderData = generateTextPixels(previewText, fontInfo.size, fontName);
+                
+                // Simple draw on the preview canvas (no zoom)
+                previewCtx.fillStyle = '#2c5aa0';
+                renderData.pixels.forEach(p => {
+                    // Center the preview vertically
+                    const yOffset = (previewCanvas.height - fontInfo.size) / 2;
+                    previewCtx.fillRect(p.x, p.y + yOffset, 1, 1);
+                });
+            }
+
+            // Populate font selector
+            if (Object.keys(loadedFonts).length > 0) {
+                fontSelector.innerHTML = '';
+                for (const fontName in loadedFonts) {
+                    const option = document.createElement('option');
+                    option.value = fontName;
+                    option.textContent = fontName;
+                    fontSelector.appendChild(option);
+                }
+                updateFontPreview(); // Initial preview
+            } else {
+                fontSelector.innerHTML = '<option>Aucune police chargée</option>';
+                previewSize.textContent = '';
+            }
+
+            fontSelector.addEventListener('change', updateFontPreview);
+
+            // Setup color pickers sync
+            const colorPicker = document.getElementById('textColorPicker');
+            const colorHex = document.getElementById('textColorHex');
+
+            colorPicker.addEventListener('input', (e) => {
+                colorHex.value = e.target.value.toUpperCase();
+            });
+
+            colorHex.addEventListener('input', (e) => {
+                let val = e.target.value.toUpperCase();
+                if (val.match(/^#[0-9A-F]{6}$/)) {
+                    colorPicker.value = val;
+                }
+            });
+
+            setTimeout(() => document.getElementById('textInput').focus(), 100);
+        }
+
+        function cancelTextTool() {
+            const modal = document.querySelector('.modal');
+            if (modal) modal.remove();
+
+            currentTool = 'pixel';
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            const pixelToolBtn = Array.from(document.querySelectorAll('.tool-btn')).find(btn => btn.textContent.trim() === 'Pixel');
+            if (pixelToolBtn) pixelToolBtn.classList.add('active');
+            
+            canvas.style.cursor = 'crosshair';
+
+            if (textPreview) {
+                textPreview = null;
+                drawCanvas(); // Redraw to clear any lingering preview
+            }
+        }
+
+        function prepareTextPlacement() {
+            const text = document.getElementById('textInput').value;
+            if (!text) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Texte requis',
+                    text: 'Veuillez entrer du texte',
+                    confirmButtonColor: '#2c5aa0'
+                });
+                return;
+            }
+
+            const fontFamily = document.getElementById('fontFamilySelect').value;
+            const textColor = document.getElementById('textColorHex').value;
+
+            const fontInfo = loadedFonts[fontFamily];
+            if (!fontInfo) {
+                Swal.fire({ icon: 'error', title: 'Police non chargée', text: `La police "${fontFamily}" n'a pas pu être chargée.` });
+                return;
+            }
+            const targetHeight = fontInfo.size;
+
+            textPreview = {
+                text: text,
+                size: targetHeight,
+                font: fontFamily,
+                color: textColor,
+                pixels: generateTextPixels(text, targetHeight, fontFamily)
+            };
+
+            document.querySelector('.modal').remove();
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Positionnez votre texte',
+                text: 'Cliquez sur le canvas pour placer votre texte',
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function generateTextPixels(text, targetHeight, fontFamily) {
+            const fontInfo = loadedFonts[fontFamily];
+            if (!fontInfo) {
+                console.error(`Police non chargée: ${fontFamily}`);
+                return { pixels: [], width: 0, height: 0 };
+            }
+            const font = fontInfo.font; // Get the actual font object
+
+            const spacing = 1; // Simple spacing
+            const result = [];
+            let xOffset = 0;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const charRender = getCharBitmapFromTtf(char, targetHeight, font);
+
+                if (charRender && charRender.bitmap) { // Corrected variable name
+                    charRender.bitmap.forEach((row, y) => {
+                        row.forEach((pixel, x) => {
+                            if (pixel === 1) {
+                                result.push({ x: xOffset + x, y: y + charRender.yOffset });
+                            }
+                        });
+                    });
+                    xOffset += charRender.width + spacing;
+                }
+            }
+            return { pixels: result, width: xOffset - spacing, height: targetHeight };
+        }
+
+        function getCharBitmapFromTtf(char, targetHeight, font) {
+            const glyph = font.charToGlyph(char);
+            const fontScale = (1 / font.unitsPerEm) * targetHeight;
+
+            if (char === ' ') {
+                return { bitmap: [], width: Math.round(glyph.advanceWidth * fontScale) };
+            }
+
+            const path = font.getPath(char, 0, targetHeight, targetHeight);
+            const box = path.getBoundingBox();
+            const width = Math.ceil(box.x2 - box.x1);
+            const height = Math.ceil(box.y2 - box.y1);
+
+            if (width === 0 || height === 0) {
+                return { bitmap: [], width: Math.round(glyph.advanceWidth * fontScale) };
+            }
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCtx.translate(-box.x1, -box.y1);
+            path.draw(tempCtx);
+
+            const imageData = tempCtx.getImageData(0, 0, width, height);
+            const bitmap = [];
+            for (let y = 0; y < height; y++) {
+                const row = [];
+                for (let x = 0; x < width; x++) {
+                    row.push(imageData.data[(y * width + x) * 4 + 3] > 128 ? 1 : 0);
+                }
+                bitmap.push(row);
+            }
+            
+            return { bitmap, width, yOffset: Math.round(box.y1) };
+        }
+
+        function scaleFont(bitmap, targetW, targetH) {
+            const srcH = bitmap.length;
+            const srcW = bitmap[0].length;
+            const result = [];
+
+            for (let y = 0; y < targetH; y++) {
+                const row = [];
+                const srcY = Math.floor(y * srcH / targetH);
+                for (let x = 0; x < targetW; x++) {
+                    const srcX = Math.floor(x * srcW / targetW);
+                    row.push(bitmap[srcY][srcX]);
+                }
+                result.push(row);
+            }
+            return result;
+        }
+
+        function drawTextOnCanvas(x, y) {
+            if (!textPreview) return;
+
+            const { pixels: textPixels, width, height } = textPreview.pixels;
+            const textColor = textPreview.color;
+
+            // Draw each pixel, clipping at the edges of the canvas
+            // This allows placing text partially off-screen, matching the preview behavior.
+            let placedPixels = 0;
+            textPixels.forEach(pixel => {
+                const px = x + pixel.x;
+                const py = y + pixel.y;
+                if (px >= 0 && px < WIDTH && py >= 0 && py < HEIGHT) {
+                    pixels[py][px] = textColor;
+                    placedPixels++;
+                }
+            });
+
+            // Only confirm if at least one pixel was placed
+            if (placedPixels === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Aucun pixel placé',
+                    text: 'Le texte est entièrement en dehors du canvas.',
+                    confirmButtonColor: '#2c5aa0'
+                });
+                return false;
+            }
+
+            drawCanvas();
+            saveState();
+            textPreview = null;
+
+            // Reset to pixel tool
+            currentTool = 'pixel';
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tool-btn')[0].classList.add('active');
+            canvas.style.cursor = 'crosshair';
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Texte ajouté !',
+                timer: 1500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+
+            return true;
+        }
+
+        function changeZoom(delta) {
+            zoom = Math.max(5, Math.min(20, zoom + delta));
+            canvas.width = WIDTH * zoom;
+            canvas.height = HEIGHT * zoom;
+            document.getElementById('zoomLevel').textContent = zoom + 'x';
+            drawCanvas();
+        }
+
+        function drawCanvas(previewX, previewY) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let y = 0; y < HEIGHT; y++) {
+                for (let x = 0; x < WIDTH; x++) {
+                    ctx.fillStyle = pixels[y][x];
+                    ctx.fillRect(x * zoom, y * zoom, zoom, zoom);
+                }
+            }
+
+            // Draw text preview if hovering
+            if (textPreview && previewX !== undefined && previewY !== undefined) {
+                const { pixels: textPixels } = textPreview.pixels;
+                ctx.fillStyle = textPreview.color;
+                ctx.globalAlpha = 0.6;
+                textPixels.forEach(pixel => {
+                    const px = previewX + pixel.x;
+                    const py = previewY + pixel.y;
+                    if (px >= 0 && px < WIDTH && py >= 0 && py < HEIGHT) {
+                        ctx.fillRect(px * zoom, py * zoom, zoom, zoom);
+                    }
+                });
+                ctx.globalAlpha = 1.0;
+            }
+
+            // Grid - Améliorée pour mieux voir les cases
+            ctx.strokeStyle = 'rgba(44, 90, 160, 0.4)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= WIDTH; x++) {
+                ctx.beginPath();
+                ctx.moveTo(x * zoom, 0);
+                ctx.lineTo(x * zoom, HEIGHT * zoom);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= HEIGHT; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * zoom);
+                ctx.lineTo(WIDTH * zoom, y * zoom);
+                ctx.stroke();
+            }
+
+            generateCode();
+        }
+
+        function getPixelFromEvent(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / zoom);
+            const y = Math.floor((e.clientY - rect.top) / zoom);
+            return { x, y };
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const { x, y } = getPixelFromEvent(e);
+            if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+
+            // Handle text placement
+            if (currentTool === 'text' && textPreview) {
+                drawTextOnCanvas(x, y);
+                return;
+            }
+
+            isDrawing = true;
+            startX = x;
+            startY = y;
+
+            if (currentTool === 'eyedropper') {
+                setColor(pixels[y][x]);
+                currentTool = 'pixel';
+                document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tool-btn')[0].classList.add('active');
+                canvas.style.cursor = 'crosshair';
+                return;
+            }
+
+            if (currentTool === 'pixel') {
+                pixels[y][x] = e.shiftKey ? '#000000' : currentColor;
+                drawCanvas();
+            } else if (currentTool === 'eraser') {
+                pixels[y][x] = '#000000';
+                drawCanvas();
+            } else if (currentTool === 'fill') {
+                floodFill(x, y, pixels[y][x], e.shiftKey ? '#000000' : currentColor);
+                drawCanvas();
+                saveState();
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const { x, y } = getPixelFromEvent(e);
+
+            // Show text preview when hovering with text tool
+            if (currentTool === 'text' && textPreview) {
+                drawCanvas(x, y);
+                return;
+            }
+
+            if (!isDrawing) return;
+            if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+
+            if (currentTool === 'pixel') {
+                pixels[y][x] = e.shiftKey ? '#000000' : currentColor;
+                drawCanvas();
+            } else if (currentTool === 'eraser') {
+                pixels[y][x] = '#000000';
+                drawCanvas();
+            }
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            const toolsThatSaveOnMouseUp = ['pixel', 'eraser', 'rect', 'line'];
+            if (toolsThatSaveOnMouseUp.includes(currentTool)) {
+                // For rect and line, the drawing happens here on mouseup
+                if (currentTool === 'rect' || currentTool === 'line') {
+                    const { x, y } = getPixelFromEvent(e);
+                    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
+                        const color = e.shiftKey ? '#000000' : currentColor;
+                        if (currentTool === 'rect') {
+                            const minX = Math.min(startX, x);
+                            const maxX = Math.max(startX, x);
+                            const minY = Math.min(startY, y);
+                            const maxY = Math.max(startY, y);
+                            for (let py = minY; py <= maxY; py++) {
+                                for (let px = minX; px <= maxX; px++) {
+                                    pixels[py][px] = color;
+                                }
+                            }
+                        } else { // line
+                            drawLine(startX, startY, x, y, color);
+                        }
+                        drawCanvas();
+                    }
+                }
+                // For all these tools, save the final state
+                saveState();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            // Redraw canvas without text preview when mouse leaves
+            if (currentTool === 'text' && textPreview) {
+                drawCanvas();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            // Escape to cancel text placement
+            if (e.key === 'Escape' && currentTool === 'text' && textPreview) {
+                cancelTextTool();
+                return;
+            }
+
+            // Undo/Redo shortcuts
+            if (e.ctrlKey || e.metaKey) { // Ctrl on Windows/Linux, Cmd on Mac
+                if (e.key === 'z') {
+                    e.preventDefault();
+                    undo();
+                } else if (e.key === 'y') {
+                    e.preventDefault();
+                    redo();
+                }
+            }
+        });
+
+        function drawLine(x0, y0, x1, y1, color) {
+            const dx = Math.abs(x1 - x0);
+            const dy = Math.abs(y1 - y0);
+            const sx = x0 < x1 ? 1 : -1;
+            const sy = y0 < y1 ? 1 : -1;
+            let err = dx - dy;
+
+            while (true) {
+                pixels[y0][x0] = color;
+                if (x0 === x1 && y0 === y1) break;
+                const e2 = 2 * err;
+                if (e2 > -dy) {
+                    err -= dy;
+                    x0 += sx;
+                }
+                if (e2 < dx) {
+                    err += dx;
+                    y0 += sy;
+                }
+            }
+        }
+
+        function floodFill(x, y, targetColor, fillColor) {
+            if (targetColor === fillColor) return;
+            if (pixels[y][x] !== targetColor) return;
+
+            const stack = [[x, y]];
+            while (stack.length > 0) {
+                const [cx, cy] = stack.pop();
+                if (cx < 0 || cx >= WIDTH || cy < 0 || cy >= HEIGHT) continue;
+                if (pixels[cy][cx] !== targetColor) continue;
+
+                pixels[cy][cx] = fillColor;
+                stack.push([cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]);
+            }
+        }
+
+        function clearCanvas() {
+            Swal.fire({
+                title: 'Effacer tout le canvas ?',
+                text: 'Cette action est irréversible',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Oui, effacer',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    initPixels();
+                    drawCanvas();
+                    saveState();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Canvas effacé',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                }
+            });
+        }
+
+        // Color Conversion
+        function hexToRgb(hex) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return { r, g, b };
+        }
+
+        function rgbToRgb565(r, g, b) {
+            const r5 = (r >> 3) & 0x1F;
+            const g6 = (g >> 2) & 0x3F;
+            const b5 = (b >> 3) & 0x1F;
+            return (r5 << 11) | (g6 << 5) | b5;
+        }
+
+        function rgb565ToRgb(rgb565) {
+            const r = ((rgb565 >> 11) & 0x1F) << 3;
+            const g = ((rgb565 >> 5) & 0x3F) << 2;
+            const b = (rgb565 & 0x1F) << 3;
+            return { r, g, b };
+        }
+
+        function rgb565ToHex(rgb565) {
+            const { r, g, b } = rgb565ToRgb(rgb565);
+            return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+        }
+
+        // Code Generation
+        function generateCode() {
+            let code = '';
+            const arrayName = 'customImage';
+
+            code = '// Code généré pour ModuleAir\n';
+            code += '// Taille: ' + (WIDTH * HEIGHT) + ' pixels (' + WIDTH + 'x' + HEIGHT + ')\n';
+            code += '// Format: RGB565 Array\n\n';
+            code += 'uint16_t static ' + arrayName + '[] = {\n';
+
+            const rgb565Array = [];
+            for (let y = 0; y < HEIGHT; y++) {
+                for (let x = 0; x < WIDTH; x++) {
+                    const color = pixels[y][x];
+                    const rgb = hexToRgb(color);
+                    const rgb565 = rgbToRgb565(rgb.r, rgb.g, rgb.b);
+                    rgb565Array.push('0x' + rgb565.toString(16).toUpperCase().padStart(4, '0'));
+                }
+            }
+
+            for (let i = 0; i < rgb565Array.length; i += 16) {
+                const line = rgb565Array.slice(i, i + 16);
+                const isLast = (i + 16 >= rgb565Array.length);
+                code += '  ' + line.join(',') + (isLast ? '  ' : ',') + '\n';
+            }
+
+            code += '};\n\n';
+            code += '// Pour afficher l\'image:\n';
+            if (WIDTH === 16 && HEIGHT === 16) {
+                code += '// drawImage(x, y, 16, 16, ' + arrayName + ');\n';
+            } else {
+                code += '// display.drawRGBBitmap(0, 0, ' + arrayName + ', ' + WIDTH + ', ' + HEIGHT + ');\n';
+            }
+
+            document.getElementById('codeOutput').value = code;
+        }
+
+        // Import Functions
+        function importImageFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = WIDTH;
+                    tempCanvas.height = HEIGHT;
+                    const tempCtx = tempCanvas.getContext('2d');
+
+                    tempCtx.drawImage(img, 0, 0, WIDTH, HEIGHT);
+                    const imageData = tempCtx.getImageData(0, 0, WIDTH, HEIGHT);
+                    const data = imageData.data;
+
+                    for (let y = 0; y < HEIGHT; y++) {
+                        for (let x = 0; x < WIDTH; x++) {
+                            const index = (y * WIDTH + x) * 4;
+                            const r = data[index];
+                            const g = data[index + 1];
+                            const b = data[index + 2];
+                            const a = data[index + 3];
+
+                            if (a < 128) {
+                                pixels[y][x] = '#000000';
+                            } else {
+                                const hex = '#' +
+                                    r.toString(16).padStart(2, '0').toUpperCase() +
+                                    g.toString(16).padStart(2, '0').toUpperCase() +
+                                    b.toString(16).padStart(2, '0').toUpperCase();
+                                pixels[y][x] = hex;
+                            }
+                        }
+                    }
+
+                    drawCanvas();
+                    saveState();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Image importée !',
+                        text: `Redimensionnée en ${WIDTH}×${HEIGHT} pixels`,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showCodeImportModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2 class="modal-title">Importer du Code</h2>
+                    <textarea class="modal-input" id="codeImportInput"
+                        placeholder="Collez votre code C++ ou tableau RGB565 ici..."
+                        style="min-height: 200px; font-family: 'Courier New', monospace;"></textarea>
+                    <div class="modal-actions">
+                        <button class="action-btn secondary" onclick="this.closest('.modal').remove()" style="flex: 1;">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button class="action-btn primary" onclick="importFromCodeInput()" style="flex: 1;">
+                            <i class="fas fa-upload"></i> Importer
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function importFromCodeInput() {
+            const code = document.getElementById('codeImportInput').value;
+            parseCode(code);
+            document.querySelector('.modal').remove();
+        }
+
+        function parseCode(code) {
+            const codeWithoutComments = code.replace(/\/\/.*$/gm, '');
+            const hexArrayRegex = /0x[0-9A-Fa-f]{4}/g;
+            const hexMatches = codeWithoutComments.match(hexArrayRegex);
+
+            if (hexMatches && hexMatches.length >= 16) {
+                const rgb565Values = hexMatches.map(hex => parseInt(hex, 16));
+                const totalPixels = Math.min(rgb565Values.length, WIDTH * HEIGHT);
+
+                let index = 0;
+                for (let y = 0; y < HEIGHT && index < totalPixels; y++) {
+                    for (let x = 0; x < WIDTH && index < totalPixels; x++) {
+                        const rgb565 = rgb565Values[index++];
+                        pixels[y][x] = rgb565ToHex(rgb565);
+                    }
+                }
+
+                drawCanvas();
+                saveState();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Code importé !',
+                    text: `${hexMatches.length} pixels chargés`,
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Format non reconnu',
+                    text: 'Utilisez un tableau RGB565 (0x0000, 0x001F...)',
+                    confirmButtonColor: '#2c5aa0'
+                });
+            }
+        }
+
+        // Export Functions
+        function copyCode() {
+            const code = document.getElementById('codeOutput');
+            code.select();
+            document.execCommand('copy');
+            Swal.fire({
+                icon: 'success',
+                title: 'Code copié !',
+                text: 'Le code est dans le presse-papier',
+                timer: 1500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function downloadCode() {
+            const code = document.getElementById('codeOutput').value;
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'moduleair_interface.cpp';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Project Management
+        function saveProject() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2 class="modal-title"><i class="fas fa-save"></i> Enregistrer le projet</h2>
+                    <input type="text" class="modal-input" id="projectNameInput"
+                        placeholder="Nom du projet..." value="${currentProject || ''}">
+                    <div class="modal-actions">
+                        <button class="action-btn secondary" onclick="this.closest('.modal').remove()" style="flex: 1;">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button class="action-btn primary" onclick="saveProjectConfirm()" style="flex: 1;">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            setTimeout(() => document.getElementById('projectNameInput').focus(), 100);
+        }
+
+        function saveProjectConfirm() {
+            const name = document.getElementById('projectNameInput').value.trim();
+            if (!name) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nom requis',
+                    text: 'Veuillez entrer un nom de projet',
+                    confirmButtonColor: '#2c5aa0'
+                });
+                return;
+            }
+
+            const projects = JSON.parse(localStorage.getItem('moduleair_projects') || '[]');
+            const project = {
+                name: name,
+                width: WIDTH,
+                height: HEIGHT,
+                pixels: pixels,
+                date: new Date().toISOString()
+            };
+
+            const existingIndex = projects.findIndex(p => p.name === name);
+            if (existingIndex >= 0) {
+                projects[existingIndex] = project;
+            } else {
+                projects.push(project);
+            }
+
+            localStorage.setItem('moduleair_projects', JSON.stringify(projects));
+            currentProject = name;
+            lastPixelsState = JSON.stringify(pixels);
+            startAutosave();
+            document.querySelector('.modal').remove();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Projet enregistré !',
+                text: `"${name}" a été sauvegardé`,
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function showProjects() {
+            const projects = JSON.parse(localStorage.getItem('moduleair_projects') || '[]');
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <h2 class="modal-title"><i class="fas fa-folder-open"></i> Mes Projets</h2>
+                    <div class="projects-list" id="projectsList">
+                        ${projects.length === 0 ? '<p style="text-align: center; color: #6c757d; padding: 40px 0;">Aucun projet enregistré</p>' : ''}
+                    </div>
+                    <div class="modal-actions">
+                        <button class="action-btn secondary" onclick="this.closest('.modal').remove()" style="flex: 1;">
+                            <i class="fas fa-times"></i> Fermer
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const projectsList = document.getElementById('projectsList');
+            projects.reverse().forEach((project, index) => {
+                const date = new Date(project.date);
+                const dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+
+                const item = document.createElement('div');
+                item.className = 'project-item';
+                item.innerHTML = `
+                    <div class="project-info" onclick="loadProject('${project.name}')">
+                        <div class="project-name">${project.name}</div>
+                        <div class="project-meta">${project.width}×${project.height} • ${dateStr}</div>
+                    </div>
+                    <div class="project-actions">
+                        <button class="project-action-btn" onclick="loadProject('${project.name}')" title="Ouvrir">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
+                        <button class="project-action-btn delete" onclick="deleteProject('${project.name}')" title="Supprimer">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                projectsList.appendChild(item);
+            });
+        }
+
+        function loadProject(name) {
+            const projects = JSON.parse(localStorage.getItem('moduleair_projects') || '[]');
+            const project = projects.find(p => p.name === name);
+
+            if (project) {
+                WIDTH = project.width;
+                HEIGHT = project.height;
+                pixels = project.pixels;
+                currentProject = name;
+
+                canvas.width = WIDTH * zoom;
+                canvas.height = HEIGHT * zoom;
+
+                drawCanvas();
+                updateNavbar();
+                startAutosave();
+                document.querySelector('.modal').remove();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Projet chargé !',
+                    text: `"${name}" est prêt`,
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+        }
+
+        function deleteProject(name) {
+            Swal.fire({
+                title: 'Supprimer ce projet ?',
+                text: `Le projet "${name}" sera supprimé définitivement`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const projects = JSON.parse(localStorage.getItem('moduleair_projects') || '[]');
+                    const filtered = projects.filter(p => p.name !== name);
+                    localStorage.setItem('moduleair_projects', JSON.stringify(filtered));
+
+                    document.querySelector('.modal').remove();
+                    showProjects();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Projet supprimé',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                }
+            });
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

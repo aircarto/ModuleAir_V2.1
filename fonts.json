@@ -1,0 +1,29 @@
+{
+  "fonts": [
+    {
+      "name": "Minecraftia",
+      "file": "Minecraftia-Regular.ttf",
+      "size": 8
+    },
+    {
+      "name": "Determination",
+      "file": "determination.ttf",
+      "size": 12
+    },
+    {
+      "name": "Dogica Pixel",
+      "file": "dogicapixel.ttf",
+      "size": 8
+    },
+    {
+      "name": "Pixeled",
+      "file": "Pixeled.ttf",
+      "size": 10
+    },
+    {
+      "name": "My Test Font",
+      "file": "MyTestFont.ttf",
+      "size": 16
+    }
+  ]
+}
