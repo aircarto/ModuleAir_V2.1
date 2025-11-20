@@ -3631,7 +3631,7 @@ static void connectWifi()
 		WiFi.setAutoConnect(false);
 	}
 
-	WiFi.setAutoReconnect(false);
+	WiFi.setAutoReconnect(true);  // FIX: Enable auto-reconnect at WiFi layer
 
 	// Use 13 channels for connect to known AP
 	wifi_country_t wifi;
@@ -3642,6 +3642,7 @@ static void connectWifi()
 
 	WiFi.mode(WIFI_STA);
 	WiFi.setHostname(cfg::fs_ssid);
+	WiFi.setSleep(false);  // FIX: Disable WiFi sleep mode to prevent random disconnections
 
 	Debug.print("Connecting to SSID: ");
 	Debug.println(cfg::wlanssid);
@@ -3845,7 +3846,8 @@ static bool tryReconnectWifi()
 
 	WiFi.mode(WIFI_STA);
 	WiFi.setHostname(cfg::fs_ssid);
-	WiFi.setAutoReconnect(false);
+	WiFi.setAutoReconnect(true);  // FIX: Enable auto-reconnect
+	WiFi.setSleep(false);  // FIX: Disable WiFi sleep mode
 
 	// Try to connect
 	WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
@@ -7659,9 +7661,16 @@ void loop()
 			//RECONNECT ETAIT ICI
 		}
 
-		if ((WiFi.status() != WL_CONNECTED || sending_time > 30000 || wifi_connection_lost) && cfg::has_wifi)
+		// FIX: Improved reconnection logic - only trigger on actual WiFi disconnect
+		// Removed "sending_time > 30000" condition which caused false positives when APIs are slow
+		if ((WiFi.status() != WL_CONNECTED || wifi_connection_lost) && cfg::has_wifi)
 		{
 			debug_outln_info(F("Connection lost, reconnecting "));
+			Debug.print("WiFi.status() = ");
+			Debug.println(WiFi.status());
+			Debug.print("wifi_connection_lost = ");
+			Debug.println(wifi_connection_lost);
+
 			WiFi_error_count++;
 			WiFi.reconnect();
 			waitForWifiToConnect(20);
@@ -7673,25 +7682,18 @@ void loop()
 					display_update_enable(false);
 				}
 
-				Debug.println("Reconnect failed after WiFi.reconnect()");
+				Debug.println("Reconnect failed after WiFi.reconnect(), attempting full reconnect");
 
 				WiFi.disconnect(true, true);
-				// wifi_country_t wifi;
-				// wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
-				// strcpy(wifi.cc, INTL_LANG);
-				// wifi.nchan = 13;
-				// wifi.schan = 1;
+				delay(1000);  // FIX: Add delay to let WiFi stack reset properly
+
 				WiFi.mode(WIFI_STA);
 				WiFi.setHostname(cfg::fs_ssid);
+				WiFi.setAutoReconnect(true);
+				WiFi.setSleep(false);
 				WiFi.begin(cfg::wlanssid, cfg::wlanpwd); // Start WiFI again
 
-				// if (MDNS.begin(cfg::fs_ssid))
-				// {
-				// 	MDNS.addService("http", "tcp", 80);
-				// 	MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
-				// }
-
-				//reConnectWifi();
+				waitForWifiToConnect(40);  // Give more time for full reconnect
 
 				if (cfg::has_matrix)
 				{
@@ -7701,14 +7703,14 @@ void loop()
 			debug_outln_info(emptyString);
 		}
 
-		// Check internet connectivity (WiFi connected but no internet access)
+		// FIX: Check internet connectivity and attempt recovery if needed
 		if (WiFi.status() == WL_CONNECTED && cfg::has_wifi && !wifi_connection_lost)
 		{
 			bool internet_test = checkInternetConnectivity();
 
 			if (!internet_test && internet_available)
 			{
-				// Internet was available but now is lost
+				// Internet was available but now is lost - attempt recovery
 				internet_available = false;
 				Debug.println("=== Internet Access Lost ===");
 				Debug.println("WiFi Status: Connected to AP");
@@ -7722,7 +7724,26 @@ void loop()
 				Debug.print("WiFi RSSI: ");
 				Debug.print(WiFi.RSSI());
 				Debug.println(" dBm");
+				Debug.println("Attempting to recover internet connection...");
 				Debug.println("============================");
+
+				// FIX: Attempt to recover internet connectivity
+				// Sometimes a full reconnect can help with gateway/DNS issues
+				WiFi.disconnect();
+				delay(2000);
+				WiFi.reconnect();
+				waitForWifiToConnect(20);
+
+				// Test again after reconnect
+				if (checkInternetConnectivity())
+				{
+					internet_available = true;
+					Debug.println("=== Internet Recovered After Reconnect ===");
+				}
+				else
+				{
+					Debug.println("=== Internet Still Unavailable After Reconnect ===");
+				}
 			}
 			else if (internet_test && !internet_available)
 			{
@@ -7739,8 +7760,13 @@ void loop()
 			}
 			else if (!internet_test && !internet_available)
 			{
-				// Internet still not available
-				Debug.println("WiFi OK - Internet still unavailable (DNS test failed)");
+				// Internet still not available - log periodically but don't spam
+				static unsigned long last_no_internet_log = 0;
+				if (msSince(last_no_internet_log) > 60000) // Log every 60 seconds
+				{
+					Debug.println("WiFi OK - Internet still unavailable (DNS test failed)");
+					last_no_internet_log = act_milli;
+				}
 			}
 		}
 
