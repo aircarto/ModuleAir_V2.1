@@ -172,6 +172,26 @@ const char INTL_PRESS[] = "Press.";
 const char INTL_ACTIVATION[] = "Activation";
 const char INTL_PROBES[] = "des sondes";
 
+// OTA Update strings
+#define INTL_UPDATE "Mise à jour"
+#define INTL_UPDATE_FIRMWARE "Mise à jour du firmware"
+#define INTL_UPDATE_AVAILABLE "Mise à jour disponible"
+#define INTL_UPDATE_NOT_AVAILABLE "Firmware à jour"
+#define INTL_UPDATE_CHECKING "Vérification des mises à jour..."
+#define INTL_UPDATE_CURRENT_VERSION "Version actuelle"
+#define INTL_UPDATE_NEW_VERSION "Nouvelle version"
+#define INTL_UPDATE_START "Lancer la mise à jour"
+#define INTL_UPDATE_CHECK "Vérifier les mises à jour"
+#define INTL_UPDATE_IN_PROGRESS "Mise à jour en cours..."
+#define INTL_UPDATE_PROGRESS "Progression"
+#define INTL_UPDATE_SUCCESS "Mise à jour réussie!"
+#define INTL_UPDATE_FAILED "Échec de la mise à jour"
+#define INTL_UPDATE_REBOOT "Le capteur va redémarrer..."
+#define INTL_UPDATE_WARNING "Ne pas éteindre le capteur pendant la mise à jour!"
+#define INTL_UPDATE_LAST_CHECK "Dernière vérification"
+#define INTL_UPDATE_NEVER "Jamais"
+#define INTL_UPDATE_ERROR "Erreur"
+
 #include "./aircarto-logo-common.h"
 #include "./logos-custom.h"
 

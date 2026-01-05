@@ -6,7 +6,7 @@
 .vscode/ipch
 builds/
 .DS_Store
-ext_def.h
-logos-custom.h
-configuration.h
+# ext_def.h
+# logos-custom.h
+# configuration.h
 

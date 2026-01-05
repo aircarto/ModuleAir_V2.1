@@ -155,6 +155,26 @@ const char INTL_PRESS[] = "Press.";
 const char INTL_ACTIVATION[] = "Activating";
 const char INTL_PROBES[] = "sensors";
 
+// OTA Update strings
+#define INTL_UPDATE "Update"
+#define INTL_UPDATE_FIRMWARE "Firmware Update"
+#define INTL_UPDATE_AVAILABLE "Update available"
+#define INTL_UPDATE_NOT_AVAILABLE "Firmware is up to date"
+#define INTL_UPDATE_CHECKING "Checking for updates..."
+#define INTL_UPDATE_CURRENT_VERSION "Current version"
+#define INTL_UPDATE_NEW_VERSION "New version"
+#define INTL_UPDATE_START "Start update"
+#define INTL_UPDATE_CHECK "Check for updates"
+#define INTL_UPDATE_IN_PROGRESS "Update in progress..."
+#define INTL_UPDATE_PROGRESS "Progress"
+#define INTL_UPDATE_SUCCESS "Update successful!"
+#define INTL_UPDATE_FAILED "Update failed"
+#define INTL_UPDATE_REBOOT "Sensor will reboot..."
+#define INTL_UPDATE_WARNING "Do not turn off the sensor during update!"
+#define INTL_UPDATE_LAST_CHECK "Last check"
+#define INTL_UPDATE_NEVER "Never"
+#define INTL_UPDATE_ERROR "Error"
+
 #include "./aircarto-logo-common.h"
 #include "./logos-custom.h"
 
