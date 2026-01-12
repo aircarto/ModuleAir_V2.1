@@ -3981,23 +3981,15 @@ static unsigned long sendData(const LoggerEntry logger, const String &data,
 
   switch (logger) {
   case LoggerSensorCommunity:
-    Debug.print("LoggerSensorCommunity https: ");
-    Debug.println(ssl);
     contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
     break;
   case LoggerMadavi:
-    Debug.print("LoggerMadavi https: ");
-    Debug.println(ssl);
     contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
     break;
   case LoggerCustom:
-    Debug.print("LoggerAirCarto https: ");
-    Debug.println(ssl);
     contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
     break;
   case LoggerCustom2:
-    Debug.print("LoggerAtmoSud https: ");
-    Debug.println(ssl);
     contentType = FPSTR(TXT_CONTENT_TYPE_JSON);
     break;
   default:
@@ -4031,11 +4023,43 @@ static unsigned long sendData(const LoggerEntry logger, const String &data,
         http.addHeader(F("X-PIN"), String(pin));
       }
 
+      // Enhanced pre-request logging
+      Debug.println("=== HTTP POST Request ===");
+      Debug.print("URL: http://");
+      Debug.print(s_Host);
+      Debug.print(":");
+      Debug.print(loggerConfigs[logger].destport);
+      Debug.println(s_url);
+      Debug.print("Payload size: ");
+      Debug.print(data.length());
+      Debug.println(" bytes");
+      Debug.println("========================");
+
+      unsigned long post_start = millis();
       result = http.POST(data);
+      unsigned long post_duration = millis() - post_start;
 
       if (result >= HTTP_CODE_OK && result <= HTTP_CODE_ALREADY_REPORTED) {
-        debug_outln_info(F("Succeeded http - "), s_Host);
         send_success = true;
+        // Enhanced success response logging
+        Debug.println("=== HTTP POST Response ===");
+        Debug.print("HTTP Code: ");
+        Debug.print(result);
+        Debug.print(" (");
+        Debug.print(getHttpErrorMessage(result));
+        Debug.println(")");
+        Debug.print("Response time: ");
+        Debug.print(post_duration / 1000.0);
+        Debug.println(" s");
+        Debug.print("Response size: ");
+        Debug.print(http.getSize());
+        Debug.println(" bytes");
+        String response = http.getString();
+        if (response.length() > 0) {
+          Debug.print("Response body: ");
+          Debug.println(response.substring(0, min(200, (int)response.length())));
+        }
+        Debug.println("==========================");
       } else if (result >= HTTP_CODE_BAD_REQUEST) {
         Debug.println("=== HTTP Request Error ===");
         Debug.print("Host: ");
@@ -4045,6 +4069,9 @@ static unsigned long sendData(const LoggerEntry logger, const String &data,
         Debug.print(" (");
         Debug.print(getHttpErrorMessage(result));
         Debug.println(")");
+        Debug.print("Response time: ");
+        Debug.print(post_duration / 1000.0);
+        Debug.println(" s");
         Debug.print("Response: ");
         Debug.println(http.getString());
         Debug.println("==========================");
@@ -4055,6 +4082,9 @@ static unsigned long sendData(const LoggerEntry logger, const String &data,
         Debug.println(s_Host);
         Debug.print("Error: ");
         Debug.println(getHttpErrorMessage(result));
+        Debug.print("Failed after: ");
+        Debug.print(post_duration / 1000.0);
+        Debug.println(" s");
         Debug.print("Local IP: ");
         Debug.println(WiFi.localIP().toString());
         Debug.print("WiFi RSSI: ");
@@ -4070,6 +4100,10 @@ static unsigned long sendData(const LoggerEntry logger, const String &data,
       Debug.println("=== Connection Failed ===");
       Debug.print("Host: ");
       Debug.println(s_Host);
+      Debug.print("Port: ");
+      Debug.println(loggerConfigs[logger].destport);
+      Debug.print("URL: ");
+      Debug.println(s_url);
       Debug.println("Reason: Could not establish connection");
       Debug.print("Local IP: ");
       Debug.println(WiFi.localIP().toString());
@@ -4125,11 +4159,43 @@ static unsigned long sendData(const LoggerEntry logger, const String &data,
         https.addHeader(F("X-PIN"), String(pin));
       }
 
+      // Enhanced pre-request logging
+      Debug.println("=== HTTPS POST Request ===");
+      Debug.print("URL: https://");
+      Debug.print(s_Host);
+      Debug.print(":");
+      Debug.print(loggerConfigs[logger].destport);
+      Debug.println(s_url);
+      Debug.print("Payload size: ");
+      Debug.print(data.length());
+      Debug.println(" bytes");
+      Debug.println("=========================");
+
+      unsigned long post_start = millis();
       result = https.POST(data);
+      unsigned long post_duration = millis() - post_start;
 
       if (result >= HTTP_CODE_OK && result <= HTTP_CODE_ALREADY_REPORTED) {
-        debug_outln_info(F("Succeeded https - "), s_Host);
         send_success = true;
+        // Enhanced success response logging
+        Debug.println("=== HTTPS POST Response ===");
+        Debug.print("HTTP Code: ");
+        Debug.print(result);
+        Debug.print(" (");
+        Debug.print(getHttpErrorMessage(result));
+        Debug.println(")");
+        Debug.print("Response time: ");
+        Debug.print(post_duration / 1000.0);
+        Debug.println(" s");
+        Debug.print("Response size: ");
+        Debug.print(https.getSize());
+        Debug.println(" bytes");
+        String response = https.getString();
+        if (response.length() > 0) {
+          Debug.print("Response body: ");
+          Debug.println(response.substring(0, min(200, (int)response.length())));
+        }
+        Debug.println("===========================");
       } else if (result >= HTTP_CODE_BAD_REQUEST) {
         Debug.println("=== HTTPS Request Error ===");
         Debug.print("Host: ");
@@ -4139,6 +4205,9 @@ static unsigned long sendData(const LoggerEntry logger, const String &data,
         Debug.print(" (");
         Debug.print(getHttpErrorMessage(result));
         Debug.println(")");
+        Debug.print("Response time: ");
+        Debug.print(post_duration / 1000.0);
+        Debug.println(" s");
         Debug.print("Response: ");
         Debug.println(https.getString());
         Debug.println("===========================");
@@ -4149,6 +4218,9 @@ static unsigned long sendData(const LoggerEntry logger, const String &data,
         Debug.println(s_Host);
         Debug.print("Error: ");
         Debug.println(getHttpErrorMessage(result));
+        Debug.print("Failed after: ");
+        Debug.print(post_duration / 1000.0);
+        Debug.println(" s");
         Debug.print("Local IP: ");
         Debug.println(WiFi.localIP().toString());
         Debug.print("WiFi RSSI: ");
@@ -4164,6 +4236,10 @@ static unsigned long sendData(const LoggerEntry logger, const String &data,
       Debug.println("=== SSL Connection Failed ===");
       Debug.print("Host: ");
       Debug.println(s_Host);
+      Debug.print("Port: ");
+      Debug.println(loggerConfigs[logger].destport);
+      Debug.print("URL: ");
+      Debug.println(s_url);
       Debug.println("Reason: Could not establish SSL connection");
       Debug.print("Local IP: ");
       Debug.println(WiFi.localIP().toString());
