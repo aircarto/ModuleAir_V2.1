@@ -2,7 +2,7 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "AirLabo";
+const char WLANSSID[] PROGMEM = "AirLab";
 const char WLANPWD[] PROGMEM = "123plouf";
 
 #define TIME_FOR_WIFI_CONFIG 180000;
