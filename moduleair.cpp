@@ -1,11 +1,6 @@
 #include <WString.h>
 #include <pgmspace.h>
 
-#define SOFTWARE_VERSION_STR "ModuleAirV2-V1-072022"
-#define SOFTWARE_VERSION_STR_SHORT "V1-072022"
-String SOFTWARE_VERSION(SOFTWARE_VERSION_STR);
-String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
-
 #include "PxMatrix.h"
 #include <Arduino.h>
 #include <SPI.h>
@@ -107,6 +102,10 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include "logo-storage.h"
 #include "ota_update.h"
 
+// Version strings (using macros from ext_def.h)
+String SOFTWARE_VERSION(SOFTWARE_VERSION_STR);
+String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
+
 /*****************************************************************
  * CONFIGURATION                                          *
  *****************************************************************/
@@ -191,26 +190,26 @@ char user_custom2[LEN_USER_CUSTOM2] = USER_CUSTOM2;
 char pwd_custom2[LEN_CFG_PASSWORD] = PWD_CUSTOM2;
 
 // NébuleAir external sensor
-bool nebuleair_read = false;
+bool nebuleair_read = NEBULEAIR_READ;
 char nebuleair_id[LEN_NEBULEAIR_ID] = "";
-bool display_nebuleair = false;
+bool display_nebuleair = DISPLAY_NEBULEAIR;
 
 // Screen selection for pollutants display
-bool screen_pm01 = true;
-bool screen_pm25 = true;
-bool screen_pm10 = true;
-bool screen_co2 = true;
-bool screen_cov = true;
-bool screen_temp = true;
-bool screen_humi = true;
-bool screen_press = false;
+bool screen_pm01 = SCREEN_PM01;
+bool screen_pm25 = SCREEN_PM25;
+bool screen_pm10 = SCREEN_PM10;
+bool screen_co2 = SCREEN_CO2;
+bool screen_cov = SCREEN_COV;
+bool screen_temp = SCREEN_TEMP;
+bool screen_humi = SCREEN_HUMI;
+bool screen_press = SCREEN_PRESS;
 
-bool screen_atmo_pm10 = true;
-bool screen_atmo_pm25 = true;
-bool screen_atmo_index = true;
-bool screen_atmo_o3 = true;
-bool screen_atmo_no2 = true;
-bool screen_atmo_so2 = true;
+bool screen_atmo_pm10 = SCREEN_ATMO_PM10;
+bool screen_atmo_pm25 = SCREEN_ATMO_PM25;
+bool screen_atmo_index = SCREEN_ATMO_INDEX;
+bool screen_atmo_o3 = SCREEN_ATMO_O3;
+bool screen_atmo_no2 = SCREEN_ATMO_NO2;
+bool screen_atmo_so2 = SCREEN_ATMO_SO2;
 
 // First load
 void initNonTrivials(const char *id) {
@@ -1040,6 +1039,7 @@ uint8_t sntp_time_set;
 unsigned long count_sends = 0;
 unsigned long last_display_millis_oled = 0;
 unsigned long last_display_millis_matrix = 0;
+unsigned long last_mdns_refresh = 0; // For periodic mDNS refresh
 uint8_t next_display_count = 0;
 uint8_t oled_screen_count = 0;
 uint8_t matrix_screen_count = 0;
@@ -3560,6 +3560,19 @@ static void connectWifi() {
         if (wifi_connection_lost) {
           Debug.println("=== WiFi reconnected to AP ===");
           wifi_connection_lost = false;
+
+          // Restart mDNS after auto-reconnection
+          Debug.println("Restarting mDNS after WiFi auto-reconnect...");
+          MDNS.end();
+          delay(250); // Allow complete cleanup
+          yield();
+          if (MDNS.begin(MDNS_HOSTNAME)) {
+            MDNS.addService("http", "tcp", 80);
+            MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+            Debug.println("mDNS restarted successfully after WiFi auto-reconnect");
+          } else {
+            Debug.println("Failed to restart mDNS after WiFi auto-reconnect");
+          }
         }
       },
       WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
@@ -3826,6 +3839,9 @@ static bool tryReconnectWifi() {
     }
 
     // Restart mDNS responder after WiFi reconnection
+    MDNS.end(); // Clean shutdown first
+    delay(250);
+    yield();
     if (MDNS.begin(MDNS_HOSTNAME)) {
       MDNS.addService("http", "tcp", 80);
       MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
@@ -7205,6 +7221,27 @@ void loop() {
       (cfg::has_matrix)) {
     display_values_matrix();
     last_display_millis_matrix = act_milli;
+  }
+
+  // Periodic mDNS refresh to keep moduleair.local accessible
+  // ESP32 mDNS has a known issue where it stops responding after ~2 minutes
+  // TTL is 120 seconds, so we refresh every 55 seconds to stay well under that
+  // Note: MDNS.update() is not available in framework-arduinoespressif32 v2.x
+  const unsigned long MDNS_REFRESH_INTERVAL = 55000; // 55 seconds (well before 120s TTL)
+  if (cfg::has_wifi && WiFi.status() == WL_CONNECTED &&
+      msSince(last_mdns_refresh) > MDNS_REFRESH_INTERVAL) {
+    debug_outln_info(F("Performing periodic mDNS refresh..."));
+    MDNS.end();
+    delay(250); // Longer delay to ensure complete cleanup
+    yield(); // Allow WiFi stack to process
+    if (MDNS.begin(MDNS_HOSTNAME)) {
+      MDNS.addService("http", "tcp", 80);
+      MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+      debug_outln_info(F("mDNS refresh successful"));
+    } else {
+      debug_outln_error(F("mDNS refresh failed - will retry at next interval"));
+    }
+    last_mdns_refresh = act_milli;
   }
 
   // Offline mode: Try to reconnect to WiFi every hour

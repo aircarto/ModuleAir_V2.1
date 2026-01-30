@@ -1,3 +1,9 @@
+// Firmware version - IMPORTANT: Update before each OTA release!
+// Full version: used in APIs, config.json, web interface
+#define SOFTWARE_VERSION_STR "ModuleAirV2-V1-072022"
+// Short version: used on display (limited space) and for OTA comparison
+#define SOFTWARE_VERSION_STR_SHORT "V1-072022"
+
 // Language config
 #define CURRENT_LANG INTL_LANG
 
@@ -35,7 +41,7 @@ const char APPKEY[] = "0000";
 #define SSL_MADAVI 0
 #define SEND2CSV 0
 #define SEND2CUSTOM 1  // AirCarto API
-#define SEND2CUSTOM2 1 // AtmoSud API (MicroSpot)
+#define SEND2CUSTOM2 0 // AtmoSud API (MicroSpot)
 
 enum LoggerEntry {
   LoggerSensorCommunity,
@@ -199,3 +205,26 @@ static const char URL_API_SENSORCOMMUNITY[] PROGMEM =
     "https://data.sensor.community/airrohr/v1/sensor/";
 
 #define TEMP_OFFSET "-4.0"
+
+// NébuleAir external sensor defaults
+#define NEBULEAIR_READ 0
+#define DISPLAY_NEBULEAIR 0
+
+// Screen selection defaults (1 = enabled, 0 = disabled)
+// Indoor sensors screens
+#define SCREEN_PM01 0
+#define SCREEN_PM25 1
+#define SCREEN_PM10 0
+#define SCREEN_CO2 1
+#define SCREEN_COV 0
+#define SCREEN_TEMP 0
+#define SCREEN_HUMI 0
+#define SCREEN_PRESS 0
+
+// AtmoSud forecast screens
+#define SCREEN_ATMO_PM10 1
+#define SCREEN_ATMO_PM25 1
+#define SCREEN_ATMO_INDEX 1
+#define SCREEN_ATMO_O3 1
+#define SCREEN_ATMO_NO2 1
+#define SCREEN_ATMO_SO2 1
