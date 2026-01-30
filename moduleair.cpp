@@ -3569,6 +3569,7 @@ static void connectWifi() {
           if (MDNS.begin(MDNS_HOSTNAME)) {
             MDNS.addService("http", "tcp", 80);
             MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+            last_mdns_refresh = act_milli; // Reset refresh timer
             Debug.println("mDNS restarted successfully after WiFi auto-reconnect");
           } else {
             Debug.println("Failed to restart mDNS after WiFi auto-reconnect");
@@ -3601,7 +3602,7 @@ static void connectWifi() {
   wifi.schan = 1;
 
   WiFi.mode(WIFI_STA);
-  WiFi.setHostname(cfg::fs_ssid);
+  WiFi.setHostname(MDNS_HOSTNAME); // FIX: Use same hostname as mDNS
   WiFi.setSleep(
       false); // FIX: Disable WiFi sleep mode to prevent random disconnections
 
@@ -3686,6 +3687,7 @@ static void connectWifi() {
     if (MDNS.begin(MDNS_HOSTNAME)) {
       MDNS.addService("http", "tcp", 80);
       MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+      last_mdns_refresh = millis(); // Initialize refresh timer
       debug_outln_info(
           F("mDNS responder started successfully. Access device at: http://"),
           String(MDNS_HOSTNAME) + ".local");
@@ -3802,9 +3804,9 @@ static bool tryReconnectWifi() {
   wifi.schan = 1;
 
   WiFi.mode(WIFI_STA);
-  WiFi.setHostname(cfg::fs_ssid);
-  WiFi.setAutoReconnect(true); // FIX: Enable auto-reconnect
-  WiFi.setSleep(false);        // FIX: Disable WiFi sleep mode
+  WiFi.setHostname(MDNS_HOSTNAME); // FIX: Use same hostname as mDNS
+  WiFi.setAutoReconnect(true);     // FIX: Enable auto-reconnect
+  WiFi.setSleep(false);            // FIX: Disable WiFi sleep mode
 
   // Try to connect
   WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
@@ -3845,6 +3847,7 @@ static bool tryReconnectWifi() {
     if (MDNS.begin(MDNS_HOSTNAME)) {
       MDNS.addService("http", "tcp", 80);
       MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+      last_mdns_refresh = millis(); // Reset refresh timer
       Debug.println("mDNS responder restarted after WiFi reconnection");
     } else {
       Debug.println("Error restarting mDNS responder after WiFi reconnection");
@@ -7224,22 +7227,22 @@ void loop() {
   }
 
   // Periodic mDNS refresh to keep moduleair.local accessible
-  // ESP32 mDNS has a known issue where it stops responding after ~2 minutes
-  // TTL is 120 seconds, so we refresh every 55 seconds to stay well under that
-  // Note: MDNS.update() is not available in framework-arduinoespressif32 v2.x
-  const unsigned long MDNS_REFRESH_INTERVAL = 55000; // 55 seconds (well before 120s TTL)
+  // ESP32 mDNS has a known issue: it only broadcasts at startup and doesn't re-announce
+  // TTL is 120 seconds but clients may cache shorter, so we refresh every 30 seconds
+  // We restart the service quickly (100ms interruption) to force re-announcement
+  const unsigned long MDNS_REFRESH_INTERVAL = 30000; // 30 seconds
   if (cfg::has_wifi && WiFi.status() == WL_CONNECTED &&
       msSince(last_mdns_refresh) > MDNS_REFRESH_INTERVAL) {
-    debug_outln_info(F("Performing periodic mDNS refresh..."));
+    debug_outln_info(F("Refreshing mDNS service..."));
     MDNS.end();
-    delay(250); // Longer delay to ensure complete cleanup
-    yield(); // Allow WiFi stack to process
+    delay(100); // Minimal delay for cleanup (reduced from 250ms)
+    yield();
     if (MDNS.begin(MDNS_HOSTNAME)) {
       MDNS.addService("http", "tcp", 80);
       MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
-      debug_outln_info(F("mDNS refresh successful"));
+      debug_outln_info(F("mDNS refresh OK"));
     } else {
-      debug_outln_error(F("mDNS refresh failed - will retry at next interval"));
+      debug_outln_error(F("mDNS refresh failed"));
     }
     last_mdns_refresh = act_milli;
   }
@@ -7424,7 +7427,7 @@ void loop() {
         delay(1000); // FIX: Add delay to let WiFi stack reset properly
 
         WiFi.mode(WIFI_STA);
-        WiFi.setHostname(cfg::fs_ssid);
+        WiFi.setHostname(MDNS_HOSTNAME); // FIX: Use same hostname as mDNS
         WiFi.setAutoReconnect(true);
         WiFi.setSleep(false);
         WiFi.begin(cfg::wlanssid, cfg::wlanpwd); // Start WiFI again

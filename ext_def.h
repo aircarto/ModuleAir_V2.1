@@ -1,8 +1,10 @@
 // Firmware version - IMPORTANT: Update before each OTA release!
 // Full version: used in APIs, config.json, web interface
-#define SOFTWARE_VERSION_STR "ModuleAirV2-V1-072022"
+// Format: "ModuleAirV2-V{major}-{MMYYYY}"
+#define SOFTWARE_VERSION_STR "ModuleAirV2-V1-012026"
 // Short version: used on display (limited space) and for OTA comparison
-#define SOFTWARE_VERSION_STR_SHORT "V1-072022"
+// Format: "V{major}-{MMYYYY}" - MUST match the part after "ModuleAirV2-" above!
+#define SOFTWARE_VERSION_STR_SHORT "V1-012026"
 
 // Language config
 #define CURRENT_LANG INTL_LANG
