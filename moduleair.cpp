@@ -100,6 +100,7 @@
 #include "ext_def.h"
 #include "html-content.h"
 #include "logo-storage.h"
+#include "nvs-backup.h"
 #include "ota_update.h"
 
 // Version strings (using macros from ext_def.h)
@@ -211,6 +212,15 @@ bool screen_atmo_o3 = SCREEN_ATMO_O3;
 bool screen_atmo_no2 = SCREEN_ATMO_NO2;
 bool screen_atmo_so2 = SCREEN_ATMO_SO2;
 
+// Logo display positions (1-6 = display order, 0 = hidden)
+// These are now saved in config.json and preserved across OTA updates
+unsigned int logo_moduleair = CFG_LOGO_MODULEAIR;
+unsigned int logo_aircarto = CFG_LOGO_AIRCARTO;
+unsigned int logo_atmo = CFG_LOGO_ATMO;
+unsigned int logo_region = CFG_LOGO_REGION;
+unsigned int logo_custom1 = CFG_LOGO_CUSTOM1;
+unsigned int logo_custom2 = CFG_LOGO_CUSTOM2;
+
 // First load
 void initNonTrivials(const char *id) {
   strcpy(cfg::current_lang, CURRENT_LANG);
@@ -265,7 +275,7 @@ static byte booltobyte(bool array[8]) {
 }
 
 // define size of the config JSON
-#define JSON_BUFFER_SIZE 2300
+#define JSON_BUFFER_SIZE 2600
 // define size of the AtmoSud Forecast API JSON
 #define JSON_BUFFER_SIZE2 500
 
@@ -297,7 +307,7 @@ uint8_t display_draw_time = 30; // 10-50 is usually fine
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
 uint8_t logos[6] = {0, 0, 0, 0, 0, 0};
-uint8_t logo_index = -1;
+int8_t logo_index = -1;
 bool has_logo;
 
 extern const uint8_t gamma8[]; // for gamma correction
@@ -1502,9 +1512,20 @@ static void readConfig(bool oldconfig = false) {
 
   debug_outln_info(F("opened config file..."));
   DynamicJsonDocument json(JSON_BUFFER_SIZE);
-  DeserializationError err = deserializeJson(json, configFile.readString());
+  String configContent = configFile.readString();
+  size_t configSize = configFile.size();
   configFile.close();
 #pragma GCC diagnostic pop
+
+  Debug.printf("[DIAG] File: %s, size: %d bytes, content length: %d\n",
+               cfgName.c_str(), configSize, configContent.length());
+  if (configContent.length() < 20) {
+    Debug.printf("[DIAG] Raw content: '%s'\n", configContent.c_str());
+  } else {
+    Debug.printf("[DIAG] First 80 chars: '%.80s'\n", configContent.c_str());
+  }
+
+  DeserializationError err = deserializeJson(json, configContent);
 
   if (!err) {
     serializeJsonPretty(json, Debug);
@@ -1549,8 +1570,13 @@ static void readConfig(bool oldconfig = false) {
     }
   } else {
     debug_outln_error(F("failed to load json config"));
+    Debug.printf("[DIAG] JSON error: %s (file: %s)\n", err.c_str(),
+                 cfgName.c_str());
 
     if (!oldconfig) {
+      // Remove corrupted config.json so NVS restore can detect it as missing
+      SPIFFS.remove(F("/config.json"));
+      debug_outln_info(F("Removed corrupted config.json"));
       return readConfig(true /* oldconfig */);
     }
   }
@@ -1576,6 +1602,9 @@ static void init_config() {
     return;
   }
   readConfig();
+  // NOTE: Do NOT create config.json here if missing!
+  // nvs_restore_if_needed() in setup() needs to detect the missing file
+  // to trigger restoration from NVS backup after OTA updates.
 }
 
 /*****************************************************************
@@ -3015,11 +3044,19 @@ static void webserver_update() {
 
       Debug.println(F("[OTA] Starting update process..."));
 
-      // Disable matrix display to free memory
+      // Disable matrix display FIRST to prevent SPI mutex deadlock
+      // The matrix ISR uses SPI, and NVS/SPIFFS operations also need SPI
+      // mutexes
       if (cfg::has_matrix) {
         display_update_enable(false);
-        delay(100);
+        delay(100); // Allow ISR to fully stop
       }
+
+      // Backup critical data to NVS before OTA update
+      // This preserves logos, screen config, and other settings
+      // in case SPIFFS gets reformatted on next boot
+      debug_outln_info(F("[OTA] Backing up data to NVS before update..."));
+      nvs_backup_all();
 
       // Perform update (this will block until complete)
       bool success = ota_perform_update();
@@ -3570,7 +3607,8 @@ static void connectWifi() {
             MDNS.addService("http", "tcp", 80);
             MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
             last_mdns_refresh = act_milli; // Reset refresh timer
-            Debug.println("mDNS restarted successfully after WiFi auto-reconnect");
+            Debug.println(
+                "mDNS restarted successfully after WiFi auto-reconnect");
           } else {
             Debug.println("Failed to restart mDNS after WiFi auto-reconnect");
           }
@@ -6076,23 +6114,28 @@ static void display_values_matrix() {
     break;
 
   case 22:
-    if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 5)) {
+    if (!has_logo || logo_index < -1) {
+      act_milli += 5000;
+      break;
+    }
+
+    if (logo_index + 1 < 6 && logos[logo_index + 1] != 0 && logo_index < 5) {
       logo_index++;
-    } else if (has_logo && (logos[logo_index + 1] == 0) || logo_index == 5) {
+    } else {
       logo_index = 0;
     }
 
-    if (logos[logo_index] == cfg_logo_moduleair)
+    if (cfg::logo_moduleair && logos[logo_index] == cfg::logo_moduleair)
       drawImage(0, 0, 32, 64, logo_moduleair);
-    if (logos[logo_index] == cfg_logo_aircarto)
+    if (cfg::logo_aircarto && logos[logo_index] == cfg::logo_aircarto)
       drawImage(0, 0, 32, 64, logo_aircarto);
-    if (logos[logo_index] == cfg_logo_atmo)
+    if (cfg::logo_atmo && logos[logo_index] == cfg::logo_atmo)
       drawImage(0, 0, 32, 64, logo_atmo);
-    if (logos[logo_index] == cfg_logo_region)
+    if (cfg::logo_region && logos[logo_index] == cfg::logo_region)
       drawImage(0, 0, 32, 64, logo_region);
-    if (logos[logo_index] == cfg_logo_custom1)
+    if (cfg::logo_custom1 && logos[logo_index] == cfg::logo_custom1)
       drawImage(0, 0, 32, 64, logo_buffer1);
-    if (logos[logo_index] == cfg_logo_custom2)
+    if (cfg::logo_custom2 && logos[logo_index] == cfg::logo_custom2)
       drawImage(0, 0, 32, 64, logo_buffer2);
 
     break;
@@ -6119,44 +6162,44 @@ static void init_matrix() {
   display_update_enable(true);
   display.setFont(NULL); // Default font
 
-  for (int i = 1; i < 6; i++) {
+  for (int i = 1; i <= 6; i++) {
 
-    if (i == cfg_logo_moduleair) {
+    if (cfg::logo_moduleair && i == cfg::logo_moduleair) {
       display.fillScreen(myBLACK); // display.clearDisplay(); produces a flash
       drawImage(0, 0, 32, 64, logo_moduleair);
       logo_index++;
       logos[logo_index] = i;
       delay(5000);
     }
-    if (i == cfg_logo_aircarto) {
+    if (cfg::logo_aircarto && i == cfg::logo_aircarto) {
       display.fillScreen(myBLACK); // display.clearDisplay(); produces a flash
       drawImage(0, 0, 32, 64, logo_aircarto);
       logo_index++;
       logos[logo_index] = i;
       delay(5000);
     }
-    if (i == cfg_logo_atmo) {
+    if (cfg::logo_atmo && i == cfg::logo_atmo) {
       display.fillScreen(myBLACK); // display.clearDisplay(); produces a flash
       drawImage(0, 0, 32, 64, logo_atmo);
       logo_index++;
       logos[logo_index] = i;
       delay(5000);
     }
-    if (i == cfg_logo_region) {
+    if (cfg::logo_region && i == cfg::logo_region) {
       display.fillScreen(myBLACK); // display.clearDisplay(); produces a flash
       drawImage(0, 0, 32, 64, logo_region);
       logo_index++;
       logos[logo_index] = i;
       delay(5000);
     }
-    if (i == cfg_logo_custom1) {
+    if (cfg::logo_custom1 && i == cfg::logo_custom1) {
       display.fillScreen(myBLACK); // display.clearDisplay(); produces a flash
       drawImage(0, 0, 32, 64, logo_buffer1);
       logo_index++;
       logos[logo_index] = i;
       delay(5000);
     }
-    if (i == cfg_logo_custom2) {
+    if (cfg::logo_custom2 && i == cfg::logo_custom2) {
       display.fillScreen(myBLACK); // display.clearDisplay(); produces a flash
       drawImage(0, 0, 32, 64, logo_buffer2);
       logo_index++;
@@ -6165,12 +6208,17 @@ static void init_matrix() {
     }
   }
 
+  Debug.printf("[DIAG] init_matrix: logo_index after loop: %d\n", logo_index);
+  Debug.printf("[DIAG] init_matrix: logos[] = {%d, %d, %d, %d, %d, %d}\n",
+               logos[0], logos[1], logos[2], logos[3], logos[4], logos[5]);
+
   if (logo_index != -1) {
     has_logo = true;
     logo_index = -1;
   } else {
     has_logo = false;
   }
+  Debug.printf("[DIAG] init_matrix: has_logo=%d\n", has_logo);
 }
 
 /*****************************************************************
@@ -6935,6 +6983,40 @@ void setup() {
 
   init_config();
 
+  // === DEBUG: State after init_config ===
+  Debug.println(F("[DIAG] === Post init_config state ==="));
+  Debug.printf("[DIAG] config.json exists: %s\n",
+               SPIFFS.exists(F("/config.json")) ? "YES" : "NO");
+  Debug.printf("[DIAG] config.json.old exists: %s\n",
+               SPIFFS.exists(F("/config.json.old")) ? "YES" : "NO");
+  Debug.printf("[DIAG] cfg::logo_moduleair=%d, cfg::logo_aircarto=%d\n",
+               cfg::logo_moduleair, cfg::logo_aircarto);
+  Debug.printf("[DIAG] cfg::logo_custom1=%d, cfg::logo_custom2=%d\n",
+               cfg::logo_custom1, cfg::logo_custom2);
+  Debug.printf("[DIAG] cfg::has_matrix=%d\n", cfg::has_matrix);
+
+  // Restore configuration from NVS if SPIFFS was reformatted during OTA
+  // Must be called after init_config() (which initializes SPIFFS and reads
+  // config) and before logo_init() (which would overwrite with compiled
+  // defaults)
+  Debug.println(F("[DIAG] Calling nvs_restore_if_needed()..."));
+  if (nvs_restore_if_needed()) {
+    debug_outln_info(F("[NVS] Restored from NVS backup. Re-reading config..."));
+    readConfig(); // Re-read the restored config.json from SPIFFS
+    Debug.printf("[DIAG] Post-restore: cfg::logo_custom1=%d, cfg::logo_custom2=%d\n",
+                 cfg::logo_custom1, cfg::logo_custom2);
+  } else {
+    Debug.println(F("[DIAG] nvs_restore_if_needed() returned false (no restore)"));
+  }
+
+  // If config.json still doesn't exist (fresh flash with no NVS backup),
+  // create it now with current (default) values
+  if (!SPIFFS.exists(F("/config.json"))) {
+    debug_outln_info(
+        F("config.json not found, creating with current values..."));
+    writeConfig();
+  }
+
   // Initialize logo storage - load custom logos from SPIFFS
   // Must be called after init_config() (which initializes SPIFFS)
   // and before init_matrix() (which displays logos)
@@ -7227,9 +7309,10 @@ void loop() {
   }
 
   // Periodic mDNS refresh to keep moduleair.local accessible
-  // ESP32 mDNS has a known issue: it only broadcasts at startup and doesn't re-announce
-  // TTL is 120 seconds but clients may cache shorter, so we refresh every 30 seconds
-  // We restart the service quickly (100ms interruption) to force re-announcement
+  // ESP32 mDNS has a known issue: it only broadcasts at startup and doesn't
+  // re-announce TTL is 120 seconds but clients may cache shorter, so we refresh
+  // every 30 seconds We restart the service quickly (100ms interruption) to
+  // force re-announcement
   const unsigned long MDNS_REFRESH_INTERVAL = 30000; // 30 seconds
   if (cfg::has_wifi && WiFi.status() == WL_CONNECTED &&
       msSince(last_mdns_refresh) > MDNS_REFRESH_INTERVAL) {
