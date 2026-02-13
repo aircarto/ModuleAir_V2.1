@@ -48,6 +48,7 @@
 
 #include "SensAir_S88.h" // SensAir S88 CO2 sensor
 #include <MHZ16_uart.h>  // CO2
+#include <MHZ19.h>       // MH-Z19C CO2
 
 #include "ccs811.h" // CCS811
 
@@ -76,6 +77,8 @@
 #include <ESPmDNS.h>
 #include <MD5Builder.h>
 #include <WebServer.h>
+#include <esp_wifi.h> // Pour esp_wifi_set_ps() explicite
+#include <mdns.h>     // ESP-IDF native mDNS API pour re-announce sans restart
 
 // includes external libraries
 
@@ -143,7 +146,8 @@ char appkey[LEN_APPKEY];
 bool npm_read = NPM_READ;
 bool bmx280_read = BMX280_READ;
 bool mhz16_read = MHZ16_READ;
-bool s88_read = S88_READ; // SensAir S88
+bool s88_read = S88_READ;     // SensAir S88
+bool mhz19_read = MHZ19_READ; // MH-Z19C
 bool ccs811_read = CCS811_READ;
 
 // Location
@@ -900,6 +904,11 @@ MHZ16_uart mhz16;
 SensAir_S88 s88;
 
 /*****************************************************************
+ * MH-Z19 declaration                                        *
+ *****************************************************************/
+MHZ19 mhz19;
+
+/*****************************************************************
  * CCS811 declaration                                        *
  *****************************************************************/
 CCS811 ccs811(-1);
@@ -917,7 +926,8 @@ int prec;
 unsigned long time_point_device_start_ms;
 unsigned long starttime_NPM;
 unsigned long starttime_MHZ16;
-unsigned long starttime_S88; // SensAir S88
+unsigned long starttime_S88;   // SensAir S88
+unsigned long starttime_MHZ19; // MH-Z19C
 unsigned long starttime_CCS811;
 unsigned long last_NPM;
 unsigned long act_micro;
@@ -1013,6 +1023,10 @@ float last_value_S88 = -1.0; // SensAir S88
 uint32_t s88_sum = 0;
 uint16_t s88_val_count = 0;
 
+float last_value_MHZ19 = -1.0; // MH-Z19C
+uint32_t mhz19_sum = 0;
+uint16_t mhz19_val_count = 0;
+
 float last_value_CCS811 = -1.0;
 uint32_t ccs811_sum = 0;
 uint16_t ccs811_val_count = 0;
@@ -1037,7 +1051,8 @@ String last_value_NPM_version;
 
 unsigned long NPM_error_count;
 unsigned long MHZ16_error_count;
-unsigned long S88_error_count; // SensAir S88
+unsigned long S88_error_count;   // SensAir S88
+unsigned long MHZ19_error_count; // MH-Z19C
 unsigned long CCS811_error_count;
 unsigned long WiFi_error_count;
 
@@ -1053,6 +1068,8 @@ unsigned long last_mdns_refresh = 0; // For periodic mDNS refresh
 uint8_t next_display_count = 0;
 uint8_t oled_screen_count = 0;
 uint8_t matrix_screen_count = 0;
+bool current_matrix_screen_is_short = false;
+uint8_t matrix_short_screen_count = 0;
 
 struct struct_wifiInfo {
   char ssid[LEN_WLANSSID];
@@ -1098,6 +1115,50 @@ static unsigned long getDisplayInterval(unsigned int screen_count) {
   // Clamp between 3 seconds (minimum) and 15 seconds (maximum)
   const unsigned long MIN_INTERVAL_MS = 3000;
   const unsigned long MAX_INTERVAL_MS = 15000;
+
+  if (calculated_interval < MIN_INTERVAL_MS)
+    return MIN_INTERVAL_MS;
+  if (calculated_interval > MAX_INTERVAL_MS)
+    return MAX_INTERVAL_MS;
+
+  return calculated_interval;
+}
+
+// When few detail screens are enabled (≤3), reduce display time for
+// summary/logo screens (air interieur + logos) and redistribute to
+// detail screens (individual pollutants) for better readability
+static unsigned long getMatrixDisplayInterval(unsigned int screen_count,
+                                              bool is_short_screen,
+                                              unsigned int short_screen_count) {
+  if (screen_count == 0)
+    return DISPLAY_UPDATE_INTERVAL_MS;
+
+  const unsigned long TARGET_ROTATION_TIME_MS = 40000;
+  const unsigned long MIN_INTERVAL_MS = 3000;
+  const unsigned long MAX_INTERVAL_MS = 15000;
+  const unsigned long SHORT_SCREEN_MS = 3000;
+
+  unsigned int detail_screens = (screen_count > short_screen_count)
+                                    ? screen_count - short_screen_count
+                                    : screen_count;
+
+  // With ≤3 detail screens, shorten summary/logo and give more time to details
+  if (detail_screens <= 3 && detail_screens > 0 && short_screen_count > 0) {
+    if (is_short_screen) {
+      return SHORT_SCREEN_MS;
+    }
+    unsigned long total_short_time = SHORT_SCREEN_MS * short_screen_count;
+    unsigned long data_interval =
+        (TARGET_ROTATION_TIME_MS - total_short_time) / detail_screens;
+    if (data_interval > MAX_INTERVAL_MS)
+      return MAX_INTERVAL_MS;
+    if (data_interval < MIN_INTERVAL_MS)
+      return MIN_INTERVAL_MS;
+    return data_interval;
+  }
+
+  // 4+ detail screens: uniform timing
+  unsigned long calculated_interval = TARGET_ROTATION_TIME_MS / screen_count;
 
   if (calculated_interval < MIN_INTERVAL_MS)
     return MIN_INTERVAL_MS;
@@ -2081,7 +2142,8 @@ static void webserver_config_send_body_get(String &page_content) {
   page_content += FPSTR(WEB_B_BR);
 
   add_form_checkbox_sensor(Config_mhz16_read, FPSTR(INTL_MHZ16));
-  add_form_checkbox_sensor(Config_s88_read, FPSTR(INTL_S88)); // SensAir S88
+  add_form_checkbox_sensor(Config_s88_read, FPSTR(INTL_S88));     // SensAir S88
+  add_form_checkbox_sensor(Config_mhz19_read, FPSTR(INTL_MHZ19)); // MH-Z19C
 
   // // Paginate page after ~ 1500 Bytes
   server.sendContent(page_content);
@@ -2281,7 +2343,7 @@ static void sensor_restart() {
     serialNPM.end();
   }
 
-  if (cfg::mhz16_read || cfg::s88_read) // SensAir S88
+  if (cfg::mhz16_read || cfg::s88_read || cfg::mhz19_read) // CO2 sensors
   {
     serialMHZ.end();
   }
@@ -2553,6 +2615,13 @@ static void webserver_values() {
     page_content += FPSTR(EMPTY_ROW);
   }
 
+  if (cfg::mhz19_read) // MH-Z19C
+  {
+    const char *const sensor_name = SENSORS_MHZ19;
+    add_table_co2_value(FPSTR(sensor_name), FPSTR(INTL_CO2), last_value_MHZ19);
+    page_content += FPSTR(EMPTY_ROW);
+  }
+
   if (cfg::ccs811_read) {
     const char *const sensor_name = SENSORS_CCS811;
     add_table_voc_value(FPSTR(sensor_name), FPSTR(INTL_VOC), last_value_CCS811);
@@ -2654,6 +2723,11 @@ static void webserver_status() {
   {
     add_table_row_from_value(page_content, FPSTR(SENSORS_S88),
                              String(S88_error_count));
+  }
+  if (cfg::mhz19_read) // MH-Z19C
+  {
+    add_table_row_from_value(page_content, FPSTR(SENSORS_MHZ19),
+                             String(MHZ19_error_count));
   }
   if (cfg::ccs811_read) {
     add_table_row_from_value(page_content, FPSTR(SENSORS_CCS811),
@@ -3369,6 +3443,7 @@ static void wifiConfig() {
   debug_outln_info_bool(F("BMX: "), cfg::bmx280_read);
   debug_outln_info_bool(F("MHZ16: "), cfg::mhz16_read);
   debug_outln_info_bool(F("SensAir S88: "), cfg::s88_read);
+  debug_outln_info_bool(F("MHZ19: "), cfg::mhz19_read);
   debug_outln_info_bool(F("CCS811: "), cfg::ccs811_read);
   debug_outln_info(FPSTR(DBG_TXT_SEP));
   debug_outln_info_bool(F("SensorCommunity: "), cfg::send2dusti);
@@ -3592,29 +3667,38 @@ static void connectWifi() {
       },
       WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
+  // FIX: On STA_CONNECTED, on marque juste la reconnexion.
+  // Le restart mDNS se fait dans STA_GOT_IP car mDNS a besoin d'une IP.
   connectEventHandler = WiFi.onEvent(
       [](WiFiEvent_t event, WiFiEventInfo_t info) {
         if (wifi_connection_lost) {
-          Debug.println("=== WiFi reconnected to AP ===");
+          Debug.println("=== WiFi reconnected to AP (waiting for IP...) ===");
           wifi_connection_lost = false;
-
-          // Restart mDNS after auto-reconnection
-          Debug.println("Restarting mDNS after WiFi auto-reconnect...");
-          MDNS.end();
-          delay(250); // Allow complete cleanup
-          yield();
-          if (MDNS.begin(MDNS_HOSTNAME)) {
-            MDNS.addService("http", "tcp", 80);
-            MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
-            last_mdns_refresh = act_milli; // Reset refresh timer
-            Debug.println(
-                "mDNS restarted successfully after WiFi auto-reconnect");
-          } else {
-            Debug.println("Failed to restart mDNS after WiFi auto-reconnect");
-          }
         }
       },
       WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+
+  // FIX: Restart mDNS + NetBIOS après obtention de l'IP (pas avant !)
+  WiFi.onEvent(
+      [](WiFiEvent_t event, WiFiEventInfo_t info) {
+        Debug.println("=== Got IP address, restarting mDNS ===");
+        Debug.print("IP: ");
+        Debug.println(WiFi.localIP().toString());
+
+        // Restart mDNS proprement
+        MDNS.end();
+        delay(100);
+        if (MDNS.begin(MDNS_HOSTNAME)) {
+          MDNS.addService("http", "tcp", 80);
+          MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+          MDNS.addServiceTxt("http", "tcp", "uptime", "0");
+          last_mdns_refresh = millis();
+          Debug.println("mDNS restarted OK after GOT_IP");
+        } else {
+          Debug.println("mDNS restart FAILED after GOT_IP");
+        }
+      },
+      WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
 
   STAstartEventHandler =
       WiFi.onEvent([](WiFiEvent_t event,
@@ -3643,6 +3727,8 @@ static void connectWifi() {
   WiFi.setHostname(MDNS_HOSTNAME); // FIX: Use same hostname as mDNS
   WiFi.setSleep(
       false); // FIX: Disable WiFi sleep mode to prevent random disconnections
+  esp_wifi_set_ps(
+      WIFI_PS_NONE); // FIX: Garantir explicitement que le power save est OFF
 
   Debug.print("Connecting to SSID: ");
   Debug.println(cfg::wlanssid);
@@ -3725,6 +3811,8 @@ static void connectWifi() {
     if (MDNS.begin(MDNS_HOSTNAME)) {
       MDNS.addService("http", "tcp", 80);
       MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+      MDNS.addServiceTxt("http", "tcp", "uptime",
+                         "0");      // TXT record pour re-announce
       last_mdns_refresh = millis(); // Initialize refresh timer
       debug_outln_info(
           F("mDNS responder started successfully. Access device at: http://"),
@@ -3880,11 +3968,11 @@ static bool tryReconnectWifi() {
 
     // Restart mDNS responder after WiFi reconnection
     MDNS.end(); // Clean shutdown first
-    delay(250);
-    yield();
+    delay(100);
     if (MDNS.begin(MDNS_HOSTNAME)) {
       MDNS.addService("http", "tcp", 80);
       MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+      MDNS.addServiceTxt("http", "tcp", "uptime", "0");
       last_mdns_refresh = millis(); // Reset refresh timer
       Debug.println("mDNS responder restarted after WiFi reconnection");
     } else {
@@ -4738,8 +4826,41 @@ static void fetchSensorS88(String &s) {
 }
 
 /*****************************************************************
- * read CCS811 sensor values                              *
+ * read MH-Z19 sensor values                                     *
  *****************************************************************/
+static void fetchSensorMHZ19(String &s) {
+  const char *const sensor_name = SENSORS_MHZ19;
+  debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(sensor_name));
+
+  int value = mhz19.getCO2();
+
+  if (value == 0) {
+    debug_outln_error(F("MH-Z19 read failed"));
+  } else {
+    mhz19_sum += value;
+    mhz19_val_count++;
+    debug_outln(String(mhz19_val_count), DEBUG_MAX_INFO);
+    debug_outln(String(value), DEBUG_MAX_INFO);
+  }
+
+  if (send_now && cfg::sending_intervall_ms >= 120000) {
+    last_value_MHZ19 = -1.0f;
+
+    if (mhz19_val_count >= 12) {
+      last_value_MHZ19 = float(mhz19_sum / mhz19_val_count);
+      add_Value2Json(s, F("MHZ16_CO2"), FPSTR(DBG_TXT_CO2PPM),
+                     last_value_MHZ19);
+      debug_outln_info(FPSTR(DBG_TXT_SEP));
+    } else {
+      MHZ19_error_count++;
+    }
+
+    mhz19_sum = 0;
+    mhz19_val_count = 0;
+  }
+
+  debug_outln_info(FPSTR(DBG_TXT_SEP));
+}
 static void fetchSensorCCS811(String &s) {
   const char *const sensor_name = SENSORS_CCS811;
   debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(sensor_name));
@@ -5066,6 +5187,11 @@ static void display_values_oled() // COMPLETER LES ECRANS
     co2_sensor = FPSTR(SENSORS_S88);
   }
 
+  if (cfg::mhz19_read) // MH-Z19C
+  {
+    co2_value = last_value_MHZ19;
+    co2_sensor = FPSTR(SENSORS_MHZ19);
+  }
   if (cfg::ccs811_read) {
     cov_value = last_value_CCS811;
     cov_sensor = FPSTR(SENSORS_CCS811);
@@ -5085,6 +5211,10 @@ static void display_values_oled() // COMPLETER LES ECRANS
     screens[screen_count++] = 2;
   }
   if (cfg::s88_read && cfg::display_measure && cfg::screen_co2) // SensAir S88
+  {
+    screens[screen_count++] = 3;
+  }
+  if (cfg::mhz19_read && cfg::display_measure && cfg::screen_co2) // MH-Z19C
   {
     screens[screen_count++] = 3;
   }
@@ -5291,15 +5421,20 @@ static void display_values_matrix() {
     co2_sensor = FPSTR(SENSORS_S88);
   }
 
+  if (cfg::mhz19_read) // MH-Z19C
+  {
+    co2_value = last_value_MHZ19;
+    co2_sensor = FPSTR(SENSORS_MHZ19);
+  }
+
   if (cfg::ccs811_read) {
     cov_value = last_value_CCS811;
     cov_sensor = FPSTR(SENSORS_CCS811);
   }
 
   if ((cfg::npm_read || cfg::bmx280_read || cfg::mhz16_read || cfg::s88_read ||
-       cfg::ccs811_read) &&
-      cfg::display_measure) // SensAir S88
-  {
+       cfg::mhz19_read || cfg::ccs811_read) &&
+      cfg::display_measure) {
     screens[screen_count++] = 0; // Air intérieur
   }
 
@@ -5308,6 +5443,11 @@ static void display_values_matrix() {
       screens[screen_count++] = 1;
   }
   if (cfg::s88_read && cfg::display_measure) // SensAir S88
+  {
+    if (cfg::screen_co2)
+      screens[screen_count++] = 2;
+  }
+  if (cfg::mhz19_read && cfg::display_measure) // MH-Z19C
   {
     if (cfg::screen_co2)
       screens[screen_count++] = 2;
@@ -6141,7 +6281,16 @@ static void display_values_matrix() {
     break;
   }
 
-  // Update global screen count for dynamic interval calculation
+  // Track screen type for dynamic interval calculation
+  uint8_t current_screen = screens[next_display_count % screen_count];
+  current_matrix_screen_is_short =
+      (current_screen == 0 || current_screen == 22);
+  uint8_t short_count = 0;
+  for (uint8_t i = 0; i < screen_count; i++) {
+    if (screens[i] == 0 || screens[i] == 22)
+      short_count++;
+  }
+  matrix_short_screen_count = short_count;
   matrix_screen_count = screen_count;
 
   yield();
@@ -7003,10 +7152,12 @@ void setup() {
   if (nvs_restore_if_needed()) {
     debug_outln_info(F("[NVS] Restored from NVS backup. Re-reading config..."));
     readConfig(); // Re-read the restored config.json from SPIFFS
-    Debug.printf("[DIAG] Post-restore: cfg::logo_custom1=%d, cfg::logo_custom2=%d\n",
-                 cfg::logo_custom1, cfg::logo_custom2);
+    Debug.printf(
+        "[DIAG] Post-restore: cfg::logo_custom1=%d, cfg::logo_custom2=%d\n",
+        cfg::logo_custom1, cfg::logo_custom2);
   } else {
-    Debug.println(F("[DIAG] nvs_restore_if_needed() returned false (no restore)"));
+    Debug.println(
+        F("[DIAG] nvs_restore_if_needed() returned false (no restore)"));
   }
 
   // If config.json still doesn't exist (fresh flash with no NVS backup),
@@ -7043,7 +7194,7 @@ void setup() {
     serialNPM.setTimeout(400);
   }
 
-  if (cfg::mhz16_read || cfg::s88_read) // SensAir S88
+  if (cfg::mhz16_read || cfg::s88_read || cfg::mhz19_read) // CO2 sensors
   {
     // serialMHZ.begin(9600, SERIAL_8N1, CO2_SERIAL_RX, CO2_SERIAL_TX);
     Debug.println("serialMHZ 9600 8N1");
@@ -7058,6 +7209,13 @@ void setup() {
     {
       serialMHZ.begin(9600, SERIAL_8N1, CO2_SERIAL_RX, CO2_SERIAL_TX);
       s88.begin(serialMHZ);
+    }
+
+    if (cfg::mhz19_read) // MH-Z19C
+    {
+      serialMHZ.begin(9600, SERIAL_8N1, CO2_SERIAL_RX, CO2_SERIAL_TX);
+      mhz19.begin(serialMHZ);
+      mhz19.autoCalibration(false);
     }
   }
 
@@ -7149,6 +7307,11 @@ void setup() {
     last_display_millis_oled = starttime_S88 = starttime;
     last_display_millis_matrix = starttime_S88 = starttime;
   }
+  if (cfg::mhz19_read) // MH-Z19C
+  {
+    last_display_millis_oled = starttime_MHZ19 = starttime;
+    last_display_millis_matrix = starttime_MHZ19 = starttime;
+  }
   if (cfg::ccs811_read) {
     last_display_millis_oled = starttime_CCS811 = starttime;
     last_display_millis_matrix = starttime_CCS811 = starttime;
@@ -7223,7 +7386,7 @@ void setup() {
 }
 
 void loop() {
-  String result_NPM, result_MHZ16, result_S88, result_CCS811; // SensAir S88
+  String result_NPM, result_MHZ16, result_S88, result_MHZ19, result_CCS811;
 
   unsigned sum_send_time = 0;
 
@@ -7276,6 +7439,16 @@ void loop() {
     }
   }
 
+  if (cfg::mhz19_read) // MH-Z19C
+  {
+    if ((msSince(starttime_MHZ19) > SAMPLETIME_MHZ19_MS &&
+         mhz19_val_count < 11) ||
+        send_now) {
+      starttime_MHZ19 = act_milli;
+      fetchSensorMHZ19(result_MHZ19);
+    }
+  }
+
   if (cfg::ccs811_read && (!ccs811_init_failed)) {
     if ((msSince(starttime_CCS811) > SAMPLETIME_CCS811_MS &&
          ccs811_val_count < 11) ||
@@ -7302,30 +7475,31 @@ void loop() {
   }
 
   if ((msSince(last_display_millis_matrix) >
-       getDisplayInterval(matrix_screen_count)) &&
+       getMatrixDisplayInterval(matrix_screen_count,
+                                current_matrix_screen_is_short,
+                                matrix_short_screen_count)) &&
       (cfg::has_matrix)) {
     display_values_matrix();
     last_display_millis_matrix = act_milli;
   }
 
-  // Periodic mDNS refresh to keep moduleair.local accessible
-  // ESP32 mDNS has a known issue: it only broadcasts at startup and doesn't
-  // re-announce TTL is 120 seconds but clients may cache shorter, so we refresh
-  // every 30 seconds We restart the service quickly (100ms interruption) to
-  // force re-announcement
-  const unsigned long MDNS_REFRESH_INTERVAL = 30000; // 30 seconds
+  // Re-announce mDNS périodique pour garder moduleair.local accessible
+  // FIX: Au lieu de MDNS.end()/begin() qui cause des fuites mémoire et des
+  // coupures, on met à jour un TXT record (uptime) via l'API native ESP-IDF.
+  // Cela force un re-announce au niveau protocole mDNS sans aucun downtime.
+  const unsigned long MDNS_REFRESH_INTERVAL = 60000; // 60 secondes
   if (cfg::has_wifi && WiFi.status() == WL_CONNECTED &&
       msSince(last_mdns_refresh) > MDNS_REFRESH_INTERVAL) {
-    debug_outln_info(F("Refreshing mDNS service..."));
-    MDNS.end();
-    delay(100); // Minimal delay for cleanup (reduced from 250ms)
-    yield();
-    if (MDNS.begin(MDNS_HOSTNAME)) {
-      MDNS.addService("http", "tcp", 80);
-      MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
-      debug_outln_info(F("mDNS refresh OK"));
+    // Mettre à jour le TXT record "uptime" force le re-announce mDNS
+    char uptime_str[16];
+    snprintf(uptime_str, sizeof(uptime_str), "%lu", millis() / 1000);
+    esp_err_t err =
+        mdns_service_txt_item_set("_http", "_tcp", "uptime", uptime_str);
+    if (err == ESP_OK) {
+      debug_outln_info(F("mDNS re-announce OK (uptime: "),
+                       String(uptime_str) + "s)");
     } else {
-      debug_outln_error(F("mDNS refresh failed"));
+      debug_outln_error(F("mDNS re-announce failed"));
     }
     last_mdns_refresh = act_milli;
   }
@@ -7425,6 +7599,11 @@ void loop() {
     if (cfg::s88_read) // SensAir S88
     {
       data += result_S88;
+    }
+
+    if (cfg::mhz19_read) // MH-Z19C
+    {
+      data += result_MHZ19;
     }
 
     if (cfg::ccs811_read && (!ccs811_init_failed)) {

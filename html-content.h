@@ -36,6 +36,7 @@ const char SENSORS_BMP280[] PROGMEM = "BMP280";
 const char SENSORS_CCS811[] PROGMEM = "CJMCU-811";
 const char SENSORS_MHZ16[] PROGMEM = "MH-Z16";
 const char SENSORS_S88[] PROGMEM = "SensAir S88";
+const char SENSORS_MHZ19[] PROGMEM = "MH-Z19";
 
 const char WEB_PAGE_HEADER[] PROGMEM =
     "<!DOCTYPE html><html lang='" INTL_LANG "'>\
@@ -328,8 +329,8 @@ let html='<table class=\"v\"><tr><td>" INTL_UPDATE_CURRENT_VERSION
 if(d.updateAvailable){html+='<tr><td>" INTL_UPDATE_NEW_VERSION
                                        "</td><td><strong style=\"color:#27ae60\">'+d.availableVersion+'</strong></td></tr>';}\
 html+='<tr><td>" INTL_UPDATE_LAST_CHECK "</"
-                                        "td><td>'+(d.lastCheck||"
-                                        "'" INTL_UPDATE_NEVER
+                                       "td><td>'+(d.lastCheck||"
+                                       "'" INTL_UPDATE_NEVER
                                        "')+'</td></tr></table>';\
 if(d.updateAvailable){\
 html+='<div style=\"background:#e8f5e9;border:2px solid #27ae60;border-radius:10px;padding:16px;margin:16px 0;text-align:center\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#27ae60\" stroke-width=\"2\" style=\"vertical-align:middle;margin-right:8px\"><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><polyline points=\"7 10 12 15 17 10\"/><line x1=\"12\" y1=\"15\" x2=\"12\" y2=\"3\"/></svg><strong style=\"color:#27ae60\">" INTL_UPDATE_AVAILABLE

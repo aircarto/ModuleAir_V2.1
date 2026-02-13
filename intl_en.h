@@ -4,9 +4,10 @@ const char INTL_CONFIGURATION[] PROGMEM = "Configuration";
 #define INTL_WIFI_SETTINGS "WiFi Settings"
 #define INTL_WIFI_NETWORKS "Loading wifi networks ..."
 #define INTL_LANGUAGE "Language"
-const char INTL_NO_NETWORKS[] PROGMEM =  "No WiFi Network Found";
+const char INTL_NO_NETWORKS[] PROGMEM = "No WiFi Network Found";
 const char INTL_NETWORKS_FOUND[] PROGMEM = "Found Networks: ";
-const char INTL_AB_HIER_NUR_ANDERN[] PROGMEM = "Advanced settings (оnly if you know what you are doing)";
+const char INTL_AB_HIER_NUR_ANDERN[] PROGMEM =
+    "Advanced settings (оnly if you know what you are doing)";
 const char INTL_SAVE[] PROGMEM = "Save";
 const char INTL_SENSORS[] PROGMEM = "Sensors";
 const char INTL_PM_SENSORS[] PROGMEM = "PM sensors";
@@ -25,10 +26,12 @@ const char INTL_PRESSURE_AT_SEALEVEL[] PROGMEM = "Pressure at sea level (hPa)";
 const char INTL_NEO6M[] PROGMEM = "GPS (NEO 6M)";
 const char INTL_MHZ16[] PROGMEM = "MH-Z16 sensor";
 const char INTL_S88[] PROGMEM = "SensAir S88 sensor";
+const char INTL_MHZ19[] PROGMEM = "MH-Z19 sensor";
 const char INTL_CCS811[] PROGMEM = "CJMCU-811 sensor";
 const char INTL_BASICAUTH[] PROGMEM = "Authentication";
 #define INTL_REPORT_ISSUE "Report an issue"
-const char INTL_FS_WIFI_DESCRIPTION[] PROGMEM = "WiFi Sensor in configuration mode";
+const char INTL_FS_WIFI_DESCRIPTION[] PROGMEM =
+    "WiFi Sensor in configuration mode";
 const char INTL_FS_WIFI_NAME[] PROGMEM = "Network name";
 const char INTL_LORA_SETTINGS[] PROGMEM = "LoRa Settings";
 const char INTL_MORE_SETTINGS[] PROGMEM = "More settings";
@@ -69,10 +72,12 @@ const char INTL_CURRENT_DATA[] PROGMEM = "Current data";
 const char INTL_DEVICE_STATUS[] PROGMEM = "Device status";
 #define INTL_ACTIVE_SENSORS_MAP "Active sensors map (external link)"
 #define INTL_CONFIGURATION_DELETE "Delete configuration"
-#define INTL_CONFIGURATION_REALLY_DELETE "Are you sure you want to delete the configuration?"
+#define INTL_CONFIGURATION_REALLY_DELETE                                       \
+  "Are you sure you want to delete the configuration?"
 #define INTL_DELETE "Delete"
 #define INTL_CANCEL "Cancel"
-#define INTL_REALLY_RESTART_SENSOR "Are you sure you want to restart the sensor?"
+#define INTL_REALLY_RESTART_SENSOR                                             \
+  "Are you sure you want to restart the sensor?"
 #define INTL_RESTART "Restart"
 const char INTL_SAVE_AND_RESTART[] PROGMEM = "Save configuration and restart";
 #define INTL_ONLINE_CONFIG "Online configuration"
@@ -90,8 +95,10 @@ const char INTL_DEBUG_SETTING_TO[] PROGMEM = "Set debug level to";
 #define INTL_CONFIG_DELETED "Configuration was deleted"
 #define INTL_CONFIG_CAN_NOT_BE_DELETED "Configuration can not be deleted"
 #define INTL_CONFIG_NOT_FOUND "Configuration not found"
-const char INTL_TIME_TO_FIRST_MEASUREMENT[] PROGMEM = "Still {v} seconds until first measurement.";
-const char INTL_TIME_SINCE_LAST_MEASUREMENT[] PROGMEM = " seconds since last measurement.";
+const char INTL_TIME_TO_FIRST_MEASUREMENT[] PROGMEM =
+    "Still {v} seconds until first measurement.";
+const char INTL_TIME_SINCE_LAST_MEASUREMENT[] PROGMEM =
+    " seconds since last measurement.";
 const char INTL_PARTICLES_PER_LITER[] PROGMEM = "particles/liter";
 const char INTL_PARTICULATE_MATTER[] PROGMEM = "particulate matter";
 const char INTL_TEMPERATURE[] PROGMEM = "temperature";
@@ -112,7 +119,8 @@ const char INTL_SIGNAL_QUALITY[] PROGMEM = "signal quality";
 #define INTL_SENSOR "Sensor"
 #define INTL_PARAMETER "Parameter"
 #define INTL_VALUE "Value"
-const char INTL_LORA_EXPLANATION[] = "Copy/Paste values from the Helium Console";
+const char INTL_LORA_EXPLANATION[] =
+    "Copy/Paste values from the Helium Console";
 const char INTL_LORA_ACTIVATION[] = "Activate LoRaWAN commnication";
 const char INTL_WIFI_ACTIVATION[] = "Activate WiFi communication";
 
@@ -177,4 +185,3 @@ const char INTL_PROBES[] = "sensors";
 
 #include "./aircarto-logo-common.h"
 #include "./logos-custom.h"
-

@@ -161,8 +161,9 @@ static const char URL_CUSTOM2[] PROGMEM = "/moduleair?token=2AFF6dQk68daFZ";
 #define BME280_API_PIN 11
 
 // MH-Z16/SensAir S88, CO2 Sensor
-#define MHZ16_READ 1
-#define S88_READ 0 // SensAir S88 CO2 sensor
+#define MHZ16_READ 0
+#define S88_READ 0   // SensAir S88 CO2 sensor
+#define MHZ19_READ 1 // MH-Z19C CO2 sensor
 // #define MHZ16_API_PIN X
 // #define S88_API_PIN X
 

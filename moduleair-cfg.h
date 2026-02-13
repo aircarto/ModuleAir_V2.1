@@ -44,7 +44,8 @@ enum ConfigShapeId {
   Config_height_above_sealevel,
   Config_temp_offset,
   Config_mhz16_read,
-  Config_s88_read, // SensAir S88
+  Config_s88_read,   // SensAir S88
+  Config_mhz19_read, // MH-Z19C
   Config_ccs811_read,
   Config_latitude,
   Config_longitude,
@@ -122,6 +123,7 @@ static constexpr char CFG_KEY_HEIGHT_ABOVE_SEALEVEL[] PROGMEM =
 static constexpr char CFG_KEY_TEMP_OFFSET[] PROGMEM = "temp_offset";
 static constexpr char CFG_KEY_MHZ16_READ[] PROGMEM = "mhz16_read";
 static constexpr char CFG_KEY_S88_READ[] PROGMEM = "s88_read"; // SensAir S88
+static constexpr char CFG_KEY_MHZ19_READ[] PROGMEM = "mhz19_read"; // MH-Z19C
 static constexpr char CFG_KEY_CCS811_READ[] PROGMEM = "ccs811_read";
 static constexpr char CFG_KEY_LATITUDE[] PROGMEM = "latitude";
 static constexpr char CFG_KEY_LONGITUDE[] PROGMEM = "longitude";
@@ -209,7 +211,8 @@ static constexpr ConfigShapeEntry configShape[] PROGMEM = {
     {Config_Type_String, sizeof(cfg::temp_offset) - 1, CFG_KEY_TEMP_OFFSET,
      cfg::temp_offset},
     {Config_Type_Bool, 0, CFG_KEY_MHZ16_READ, &cfg::mhz16_read},
-    {Config_Type_Bool, 0, CFG_KEY_S88_READ, &cfg::s88_read}, // SensAir S88
+    {Config_Type_Bool, 0, CFG_KEY_S88_READ, &cfg::s88_read},     // SensAir S88
+    {Config_Type_Bool, 0, CFG_KEY_MHZ19_READ, &cfg::mhz19_read}, // MH-Z19C
     {Config_Type_Bool, 0, CFG_KEY_CCS811_READ, &cfg::ccs811_read},
     {Config_Type_String, sizeof(cfg::latitude) - 1, CFG_KEY_LATITUDE,
      cfg::latitude},
